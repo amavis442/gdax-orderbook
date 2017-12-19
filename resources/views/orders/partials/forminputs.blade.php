@@ -49,7 +49,7 @@
         
             var tradeprice = amount * coinprice;
             
-            $('#tradeprice').val(tradeprice);
+            $('#tradeprice').val(tradeprice.toFixed(2));
         
             return false;
         });

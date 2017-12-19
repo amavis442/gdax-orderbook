@@ -33,8 +33,13 @@ class OrderController extends Controller {
         if ($request->has('trade')) {
             $trade = $request->get('trade');
         }
-
-        return view('orders.create', compact('order', 'trade'));
+        
+        $wallet = 'BTC';
+        if ($request->has('wallet')) {
+            $wallet = $request->get('wallet');
+        }
+        
+        return view('orders.create', compact('order', 'trade','wallet'));
     }
 
     /**

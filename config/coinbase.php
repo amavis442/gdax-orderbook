@@ -9,6 +9,7 @@ return [
     'currency' => env('CURRENCY','EUR'),
     'password' => env('PASSWORD'),
     'api_secret' => env('API_SECRET'),
-    'api_key' => env('API_KEY')
+    'api_key' => env('API_KEY'),
+    'endpoint' => env('GDAX_ENDPOINT')
     
 ];

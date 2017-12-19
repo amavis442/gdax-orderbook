@@ -17,8 +17,8 @@
                             <label before="transfertype" class="col-sm-2 control-label">Transfertype</label>
                             <div class="col-md-4">
                                 <select class="form-control" name="action">
-                                    <option value="DEPOSIT" @if($action == 'DEPOSIT')selected @endif>Deposit</option>
-                                    <option value="WITHDRAW" @if($action == 'WITHDRAW')selected @endif>Deposit</option>
+                                    <option value="DEPOSIT" @if($action == 'deposit')selected @endif>Deposit</option>
+                                    <option value="WITHDRAW" @if($action == 'withdraw')selected @endif>Withdraw</option>
                                 </select>
                             </div>
                         </div>
