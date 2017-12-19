@@ -52,6 +52,7 @@
                     <table class="table table-striped">
                         <thead>
                             <tr>
+                                <th>Datum</th>
                                 <th>Wallet</th>
                                 <th>Trade</th>
                                 <th>Hoeveelheid</th>
@@ -63,6 +64,7 @@
                         <tbody>
                         @foreach($orders as $order)
                         <tr>
+                            <td>{{ $order->created_at->format('d-m-Y') }}</td>
                             <td>{{ $order->wallet }}</td>
                             <td>{{ $order->trade }}</td>
                             <td>{{ $order->amount }}</td>

@@ -21,7 +21,7 @@ class WalletController extends Controller
             $wallets[$wallet] = Wallet::where('wallet',$wallet)->get();
         }
         
-        $orders = Order::orderBy('created_at')->paginate(); // Filled orders.
+        $orders = Order::orderBy('created_at','desc')->paginate(); // Filled orders.
         
         return view('wallets.index', compact('wallets','orders'));
     }
