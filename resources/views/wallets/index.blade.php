@@ -66,9 +66,9 @@
                             <td>{{ $order->wallet }}</td>
                             <td>{{ $order->trade }}</td>
                             <td>{{ $order->amount }}</td>
-                            <td>{{ $order->tradeprice }}</td>
-                            <td>{{ $order->coinprice }}</td>
-                            <td>{{ $order->fee }}</td>
+                            <td>&euro; {{ $order->tradeprice }}</td>
+                            <td>&euro; {{ $order->coinprice }}</td>
+                            <td>&euro; {{ $order->fee > 0.0 ? $order->fee : '0.00' }}</td>
                             <td>
                                 <form action="{{ route('orders.destroy', $order) }}" method="post">
                                     {{ csrf_field()}}
