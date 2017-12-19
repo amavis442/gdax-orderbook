@@ -20,7 +20,11 @@
                         @foreach($wallets as $name=> $wallet)
                         <tr>
                             <td>{{ $name }}</td>
-                            <td>@if($name == config('coinbase.currency'))&euro; @endif{{ $wallet->sum('currency')}}</td>
+                            <td>@if($name == config('coinbase.currency'))&euro;  {!! number_format($wallet->sum('currency'),2) !!}
+                            @else
+                            {!! number_format($wallet->sum('currency'),8) !!}
+                            @endif
+                            </td>
                             @if($name != config('coinbase.currency'))
                             <td> <a href="{{ route('orders.create',['trade'=>'BUY']) }}" class="btn btn-default">Buy</a> |  <a href="{{ route('orders.create',['trade'=>'SELL']) }}" class="btn btn-default">Sell</a></td>
                             @else

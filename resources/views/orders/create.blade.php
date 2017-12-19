@@ -8,7 +8,7 @@
                 <div class="panel-heading">Order</div>
 
                 <div class="panel-body">
-                    <form method="post" action="{{ route('orders.store') }}" class="form-horizontal">
+                    <form method="post" action="{{ route('orders.store') }}" class="form-horizontal" autocomplete="off">
                         {{ csrf_field() }}
                         
                         

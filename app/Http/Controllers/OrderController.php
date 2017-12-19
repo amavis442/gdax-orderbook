@@ -81,7 +81,7 @@ class OrderController extends Controller {
             // Bijschrijven van de EURO rekening
             $currencyWallet = new Wallet();
             $currencyWallet->wallet = config('coinbase.currency');
-            $currencyWallet->currency = $order->tradeprice;
+            $currencyWallet->currency = $order->tradeprice - $order->fee;
             $currencyWallet->status = 'DEPOSIT';
             $order->wallet()->save($currencyWallet);
         }

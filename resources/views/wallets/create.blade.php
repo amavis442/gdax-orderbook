@@ -8,7 +8,7 @@
                 <div class="panel-heading">Dashboard</div>
 
                 <div class="panel-body">
-                    <form method="post" action="{{ route('wallets.store') }}" class="form-horizontal">
+                    <form method="post" action="{{ route('wallets.store') }}" class="form-horizontal" autocomplete="off">
                         {{ csrf_field() }}
                         
                         @include('wallets.partials.forminputs')
