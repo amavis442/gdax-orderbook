@@ -1,6 +1,6 @@
 <input type='hidden' name='walletname' value='{{ $wallet->wallet}}'>
 <div class="form-group">
-    <label before="currency">Bedrag</label>
+    <label before="currency" class="col-sm-2 control-label"> Bedrag</label>
 
     <div class="input-group col-md-4">
         <div class="input-group-addon">&euro;</div>
@@ -10,7 +10,7 @@
 </div>
 
 <div class="form-group">
-    <label before="Fee">Fee</label>
+    <label before="Fee" class="col-sm-2 control-label">Fee</label>
 
     <div class="input-group col-md-4">
         <div class="input-group-addon">&euro;</div>

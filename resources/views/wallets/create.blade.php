@@ -8,13 +8,13 @@
                 <div class="panel-heading">Dashboard</div>
 
                 <div class="panel-body">
-                    <form method="post" action="{{ route('wallets.store') }}">
+                    <form method="post" action="{{ route('wallets.store') }}" class="form-horizontal">
                         {{ csrf_field() }}
                         
                         @include('wallets.partials.forminputs')
 
                         <div class="form-group">
-                            <label before="transfertype">Transfertype</label>
+                            <label before="transfertype" class="col-sm-2 control-label">Transfertype</label>
                             <div class="col-md-4">
                                 <select class="form-control" name="action">
                                     <option value="DEPOSIT" @if($action == 'DEPOSIT')selected @endif>Deposit</option>
