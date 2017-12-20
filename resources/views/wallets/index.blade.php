@@ -94,6 +94,41 @@
     }
     
     
+    function updateProfits(useWallet, currentPrice)
+    {
+        $('.orders').each(function(i, row) {
+            orderid = $(row).find('.orderid').html();
+            wallet = $(row).find('#orderwallet' + orderid).html();
+            trade = $(row).find('#ordertrade' + orderid).html();
+            
+            if (wallet != useWallet || trade != 'BUY') {
+               return true;
+            }
+            
+            amount = $(row).find('#orderamount'+orderid).html();
+            coinprice = $(row).find('#ordercoinprice'+ orderid).html();
+            
+            console.log('Amount ' + amount);
+            console.log('Coinprice bought '+ coinprice);
+            console.log('Coinprice current '+ currentPrice);
+            
+            var diff = 0.00;
+            diff = parseFloat(currentPrice) - parseFloat(coinprice);
+            console.log('Diff ' + diff);
+            
+            var profit = 0.00;
+            profit = (diff * amount).toFixed(2);
+            console.log('Profit ' +profit);
+            
+            $(row).find('#profit' + orderid).html('  (' + profit + ')');
+            if (profit < 0) {
+                $(row).find('#profit' + orderid).css('color','red');
+            } else {
+                $(row).find('#profit' + orderid).css('color','green');
+            }
+        });
+    }
+    
     
     function getCurrencys()
     {
@@ -104,6 +139,8 @@
             $('#waarde_BTC').html('&euro; ' + waarde_btc);
             
             calcPortfolion();
+            
+            updateProfits('BTC', btc);
         });
         
         $.get(endpoint + '/products/ETH-EUR/book', function (data) {
@@ -113,6 +150,8 @@
             $('#waarde_ETH').html('&euro; ' + waarde_eth);
             
             calcPortfolion();
+            
+            updateProfits('ETH', eth);
         });
         
         $.get(endpoint + '/products/LTC-EUR/book', function (data) {
@@ -122,6 +161,8 @@
             $('#waarde_LTC').html('&euro; ' + waarde_ltc);
             
             calcPortfolion();
+            
+            updateProfits('LTC', ltc);
         });
         
         

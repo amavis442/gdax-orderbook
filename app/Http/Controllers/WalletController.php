@@ -132,12 +132,12 @@ class WalletController extends Controller {
     }
 
     public function search(Request $request) {
-        
+
         foreach (['EUR', 'BTC', 'ETH', 'LTC'] as $wallet) {
             $wallets[$wallet] = Wallet::where('wallet', $wallet)->get();
         }
 
-        $tab = 1;
+        $tab = $request->get('tab', 1);
 
         if ($request->has('searchstr')) {
             $searchString = $request->get('searchstr');
@@ -156,8 +156,12 @@ class WalletController extends Controller {
                         ->orWhere('fee', $searchString, $searchMode);
             }
         } else {
-            $ordersFound = Order::orWhere('wallet', $searchString)
-                    ->orWhere('trade', $searchString);
+            $ordersFound = Order::orWhere('trade', $searchString);
+        }
+
+        if ($tab != 1) {
+            $w = [2 => 'BTC', 3 => 'ETH', 4 => 'LTC'];
+            $ordersFound->whereWallet($w[$tab]);
         }
 
         $orders = $ordersFound->orderBy('created_at', 'desc')

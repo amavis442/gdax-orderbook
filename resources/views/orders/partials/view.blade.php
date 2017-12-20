@@ -20,6 +20,7 @@
                         <div class="pull-right">
                             <form method='post' action="{{ route('wallets.order.search') }}" class="form-inline">
                                 {{  csrf_field() }}
+                                <input type="hidden" name="tab" value="{{ $tab }}">
                                 <div class="form-group">
                                     <input type="text" name="searchstr" id="searchstr" class="form-control">
                                 </div>
@@ -62,6 +63,7 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
+                                    <td>#</td>
                                     <th>Datum</th>
                                     <th>Wallet</th>
                                     <th>Trade</th>
@@ -75,13 +77,14 @@
                             </thead>
                             <tbody>
                                 @foreach($orders as $order)
-                                <tr>
+                                <tr class='orders'>
+                                    <td class="orderid">{{ $order->id }}</td>
                                     <td>{{ $order->created_at->format('d-m-Y') }}</td>
-                                    <td>{{ $order->wallet }}</td>
-                                    <td>{{ $order->trade }}</td>
-                                    <td>{{ $order->amount }}</td>
+                                    <td><span id="orderwallet{{ $order->id }}">{{ $order->wallet }}</span></td>
+                                    <td><span id="ordertrade{{ $order->id }}">{{ $order->trade }}</span></td>
+                                    <td><span id="orderamount{{ $order->id }}">{{ $order->amount }}</span></td>
                                     <td>&euro; {{ $order->tradeprice }}</td>
-                                    <td>&euro; {{ $order->coinprice }}</td>
+                                    <td>&euro; <span id="ordercoinprice{{ $order->id }}">{{ $order->coinprice }}</span> <span id="profit{{ $order->id }}"></span></td>
                                     <td>&euro; {{ $order->fee > 0.0 ? $order->fee : '0.00' }}</td>
                                     <td>
                                         <a href="{{ route('orders.edit', $order) }}" class="btn btn-default">Bewerken</a>
