@@ -6,5 +6,3 @@
  */
 
 require('./bootstrap');
-
-require('gdax');
