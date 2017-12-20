@@ -14,6 +14,7 @@
                                 <th>Wallet</th>
                                 <th>Currency</th>
                                 <th>Koers</th>
+                                <th>Koers verschil</th>
                                 <th>Waarde</th>
                                 <th></th>
                             </tr>
@@ -28,11 +29,16 @@
                                     @endif
                                 </td>
                                 @if($name == config('coinbase.currency'))
+                                <td></td>
                                 <td>&euro;  {!! number_format($wallet->sum('currency'),2) !!}</td>
                                 <td>&euro;  {!! number_format($wallet->sum('currency'),2) !!}</td>
+                                
                                 @else
                                 <td>
                                     <span id='koers_{{ $name }}'></span>
+                                </td>
+                                <td>
+                                    <span id='koers_verschil_{{ $name }}'></span>
                                 </td>
                                 <td>
                                     <span id='waarde_{{ $name }}'></span>
@@ -48,7 +54,7 @@
                             @endforeach
                         </tbody>
                         <tr>    
-                            <td colspan='5'>
+                            <td colspan='6'>
                                 <div class='pull-right'>
                                     Portfolio waarde: <span id='portfolio'></span>
                                 </div>
@@ -74,6 +80,11 @@
     var waarde_btc = 0.00;
     var waarde_eth = 0.00;
         
+    var oude_koers_btc = 0.00;
+    var oude_koers_eth = 0.00;
+    var oude_koers_ltc = 0.00;
+    
+    // Maybe place this in array so i can use a 1 function to get the data from gdax and calculate the rest???    
     @foreach($wallets as $name=> $wallet)
     var portfolio_{!! $name !!} = {!! number_format($wallet->sum('currency'),8) !!}; 
     @endforeach
@@ -81,7 +92,7 @@
     $(document).ready(function () {
         getCurrencys();
         
-        setInterval(getCurrencys, 20000);
+        setInterval(getCurrencys, 10000);
     });
     
     function calcPortfolion()
@@ -120,7 +131,7 @@
             profit = (diff * amount).toFixed(2);
             console.log('Profit ' +profit);
             
-            $(row).find('#profit' + orderid).html('  (' + profit + ')');
+            $(row).find('#profit' + orderid).html('&euro; ' + profit);
             if (profit < 0) {
                 $(row).find('#profit' + orderid).css('color','red');
             } else {
@@ -129,12 +140,51 @@
         });
     }
     
+    /** 
+     * WIP
+     */
+    function updateKoers(wallet)
+    {
+        $.get(endpoint + '/products/' + wallet + '-EUR/book', function (data) {
+            var bidprice = data.asks[0][0];    
+            $('#koers_' + wallet).html('&euro; ' + bidprice);
+            if (oude_koers_ltc > bidprice) {
+                $('#koers_' + wallet).css('color','red');
+            } else {
+                $('#koers_' + wallet).css('color','green');
+            }
+            oude_koers_ltc = bidprice;
+        
+            waarde_ltc = (bidprice * portfolio_LTC).toFixed(2);
+            $('#waarde_' + wallet).html('&euro; ' + waarde_ltc);
+            
+            calcPortfolion();
+            
+            updateProfits(wallet, ltc);
+        });
+    }
+    
     
     function getCurrencys()
     {
         $.get(endpoint + '/products/BTC-EUR/book', function (data) {
-            var btc = data.asks[0][0];    
+            var btc = data.asks[0][0];
+            
+            if (oude_koers_btc == 0.00) {
+                oude_koers_btc = btc;
+            }
+            
+            var diff = (oude_koers_btc - btc).toFixed(2);
             $('#koers_BTC').html('&euro; ' + btc);
+            $('#koers_verschil_BTC').html('&euro; ' + diff);
+            
+            if (oude_koers_btc > btc) {
+                $('#koers_verschil_BTC').css('color','red');
+            } else {
+                $('#koers_verschil_BTC').css('color','green');
+            }
+            oude_koers_btc = btc;
+            
             waarde_btc = (btc * portfolio_BTC).toFixed(2);
             $('#waarde_BTC').html('&euro; ' + waarde_btc);
             
@@ -145,7 +195,23 @@
         
         $.get(endpoint + '/products/ETH-EUR/book', function (data) {
             var eth = data.asks[0][0];    
+            
+            if (oude_koers_eth == 0.00) {
+                oude_koers_eth = eth;
+            }
+            
+            
+            var diff = (oude_koers_eth - eth).toFixed(2);
             $('#koers_ETH').html('&euro; ' + eth);
+            $('#koers_verschil_ETH').html('&euro; ' + diff);
+            
+            if (oude_koers_eth > eth) {
+                $('#koers_verschil_ETH').css('color','red');
+            } else {
+                $('#koers_verschil_ETH').css('color','green');
+            }
+            oude_koers_eth = eth;
+        
             waarde_eth = (eth * portfolio_ETH).toFixed(2);
             $('#waarde_ETH').html('&euro; ' + waarde_eth);
             
@@ -156,7 +222,23 @@
         
         $.get(endpoint + '/products/LTC-EUR/book', function (data) {
             var ltc = data.asks[0][0];    
+            
+            if (oude_koers_ltc == 0.00) {
+                oude_koers_ltc = ltc;
+            }
+            
+            var diff = (oude_koers_ltc - ltc).toFixed(2);
+            
             $('#koers_LTC').html('&euro; ' + ltc);
+            $('#koers_verschil_LTC').html('&euro; ' + diff);
+            
+            if (oude_koers_ltc > ltc) {
+                $('#koers_verschil_LTC').css('color','red');
+            } else {
+                $('#koers_verschil_LTC').css('color','green');
+            }
+            oude_koers_ltc = ltc;
+        
             waarde_ltc = (ltc * portfolio_LTC).toFixed(2);
             $('#waarde_LTC').html('&euro; ' + waarde_ltc);
             

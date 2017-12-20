@@ -70,6 +70,7 @@
                                     <th>Hoeveelheid</th>
                                     <th>Handelsprijs</th>
                                     <th>Koers munt</th>
+                                    <th>P/L</th>
                                     <th>Kosten</th>
                                     <th></th>
                                     <th></th>
@@ -84,7 +85,8 @@
                                     <td><span id="ordertrade{{ $order->id }}">{{ $order->trade }}</span></td>
                                     <td><span id="orderamount{{ $order->id }}">{{ $order->amount }}</span></td>
                                     <td>&euro; {{ $order->tradeprice }}</td>
-                                    <td>&euro; <span id="ordercoinprice{{ $order->id }}">{{ $order->coinprice }}</span> <span id="profit{{ $order->id }}"></span></td>
+                                    <td>&euro; <span id="ordercoinprice{{ $order->id }}">{{ $order->coinprice }}</span></td>
+                                    <td><span id="profit{{ $order->id }}"></span></td>
                                     <td>&euro; {{ $order->fee > 0.0 ? $order->fee : '0.00' }}</td>
                                     <td>
                                         <a href="{{ route('orders.edit', $order) }}" class="btn btn-default">Bewerken</a>
