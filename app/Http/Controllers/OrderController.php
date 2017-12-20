@@ -59,7 +59,7 @@ class OrderController extends Controller {
         
         $order->orderhash = $request->get('orderhash');
         if ($request->has('filled')) {
-            $order->filled = $request->get('filled');
+            $order->filled = true;
         } else {
             $order->filled = false;
         }
@@ -141,7 +141,7 @@ class OrderController extends Controller {
         
         $order->orderhash = $request->get('orderhash');
         if ($request->has('filled')) {
-            $order->filled = $request->get('filled');
+            $order->filled = true;
         } else {
             $order->filled = false;
         }

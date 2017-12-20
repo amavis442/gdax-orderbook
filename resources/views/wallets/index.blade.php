@@ -17,6 +17,7 @@
                                 <th>Oude Koers (10 sec interval)</th>
                                 <th>Koers verschil</th>
                                 <th>Waarde</th>
+                                <th>Avg(buy)</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -30,6 +31,7 @@
                                     @endif
                                 </td>
                                 @if($name == config('coinbase.currency'))
+                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td>&euro;  {!! number_format($wallet->sum('currency'),2) !!}</td>
@@ -48,6 +50,9 @@
                                 <td>
                                     <span id='waarde_{{ $name }}'></span>
                                 </td>
+                                <td>
+                                    &euro; {!!  number_format($orderBuyAvg[$name],2) !!}
+                                </td>
                                 @endif
                                 @if($name != config('coinbase.currency'))
                                 <td> <a href="{{ route('orders.create',['trade'=>'BUY','wallet'=> $name]) }}" class="btn btn-default">Buy</a> |  <a href="{{ route('orders.create',['trade'=>'SELL','wallet'=> $name]) }}" class="btn btn-default">Sell</a></td>
@@ -59,7 +64,7 @@
                             @endforeach
                         </tbody>
                         <tr>    
-                            <td colspan='7'>
+                            <td colspan='8'>
                                 <div class='pull-right'>
                                     Portfolio waarde: <span id='portfolio'></span>
                                 </div>

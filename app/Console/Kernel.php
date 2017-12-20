@@ -13,7 +13,8 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        \App\Console\Commands\UpdateOrderCommand::class,
+        \App\Console\Commands\CoinbaseCsvImport::class,
     ];
 
     /**
