@@ -79,7 +79,7 @@
                             </thead>
                             <tbody>
                                 @foreach($orders as $order)
-                                <tr class='orders'>
+                                <tr class="orders @if($order->filled)success @else warning @endif">
                                     <td class="orderid">{{ $order->id }}</td>
                                     <td>{{ $order->created_at->format('d-m-Y') }}</td>
                                     <td><span id="orderwallet{{ $order->id }}">{{ $order->wallet }}</span></td>
