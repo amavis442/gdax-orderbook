@@ -72,7 +72,7 @@
                                     <th>Koers munt</th>
                                     <th>P/L</th>
                                     <th>Kosten</th>
-                                    <th>Filled</th>
+                                    <th>Closed</th>
                                     <th></th>
                                     <th></th>
                                 </tr>

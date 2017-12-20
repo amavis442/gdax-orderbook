@@ -48,7 +48,7 @@
 </div>
 
 <div class="form-group">
-    <label before="amount"  class="col-sm-2 control-label">Filled</label>
+    <label before="amount"  class="col-sm-2 control-label">Closed</label>
     <div class="col-md-1">
         <input type="checkbox" class="form-control" name="filled" id="filled"  @if($order->filled) checked @endif>
     </div>
