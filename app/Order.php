@@ -6,8 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    public function wallet()
+    public function wallet($wallet = 'EUR')
     {
-        return $this->hasOne('App\Wallet');
+        $q = $this->hasOne('App\Wallet');
+        if ($wallet != 'all') {
+            $q->where('wallet', $wallet);
+        }
+        
+        return $q;
     }
+    
+
 }

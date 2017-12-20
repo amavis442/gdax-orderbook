@@ -4,26 +4,41 @@ namespace App\Http\Controllers;
 
 use App\Wallet;
 use Illuminate\Http\Request;
-
 use App\Order;
 
+class WalletController extends Controller {
 
-class WalletController extends Controller
-{
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        foreach (['EUR','BTC','ETH','LTC'] as $wallet) {
-            $wallets[$wallet] = Wallet::where('wallet',$wallet)->get();
+    public function index(Request $request, $tab=1) {
+
+        foreach (['EUR', 'BTC', 'ETH', 'LTC'] as $wallet) {
+            $wallets[$wallet] = Wallet::where('wallet', $wallet)->get();
         }
-        
-        $orders = Order::orderBy('created_at','desc')->paginate(); // Filled orders.
-        
-        return view('wallets.index', compact('wallets','orders'));
+
+        switch ($tab) {
+            case 1:
+                $orderTab = ['EUR', 'BTC', 'ETH', 'LTC'];
+                break;
+            case 2:
+                $orderTab = ['BTC'];
+                break;
+            case 3:
+                $orderTab = ['ETH'];
+                break;
+            case 4:
+                $orderTab = ['LTC'];
+                break;
+            default:
+                $orderTab = ['EUR', 'BTC', 'ETH', 'LTC'];
+                break;
+        }
+        $orders = Order::orderBy('created_at', 'desc')->whereIn('wallet', $orderTab)->paginate(); // Filled orders.
+
+        return view('wallets.index', compact('wallets', 'orders','tab'));
     }
 
     /**
@@ -31,14 +46,12 @@ class WalletController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create(Request $request)
-    {
+    public function create(Request $request) {
         $wallet = new Wallet();
         $wallet->wallet = $request->get('walletname');
         $action = $request->get('action');
-        
-        return view('wallets.create', compact('wallet','action'));
-        
+
+        return view('wallets.create', compact('wallet', 'action'));
     }
 
     /**
@@ -47,13 +60,12 @@ class WalletController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $name = $request->get('walletname');
         $action = $request->get('action');
         $currency = $request->get('currency');
         $fee = $request->get('fee');
-        
+
         $wallet = new Wallet();
         $wallet->wallet = $name;
         if ($action == 'DEPOSIT') {
@@ -65,7 +77,7 @@ class WalletController extends Controller
             $wallet->currency = -$currency;
         }
         $wallet->save();
-        
+
         if ($fee > 0.0) {
             $walletFee = new Wallet();
             $walletFee->wallet = 'EUR';
@@ -74,7 +86,7 @@ class WalletController extends Controller
             dump($wallet->fee());
             $wallet->fee()->save($walletFee);
         }
-        
+
         return redirect()->route('wallets.index');
     }
 
@@ -84,8 +96,7 @@ class WalletController extends Controller
      * @param  \App\Wallet  $wallet
      * @return \Illuminate\Http\Response
      */
-    public function show(Wallet $wallet)
-    {
+    public function show(Wallet $wallet) {
         //
     }
 
@@ -95,8 +106,7 @@ class WalletController extends Controller
      * @param  \App\Wallet  $wallet
      * @return \Illuminate\Http\Response
      */
-    public function edit(Wallet $wallet)
-    {
+    public function edit(Wallet $wallet) {
         //
     }
 
@@ -107,8 +117,7 @@ class WalletController extends Controller
      * @param  \App\Wallet  $wallet
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Wallet $wallet)
-    {
+    public function update(Request $request, Wallet $wallet) {
         //
     }
 
@@ -118,8 +127,8 @@ class WalletController extends Controller
      * @param  \App\Wallet  $wallet
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Wallet $wallet)
-    {
+    public function destroy(Wallet $wallet) {
         //
     }
+
 }

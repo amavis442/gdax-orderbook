@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <div class="row">
-        <div class="col-md-8 col-md-offset-2">
+        <div class="col-md-10 col-md-offset-2">
             <div class="panel panel-default">
                 <div class="panel-heading">Wallets</div>
 
@@ -62,66 +62,7 @@
     </div>
 
 
-    <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="panel panel-default">
-                <div class="panel-heading">Orders</div>
-
-                <div class="panel-body">
-
-                    <div class='row'>
-                        <div class='col-md-12'>
-                            <a href="{{ route('orders.create') }}" class="btn btn-default">Add order</a>
-                        </div>
-                    </div>
-                    
-                    <div class='row'>
-                        <div class='col-md-12'>
-                            {{ $orders->links() }}
-                        </div>
-                    </div>
-                    
-                    <div class='row'>
-                        <div class='col-md-12'>
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Datum</th>
-                                        <th>Wallet</th>
-                                        <th>Trade</th>
-                                        <th>Hoeveelheid</th>
-                                        <th>Handelsprijs</th>
-                                        <th>Koers munt</th>
-                                        <th>Kosten</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($orders as $order)
-                                    <tr>
-                                        <td>{{ $order->created_at->format('d-m-Y') }}</td>
-                                        <td>{{ $order->wallet }}</td>
-                                        <td>{{ $order->trade }}</td>
-                                        <td>{{ $order->amount }}</td>
-                                        <td>&euro; {{ $order->tradeprice }}</td>
-                                        <td>&euro; {{ $order->coinprice }}</td>
-                                        <td>&euro; {{ $order->fee > 0.0 ? $order->fee : '0.00' }}</td>
-                                        <td>
-                                            <form action="{{ route('orders.destroy', $order) }}" method="post">
-                                                {{ csrf_field()}}
-                                                {{ method_field('DELETE') }}
-                                                <input type="submit" value="Verwijderen" class="btn btn-default">
-                                            </form>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('orders.partials.view')
 
 </div>
 @endsection
@@ -138,8 +79,21 @@
     @endforeach
 
     $(document).ready(function () {
+        getCurrencys();
+        
         setInterval(getCurrencys, 20000);
     });
+    
+    function calcPortfolion()
+    {
+        var portfolio_value = parseFloat(waarde_btc) + parseFloat(waarde_eth) + parseFloat(waarde_ltc) + parseFloat(portfolio_EUR);
+        
+        console.log(portfolio_value);
+        
+        $('#portfolio').html('&euro; ' + portfolio_value.toFixed(2));
+    }
+    
+    
     
     function getCurrencys()
     {
@@ -148,6 +102,8 @@
             $('#koers_BTC').html('&euro; ' + btc);
             waarde_btc = (btc * portfolio_BTC).toFixed(2);
             $('#waarde_BTC').html('&euro; ' + waarde_btc);
+            
+            calcPortfolion();
         });
         
         $.get(endpoint + '/products/ETH-EUR/book', function (data) {
@@ -155,6 +111,8 @@
             $('#koers_ETH').html('&euro; ' + eth);
             waarde_eth = (eth * portfolio_ETH).toFixed(2);
             $('#waarde_ETH').html('&euro; ' + waarde_eth);
+            
+            calcPortfolion();
         });
         
         $.get(endpoint + '/products/LTC-EUR/book', function (data) {
@@ -162,13 +120,11 @@
             $('#koers_LTC').html('&euro; ' + ltc);
             waarde_ltc = (ltc * portfolio_LTC).toFixed(2);
             $('#waarde_LTC').html('&euro; ' + waarde_ltc);
+            
+            calcPortfolion();
         });
         
-        var portfolio_value = parseFloat(waarde_btc) + parseFloat(waarde_eth) + parseFloat(waarde_ltc) + parseFloat(portfolio_EUR);
         
-        console.log(portfolio_value);
-        
-        $('#portfolio').html('&euro; ' + portfolio_value.toFixed(2));
     }
 </script>
 

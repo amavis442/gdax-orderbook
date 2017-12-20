@@ -56,6 +56,14 @@ class OrderController extends Controller {
         $order->coinprice = $request->get('coinprice');
         $order->tradeprice = $request->get('tradeprice');
         $order->fee = $request->get('fee');
+        
+        $order->orderhash = $request->get('orderhash');
+        if ($request->has('filled')) {
+            $order->filled = $request->get('filled');
+        } else {
+            $order->filled = false;
+        }
+        
         $order->save();
 
         if ($order->trade == 'BUY') {
@@ -111,7 +119,8 @@ class OrderController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function edit(Order $order) {
-        //
+        
+        return view('orders.edit', compact('order'));
     }
 
     /**
@@ -122,7 +131,55 @@ class OrderController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Order $order) {
-        //
+        
+        $order->trade = $request->get('trade');
+        $order->wallet = $request->get('wallet');
+        $order->amount = $request->get('amount');
+        $order->coinprice = $request->get('coinprice');
+        $order->tradeprice = $request->get('tradeprice');
+        $order->fee = $request->get('fee');
+        
+        $order->orderhash = $request->get('orderhash');
+        if ($request->has('filled')) {
+            $order->filled = $request->get('filled');
+        } else {
+            $order->filled = false;
+        }
+        
+        $order->save();
+
+        if ($order->trade == 'BUY') {            
+            // Bijschrijven bij gekozen wallet
+            $wallet = $order->wallet($order->wallet)->first();
+            $wallet->wallet = $order->wallet;
+            $wallet->currency = $order->amount;
+            $wallet->status = 'DEPOSIT';
+            $order->wallet()->save($wallet);
+
+            // Afschrijven van de EURO rekening
+            $currencyWallet = $order->wallet(config('coinbase.currency'))->first();
+            $currencyWallet->currency = -$order->tradeprice;
+            $currencyWallet->status = 'WITHDRAW';
+            $order->wallet()->save($currencyWallet);
+        }
+
+
+        if ($order->trade == 'SELL') {
+            // Afschrijven bij gekozen wallet
+            $wallet = $order->wallet($order->wallet)->first();
+            $wallet->wallet = $order->wallet;
+            $wallet->currency = -$order->amount;
+            $wallet->status = 'WITHDRAW';
+            $order->wallet()->save($wallet);
+
+            // Bijschrijven van de EURO rekening
+            $currencyWallet = $order->wallet(config('coinbase.currency'))->first();
+            $currencyWallet->currency = $order->tradeprice - $order->fee;
+            $currencyWallet->status = 'DEPOSIT';
+            $order->wallet()->save($currencyWallet);
+        }
+        
+        return redirect()->route('wallets.index');
     }
 
     /**
@@ -132,7 +189,7 @@ class OrderController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function destroy(Order $order) {
-        $order->wallet()->delete();
+        $order->wallet('all')->delete();
         $order->delete();
 
         return redirect()->route('wallets.index');
