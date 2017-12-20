@@ -8,16 +8,46 @@
                 <div class='row'>
                     <div class='col-md-12'>
                         <div class='pull-right'>
-                        <a href="{{ route('orders.create') }}" class="btn btn-default">Add order</a>
+                            <a href="{{ route('orders.create') }}" class="btn btn-default">Add order</a>
                         </div>
                     </div>
                 </div>
+                
+                <div class="row"><br/></div>
+                
+                <div class='row'>
+                    <div class='col-md-12'>
+                        <div class="pull-right">
+                            <form method='post' action="{{ route('wallets.order.search') }}" class="form-inline">
+                                {{  csrf_field() }}
+                                <div class="form-group">
+                                    <input type="text" name="searchstr" id="searchstr" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <select name="searchmode" id="searchmode" class="form-control">
+                                        <option value="">&mdash;</option>
+                                        <option value="like">like</option>
+                                        <option value=">">&gt;</option>
+                                        <option value="<">&lt;</option>
+                                        <option value="=">=</option>
+                                        
+                                    </select>
+                                </div>
+                
+                                <button type="submit" class="btn btn-default">Zoeken</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <br/>
 
                 <div class='row'>
                     <div class='col-md-12'>
                         {{ $orders->links() }}
                     </div>
                 </div>
+
+
 
                 <div class='row'>
                     <div class='col-md-12'>

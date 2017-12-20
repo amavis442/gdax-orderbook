@@ -13,7 +13,7 @@ class WalletController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request, $tab=1) {
+    public function index(Request $request, $tab = 1) {
 
         foreach (['EUR', 'BTC', 'ETH', 'LTC'] as $wallet) {
             $wallets[$wallet] = Wallet::where('wallet', $wallet)->get();
@@ -38,7 +38,7 @@ class WalletController extends Controller {
         }
         $orders = Order::orderBy('created_at', 'desc')->whereIn('wallet', $orderTab)->paginate(); // Filled orders.
 
-        return view('wallets.index', compact('wallets', 'orders','tab'));
+        return view('wallets.index', compact('wallets', 'orders', 'tab'));
     }
 
     /**
@@ -129,6 +129,41 @@ class WalletController extends Controller {
      */
     public function destroy(Wallet $wallet) {
         //
+    }
+
+    public function search(Request $request) {
+        
+        foreach (['EUR', 'BTC', 'ETH', 'LTC'] as $wallet) {
+            $wallets[$wallet] = Wallet::where('wallet', $wallet)->get();
+        }
+
+        $tab = 1;
+
+        if ($request->has('searchstr')) {
+            $searchString = $request->get('searchstr');
+            $searchMode = $request->get('searchmode');
+            session(['searchString' => $searchString, 'searchMode' => $searchMode]);
+        } else {
+            $searchString = session('searchString');
+            $searchMode = session('searchMode');
+        }
+
+        if (is_numeric($searchString) || is_float($searchString)) {
+            if (in_array($searchMode, ['=', '>', '<'])) {
+                $ordersFound = Order::orWhere('amount', $searchString, $searchMode)
+                        ->orWhere('tradeprice', $searchString, $searchMode)
+                        ->orWhere('coinprice', $searchString, $searchMode)
+                        ->orWhere('fee', $searchString, $searchMode);
+            }
+        } else {
+            $ordersFound = Order::orWhere('wallet', $searchString)
+                    ->orWhere('trade', $searchString);
+        }
+
+        $orders = $ordersFound->orderBy('created_at', 'desc')
+                ->paginate(); // Filled orders.
+
+        return view('wallets.index', compact('wallets', 'orders', 'tab'));
     }
 
 }

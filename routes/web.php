@@ -20,6 +20,7 @@ Route::resource('orders','OrderController')->middleware(['auth']);
 Route::resource('wallets','WalletController')->middleware(['auth']);
 Route::get('/wallets/tab/{tab?}','WalletController@index')->middleware(['auth'])->name('wallets.index.tab');
 
+Route::match(['get','post'],'/search/orders','WalletController@search')->middleware(['auth'])->name('wallets.order.search');
 
 Auth::routes();
 
