@@ -14,6 +14,7 @@
                                 <th>Wallet</th>
                                 <th>Currency</th>
                                 <th>Koers</th>
+                                <th>Oude Koers (10 sec interval)</th>
                                 <th>Koers verschil</th>
                                 <th>Waarde</th>
                                 <th></th>
@@ -30,12 +31,16 @@
                                 </td>
                                 @if($name == config('coinbase.currency'))
                                 <td></td>
+                                <td></td>
                                 <td>&euro;  {!! number_format($wallet->sum('currency'),2) !!}</td>
                                 <td>&euro;  {!! number_format($wallet->sum('currency'),2) !!}</td>
                                 
                                 @else
                                 <td>
                                     <span id='koers_{{ $name }}'></span>
+                                </td>
+                                <td>
+                                    <span id='koers_oude_{{ $name }}'></span>
                                 </td>
                                 <td>
                                     <span id='koers_verschil_{{ $name }}'></span>
@@ -54,7 +59,7 @@
                             @endforeach
                         </tbody>
                         <tr>    
-                            <td colspan='6'>
+                            <td colspan='7'>
                                 <div class='pull-right'>
                                     Portfolio waarde: <span id='portfolio'></span>
                                 </div>
@@ -174,11 +179,12 @@
                 oude_koers_btc = btc;
             }
             
-            var diff = (oude_koers_btc - btc).toFixed(2);
+            var diff = (btc - oude_koers_btc).toFixed(2);
             $('#koers_BTC').html('&euro; ' + btc);
+            $('#koers_oude_BTC').html('&euro; ' + oude_koers_btc);
             $('#koers_verschil_BTC').html('&euro; ' + diff);
             
-            if (oude_koers_btc > btc) {
+            if (diff < 0) {
                 $('#koers_verschil_BTC').css('color','red');
             } else {
                 $('#koers_verschil_BTC').css('color','green');
@@ -201,11 +207,12 @@
             }
             
             
-            var diff = (oude_koers_eth - eth).toFixed(2);
+            var diff = (eth - oude_koers_eth).toFixed(2);
             $('#koers_ETH').html('&euro; ' + eth);
+            $('#koers_oude_ETH').html('&euro; ' + oude_koers_eth);
             $('#koers_verschil_ETH').html('&euro; ' + diff);
             
-            if (oude_koers_eth > eth) {
+            if (diff < 0) {
                 $('#koers_verschil_ETH').css('color','red');
             } else {
                 $('#koers_verschil_ETH').css('color','green');
@@ -227,12 +234,13 @@
                 oude_koers_ltc = ltc;
             }
             
-            var diff = (oude_koers_ltc - ltc).toFixed(2);
+            var diff = (ltc - oude_koers_ltc).toFixed(2);
             
             $('#koers_LTC').html('&euro; ' + ltc);
+            $('#koers_oude_LTC').html('&euro; ' + oude_koers_ltc);
             $('#koers_verschil_LTC').html('&euro; ' + diff);
             
-            if (oude_koers_ltc > ltc) {
+            if (diff < 0) {
                 $('#koers_verschil_LTC').css('color','red');
             } else {
                 $('#koers_verschil_LTC').css('color','green');
