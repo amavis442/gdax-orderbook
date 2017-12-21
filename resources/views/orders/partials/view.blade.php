@@ -79,9 +79,12 @@
                             </thead>
                             <tbody>
                                 @foreach($orders as $order)
-                                <tr class="orders @if($order->filled)success @else warning @endif">
+                                <tr class="orders 
+                                    @if($order->trade == 'BUY')
+                                    @if($order->filled)success @else danger @endif
+                                    @endif">
                                     <td class="orderid">{{ $order->id }}</td>
-                                    <td>{{ $order->created_at->format('d-m-Y') }}</td>
+                                    <td>{{ $order->created_at->format('d-m-Y H:i') }}</td>
                                     <td><span id="orderwallet{{ $order->id }}">{{ $order->wallet }}</span></td>
                                     <td><span id="ordertrade{{ $order->id }}">{{ $order->trade }}</span></td>
                                     <td><span id="orderamount{{ $order->id }}">{{ $order->amount }}</span></td>

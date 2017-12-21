@@ -11,6 +11,9 @@ use App\Coinbase\CoinbaseExchange;
 use App\Order;
 use App\Services\OrderService;
 
+use App\User;
+use App\Notifications\Telegram;
+
 class UpdateOrdersJob implements ShouldQueue {
 
     use Dispatchable,
@@ -38,8 +41,8 @@ class UpdateOrdersJob implements ShouldQueue {
         $coinbase = new CoinbaseExchange(config('coinbase.api_key'), config('coinbase.api_secret'), config('coinbase.password'));
         $response = $coinbase->getFills();
 
-
-
+        $user = User::find(1);
+        $n = 1;
         foreach ($response as $orderfilled) {
             $order = Order::whereOrderhash($orderfilled->order_id)->first();
             if (!$order) {
@@ -56,7 +59,25 @@ class UpdateOrdersJob implements ShouldQueue {
                 
       
                 $this->orderService->create($data);
+                
+                $user->notify(new Telegram($data));
+
+            } else {
+                // Voor testen
+                if ($n == 1) {
+                    $data['wallet'] = substr($orderfilled->product_id, 0, 3);
+                    $data['trade'] = strtoupper($orderfilled->side);
+                    $data['amount'] = $orderfilled->size;
+                    $data['coinprice'] = $orderfilled->price;
+                    $data['tradeprice'] = $data['amount'] * $data['coinprice'];
+                    $data['fee'] = $orderfilled->fee;
+                    $data['orderhash'] = $orderfilled->order_id;
+
+                    $data['created_at'] = \Carbon\Carbon::parse($orderfilled->created_at)->format('Y-m-d H:i:s');
+                    $user->notify(new Telegram($data));
+                }
             }
+            $n++;
         }
     }
 
