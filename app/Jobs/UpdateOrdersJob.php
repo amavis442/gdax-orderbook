@@ -44,9 +44,11 @@ class UpdateOrdersJob implements ShouldQueue {
         $user = User::find(1);
 
         foreach ($response as $orderfilled) {
-            $order = Order::whereOrderhash($orderfilled->order_id)->first();
+            $order = Order::whereTradeId($orderfilled->trade_id)->first();
+            
             $data['amount'] = $orderfilled->size;
-            if (!$order || ($order->orderhash == $orderfilled->order_id && substr($order->amount,0,6) !=  substr($orderfilled->size,0,6))) {
+            if (!$order) {
+                
                 $data = [];
                 $data['wallet'] = substr($orderfilled->product_id, 0, 3);
                 $data['trade'] = strtoupper($orderfilled->side);
@@ -55,7 +57,7 @@ class UpdateOrdersJob implements ShouldQueue {
                 $data['tradeprice'] = $data['amount'] * $data['coinprice'];
                 $data['fee'] = $orderfilled->fee;
                 $data['orderhash'] = $orderfilled->order_id;
-
+                $data['trade_id'] = $orderfilled->trade_id;
                 $data['created_at'] = \Carbon\Carbon::parse($orderfilled->created_at)->format('Y-m-d H:i:s');
                 
       

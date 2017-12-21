@@ -17,6 +17,8 @@ class OrderService {
         $order->fee = $data['fee'];
         
         $order->orderhash = $data['orderhash'];
+        $order->trade_id = $data['trade_id'];
+        
         $order->filled = false;
         
         if(isset($data['created_at'])) {
