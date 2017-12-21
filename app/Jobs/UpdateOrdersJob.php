@@ -42,7 +42,7 @@ class UpdateOrdersJob implements ShouldQueue {
         $response = $coinbase->getFills();
 
         $user = User::find(1);
-        $n = 1;
+
         foreach ($response as $orderfilled) {
             $order = Order::whereOrderhash($orderfilled->order_id)->first();
             if (!$order) {
@@ -62,22 +62,7 @@ class UpdateOrdersJob implements ShouldQueue {
                 
                 $user->notify(new Telegram($data));
 
-            } else {
-                // Voor testen
-                if ($n == 1) {
-                    $data['wallet'] = substr($orderfilled->product_id, 0, 3);
-                    $data['trade'] = strtoupper($orderfilled->side);
-                    $data['amount'] = $orderfilled->size;
-                    $data['coinprice'] = $orderfilled->price;
-                    $data['tradeprice'] = $data['amount'] * $data['coinprice'];
-                    $data['fee'] = $orderfilled->fee;
-                    $data['orderhash'] = $orderfilled->order_id;
-
-                    $data['created_at'] = \Carbon\Carbon::parse($orderfilled->created_at)->format('Y-m-d H:i:s');
-                    $user->notify(new Telegram($data));
-                }
-            }
-            $n++;
+            } 
         }
     }
 
