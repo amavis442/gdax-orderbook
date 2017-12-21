@@ -45,7 +45,8 @@ class UpdateOrdersJob implements ShouldQueue {
 
         foreach ($response as $orderfilled) {
             $order = Order::whereOrderhash($orderfilled->order_id)->first();
-            if (!$order) {
+            $data['amount'] = $orderfilled->size;
+            if (!$order || ($order->orderhash == $orderfilled->order_id && substr($order->amount,0,6) !=  substr($orderfilled->size,0,6))) {
                 $data = [];
                 $data['wallet'] = substr($orderfilled->product_id, 0, 3);
                 $data['trade'] = strtoupper($orderfilled->side);
