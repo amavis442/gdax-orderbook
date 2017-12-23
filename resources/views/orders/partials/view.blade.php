@@ -1,5 +1,5 @@
 <div class="row">
-    <div class="col-md-10 col-md-offset-2">
+    <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">Orders</div>
 
@@ -13,7 +13,9 @@
                     </div>
                 </div>
                 
-                <div class="row"><br/></div>
+                <div class="row">
+                    <br/>
+                </div>
                 
                 <div class='row'>
                     <div class='col-md-12'>
@@ -22,19 +24,43 @@
                                 {{  csrf_field() }}
                                 <input type="hidden" name="tab" value="{{ $tab }}">
                                 <div class="form-group">
-                                    <input type="text" name="searchstr" id="searchstr" class="form-control">
+                                    <label>Filter</label>
+                                    <label class="radio-inline">
+                                        <input type="radio" id="inlineCheckbox1" name="searchBuySell" value="all" @if($searchBuySell == 'all') checked @endif>Buy/Sell
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" id="inlineCheckbox2" name="searchBuySell" value="buy" @if($searchBuySell == 'buy') checked @endif>Buy
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" id="inlineCheckbox3" name="searchBuySell" value="sell" @if($searchBuySell == 'sell') checked @endif>Sell
+                                    </label>
+                                </div> | 
+                                <div class="form-group">
+                                    <label class="radio-inline">
+                                        <input type="radio" id="inlineCheckbox1" name="searchOpen" value="all" @if($searchOpen == 'all') checked @endif>All
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" id="inlineCheckbox2" name="searchOpen" value="open" @if($searchOpen == 'open') checked @endif>open
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" id="inlineCheckbox3" name="searchOpen" value="closed" @if($searchOpen == 'closed') checked @endif>closed
+                                    </label>
+        
+                                </div> | 
+                                <div class="form-group">
+                                    <input type="text" name="searchString" id="searchstr" class="form-control" value='@if(isset($searchString)) {{ $searchString }} @endif '>
                                 </div>
                                 <div class="form-group">
-                                    <select name="searchmode" id="searchmode" class="form-control">
+                                    <select name="searchMode" id="searchmode" class="form-control">
                                         <option value="">&mdash;</option>
                                         <option value="like">like</option>
                                         <option value=">">&gt;</option>
                                         <option value="<">&lt;</option>
                                         <option value="=">=</option>
-                                        
+
                                     </select>
                                 </div>
-                
+
                                 <button type="submit" class="btn btn-default">Zoeken</button>
                             </form>
                         </div>
@@ -72,6 +98,8 @@
                                     <th>Koers munt</th>
                                     <th>P/L</th>
                                     <th>Kosten</th>
+                                    <th>Verkocht voor</th>
+                                    <th>Genomen P/L</th>
                                     <th>Closed</th>
                                     <th></th>
                                     <th></th>
@@ -92,7 +120,10 @@
                                     <td>&euro; <span id="ordercoinprice{{ $order->id }}">{{ $order->coinprice }}</span></td>
                                     <td><span id="profit{{ $order->id }}"></span></td>
                                     <td>&euro; {{ $order->fee > 0.0 ? $order->fee : '0.00' }}</td>
-                                    <td>{{ $order->filled }}</td>
+                                    <td>&euro; {{ $order->soldfor > 0.0 ? number_format($order->soldfor,2) : '0.00' }}</td>
+                                    <td>&euro; {{ $order->profit > 0.0 ? number_format($order->profit,2) : '0.00' }}</td>
+                                    
+                                    <td><span id="ordercoinclosed{{ $order->id }}">{{ $order->filled }}</a></td>
                                     <td>
                                         <a href="{{ route('orders.edit', $order) }}" class="btn btn-default">Bewerken</a>
                                     </td>

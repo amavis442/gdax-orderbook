@@ -55,6 +55,12 @@ class OrderController extends Controller {
         $order->amount = $request->get('amount');
         $order->coinprice = $request->get('coinprice');
         $order->tradeprice = $request->get('tradeprice');
+        $order->soldfor = $request->get('soldfor',0.0);
+        
+        if ($order->soldfor > 0) {
+            $order->profit = number_format(($order->soldfor - $order->coinprice) *  $order->amount,2);
+        }
+        
         $order->fee = $request->get('fee');
         
         $order->orderhash = $request->get('orderhash');
@@ -138,6 +144,11 @@ class OrderController extends Controller {
         $order->coinprice = $request->get('coinprice');
         $order->tradeprice = $request->get('tradeprice');
         $order->fee = $request->get('fee');
+        $order->soldfor = $request->get('soldfor',0.0);
+        
+        if ($order->soldfor > 0) {
+            $order->profit = number_format(($order->soldfor - $order->coinprice) *  $order->amount,2);
+        }
         
         $order->orderhash = $request->get('orderhash');
         if ($request->has('filled')) {

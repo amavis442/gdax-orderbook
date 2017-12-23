@@ -41,6 +41,15 @@
 </div>
 
 <div class="form-group">
+    <label before="soldfor"  class="col-sm-2 control-label">Verkocht voor</label>
+
+    <div class="input-group col-md-4">
+        <div class="input-group-addon">&euro;</div>
+        <input type="text" class="form-control" name="soldfor" id="soldfor" placeholder="00.00" value="{{ $order->soldfor }}">
+    </div>
+</div>
+
+<div class="form-group">
     <label before="amount"  class="col-sm-2 control-label">Orderhash</label>
     <div class="col-md-10">
         <input type="text" class="form-control" name="orderhash" id="orderhash" placeholder="" value="{{ $order->orderhash }}">

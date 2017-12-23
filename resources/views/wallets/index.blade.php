@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <div class="row">
-        <div class="col-md-10 col-md-offset-2">
+        <div class="col-md-12">
             <div class="panel panel-default">
                 <div class="panel-heading">Wallets</div>
 
@@ -14,9 +14,10 @@
                                 <th>Wallet</th>
                                 <th>Currency</th>
                                 <th>Koers</th>
-                                <th>Oude Koers (10 sec interval)</th>
+                                <th>Oude Koers</th>
                                 <th>Koers verschil</th>
                                 <th>Waarde</th>
+                                <th>Sells-Buys</th>
                                 <th>Avg(buy)</th>
                                 <th></th>
                             </tr>
@@ -31,6 +32,7 @@
                                     @endif
                                 </td>
                                 @if($name == config('coinbase.currency'))
+                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -51,6 +53,9 @@
                                     <span id='waarde_{{ $name }}'></span>
                                 </td>
                                 <td>
+                                    &euro; {!!  number_format($diffSellsBuys[$name],2) !!}
+                                </td>
+                                <td>
                                     &euro; {!!  number_format($orderBuyAvg[$name],2) !!}
                                 </td>
                                 @endif
@@ -64,7 +69,7 @@
                             @endforeach
                         </tbody>
                         <tr>    
-                            <td colspan='8'>
+                            <td colspan='9'>
                                 <div class='pull-right'>
                                     Portfolio waarde: <span id='portfolio'></span>
                                 </div>
@@ -102,7 +107,7 @@
     $(document).ready(function () {
         getCurrencys();
         
-        setInterval(getCurrencys, 10000);
+        setInterval(getCurrencys, 1100);
     });
     
     function calcPortfolion()
@@ -121,8 +126,8 @@
             orderid = $(row).find('.orderid').html();
             wallet = $(row).find('#orderwallet' + orderid).html();
             trade = $(row).find('#ordertrade' + orderid).html();
-            
-            if (wallet != useWallet || trade != 'BUY') {
+            ordercoinclosed = $(row).find('#ordercoinclosed' + orderid).html();
+            if (wallet != useWallet || trade != 'BUY' || ordercoinclosed == 1) {
                return true;
             }
             
@@ -156,6 +161,7 @@
     function updateKoers(wallet)
     {
         $.get(endpoint + '/products/' + wallet + '-EUR/book', function (data) {
+
             var bidprice = data.asks[0][0];    
             $('#koers_' + wallet).html('&euro; ' + bidprice);
             if (oude_koers_ltc > bidprice) {
