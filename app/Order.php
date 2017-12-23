@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    protected $cast = [
+        'profit' => 'decimal'
+    ];
+    
     public function wallet($wallet = 'EUR')
     {
         $q = $this->hasOne('App\Wallet');

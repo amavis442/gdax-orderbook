@@ -15,6 +15,7 @@ class WalletController extends Controller {
      */
     public function index(Request $request, $tab = 1) {
 
+        /*
         foreach (['EUR', 'BTC', 'ETH', 'LTC'] as $wallet) {
             $wallets[$wallet] = Wallet::where('wallet', $wallet)->get();
             $orderBuyAvg[$wallet] = Order::whereWallet($wallet)->whereTrade('BUY')->whereFilled(0)->get()->avg('coinprice');
@@ -38,8 +39,12 @@ class WalletController extends Controller {
                 break;
         }
         $orders = Order::orderBy('created_at', 'desc')->whereIn('wallet', $orderTab)->paginate(); // Filled orders.
-
+        
         return view('wallets.index', compact('wallets', 'orders', 'tab', 'orderBuyAvg'));
+         * 
+         */
+        session(['tab' => $tab]);
+        return $this->search($request, $tab);
     }
 
     /**
@@ -132,46 +137,78 @@ class WalletController extends Controller {
         //
     }
 
-    public function search(Request $request) {
+    public function search(Request $request, $tab = 1 ) {
 
         foreach (['EUR', 'BTC', 'ETH', 'LTC'] as $wallet) {
             $wallets[$wallet] = Wallet::where('wallet', $wallet)->get();
             $orderBuyAvg[$wallet] = Order::whereWallet($wallet)->whereTrade('BUY')->whereFilled(0)->get()->avg('coinprice');
+                    
+            $buys = Order::whereWallet($wallet)->where('created_at','>=',date('Y-m-d'). ' 00:00:00' )->whereTrade('BUY')->get()->sum('tradeprice');
+            $sells = Order::whereWallet($wallet)->where('created_at', '>=',date('Y-m-d') . ' 00:00:00')->whereTrade('SELL')->get()->sum('tradeprice');
+            
+            $diffSellsBuys[$wallet] = $sells - $buys;
+
         }
 
-        $tab = $request->get('tab', 1);
-
-        if ($request->has('searchstr')) {
-            $searchString = $request->get('searchstr');
-            $searchMode = $request->get('searchmode');
-            session(['searchString' => $searchString, 'searchMode' => $searchMode]);
-        } else {
-            $searchString = session('searchString');
-            $searchMode = session('searchMode');
+        $ordersFound = Order::Query();
+        
+       
+        $tab = session('tab', $tab);               
+               
+        $searchBuySell = $request->get('searchBuySell', session('searchBuySell', 'all'));
+        session(['searchBuySell' => $searchBuySell]);
+        
+        
+        $searchOpen = $request->get('searchOpen', session('searchOpen', 'all'));
+        session(['searchOpen' => $searchOpen]);
+        
+        
+        $searchString = $request->get('searchString',session('searchString'));
+        session(['searchString' => $searchString]);
+               
+        $searchMode = $request->get('searchMode', session('searchMode'));
+        session(['searchMode' => $searchMode]);
+       
+        if ($searchString) {
+            if (is_numeric($searchString) || is_float($searchString)) {
+                if (in_array($searchMode, ['=', '>', '<'])) {
+                    $ordersFound->orWhere('amount', $searchMode, $searchString )
+                            ->orWhere('tradeprice',$searchMode, $searchString)
+                            ->orWhere('coinprice', $searchMode, $searchString)
+                            ->orWhere('fee', $searchMode,$searchString);
+                            
+                }
+            } 
+        } 
+        
+        if($searchOpen == 'open') {
+             $ordersFound = $ordersFound->whereTrade('BUY')->whereFilled(0);
         }
 
-        if (is_numeric($searchString) || is_float($searchString)) {
-            if (in_array($searchMode, ['=', '>', '<'])) {
-                $ordersFound = Order::orWhere('amount', $searchString, $searchMode)
-                        ->orWhere('tradeprice', $searchString, $searchMode)
-                        ->orWhere('coinprice', $searchString, $searchMode)
-                        ->orWhere('fee', $searchString, $searchMode);
-            }
-        } else {
-            $ordersFound = Order::orWhere('trade', $searchString);
+        if($searchOpen == 'closed') {
+             $ordersFound = $ordersFound->whereTrade('BUY')->whereFilled(1);
         }
-
+        
+        if ($searchBuySell == 'buy') {
+            $ordersFound = $ordersFound->whereTrade('BUY');
+        }
+        if ($searchBuySell == 'sell') {
+            $ordersFound = $ordersFound->whereTrade('Sell');
+        }
+        
         if ($tab != 1) {
             $w = [2 => 'BTC', 3 => 'ETH', 4 => 'LTC'];
             $ordersFound->whereWallet($w[$tab]);
         }
+        
         if (!isset($ordersFound)) {
             $ordersFound = Order::Query();
         }
+        
         $orders = $ordersFound->orderBy('created_at', 'desc')
                 ->paginate(); // Filled orders.
 
-        return view('wallets.index', compact('wallets', 'orders', 'tab', 'orderBuyAvg'));
+        return view('wallets.index', compact('wallets', 'orders', 'tab', 'diffSellsBuys','orderBuyAvg', 'searchString','searchMode','searchBuySell','searchOpen'));
     }
 
 }
