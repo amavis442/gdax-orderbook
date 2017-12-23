@@ -41,16 +41,19 @@
                                 
                                 @else
                                 <td>
-                                    <span id='koers_{{ $name }}'></span>
+                                    <span class='koers_{{ $name }}'></span>
                                 </td>
                                 <td>
-                                    <span id='koers_oude_{{ $name }}'></span>
+                                    <span class='koers_oude_{{ $name }}'></span>
                                 </td>
                                 <td>
-                                    <span id='koers_verschil_{{ $name }}'></span>
+                                    <span class='koers_verschil_{{ $name }}'></span>
                                 </td>
                                 <td>
-                                    <span id='waarde_{{ $name }}'></span>
+                                    <span class='waarde_{{ $name }}'></span>
+                                </td>
+                                <td>
+                                    &euro; {!!  number_format($diffSellsBuys[$name],2) !!}
                                 </td>
                                 <td>
                                     &euro; {!!  number_format($diffSellsBuys[$name],2) !!}
@@ -71,7 +74,7 @@
                         <tr>    
                             <td colspan='9'>
                                 <div class='pull-right'>
-                                    Portfolio waarde: <span id='portfolio'></span>
+                                    Portfolio waarde: <span class='portfolioValue'></span>
                                 </div>
                             </td>
                         </tr>
@@ -110,13 +113,13 @@
         setInterval(getCurrencys, 1100);
     });
     
-    function calcPortfolion()
+    function calcPortfolioCurrentValue()
     {
         var portfolio_value = parseFloat(waarde_btc) + parseFloat(waarde_eth) + parseFloat(waarde_ltc) + parseFloat(portfolio_EUR);
         
         console.log(portfolio_value);
         
-        $('#portfolio').html('&euro; ' + portfolio_value.toFixed(2));
+        $('.portfolioValue').html('&euro; ' + portfolio_value.toFixed(2));
     }
     
     
@@ -134,6 +137,14 @@
             amount = $(row).find('#orderamount'+orderid).html();
             coinprice = $(row).find('#ordercoinprice'+ orderid).html();
             
+            currentcoinprice = $(row).find('.currentcoinprice');
+            
+            if (currentPrice > coinprice) {
+                currentcoinprice.addClass('label-success').removeClass('label-danger');
+            } else {
+                currentcoinprice.addClass('label-danger').removeClass('label-success');
+            }
+            
             console.log('Amount ' + amount);
             console.log('Coinprice bought '+ coinprice);
             console.log('Coinprice current '+ currentPrice);
@@ -148,9 +159,9 @@
             
             $(row).find('#profit' + orderid).html('&euro; ' + profit);
             if (profit < 0) {
-                $(row).find('#profit' + orderid).css('color','red');
+                $(row).find('#profit' + orderid).addClass('label-danger').removeClass('label-success');
             } else {
-                $(row).find('#profit' + orderid).css('color','green');
+                $(row).find('#profit' + orderid).addClass('label-success').removeClass('label-danger');
             }
         });
     }
@@ -163,18 +174,18 @@
         $.get(endpoint + '/products/' + wallet + '-EUR/book', function (data) {
 
             var bidprice = data.asks[0][0];    
-            $('#koers_' + wallet).html('&euro; ' + bidprice);
+            $('.koers_' + wallet).html('&euro; ' + bidprice);
             if (oude_koers_ltc > bidprice) {
-                $('#koers_' + wallet).css('color','red');
+                $('.koers_' + wallet).css('color','red');
             } else {
-                $('#koers_' + wallet).css('color','green');
+                $('.koers_' + wallet).css('color','green');
             }
             oude_koers_ltc = bidprice;
         
             waarde_ltc = (bidprice * portfolio_LTC).toFixed(2);
-            $('#waarde_' + wallet).html('&euro; ' + waarde_ltc);
+            $('.waarde_' + wallet).html('&euro; ' + waarde_ltc);
             
-            calcPortfolion();
+            calcPortfolioCurrentValue();
             
             updateProfits(wallet, ltc);
         });
@@ -191,21 +202,22 @@
             }
             
             var diff = (btc - oude_koers_btc).toFixed(2);
-            $('#koers_BTC').html('&euro; ' + btc);
-            $('#koers_oude_BTC').html('&euro; ' + oude_koers_btc);
-            $('#koers_verschil_BTC').html('&euro; ' + diff);
+            $('.koers_BTC').html('&euro; ' + btc);
+            
+            $('.koers_oude_BTC').html('&euro; ' + oude_koers_btc);
+            $('.koers_verschil_BTC').html('&euro; ' + diff);
             
             if (diff < 0) {
-                $('#koers_verschil_BTC').css('color','red');
+                $('.koers_verschil_BTC').css('color','red');
             } else {
-                $('#koers_verschil_BTC').css('color','green');
+                $('.koers_verschil_BTC').css('color','green');
             }
             oude_koers_btc = btc;
             
             waarde_btc = (btc * portfolio_BTC).toFixed(2);
-            $('#waarde_BTC').html('&euro; ' + waarde_btc);
+            $('.waarde_BTC').html('&euro; ' + waarde_btc);
             
-            calcPortfolion();
+            calcPortfolioCurrentValue();
             
             updateProfits('BTC', btc);
         });
@@ -219,21 +231,21 @@
             
             
             var diff = (eth - oude_koers_eth).toFixed(2);
-            $('#koers_ETH').html('&euro; ' + eth);
-            $('#koers_oude_ETH').html('&euro; ' + oude_koers_eth);
-            $('#koers_verschil_ETH').html('&euro; ' + diff);
+            $('.koers_ETH').html('&euro; ' + eth); // Css Class
+            $('.koers_oude_ETH').html('&euro; ' + oude_koers_eth);
+            $('.koers_verschil_ETH').html('&euro; ' + diff);
             
             if (diff < 0) {
-                $('#koers_verschil_ETH').css('color','red');
+                $('.koers_verschil_ETH').css('color','red');
             } else {
-                $('#koers_verschil_ETH').css('color','green');
+                $('.koers_verschil_ETH').css('color','green');
             }
             oude_koers_eth = eth;
         
             waarde_eth = (eth * portfolio_ETH).toFixed(2);
-            $('#waarde_ETH').html('&euro; ' + waarde_eth);
+            $('.waarde_ETH').html('&euro; ' + waarde_eth);
             
-            calcPortfolion();
+            calcPortfolioCurrentValue();
             
             updateProfits('ETH', eth);
         });
@@ -247,21 +259,21 @@
             
             var diff = (ltc - oude_koers_ltc).toFixed(2);
             
-            $('#koers_LTC').html('&euro; ' + ltc);
-            $('#koers_oude_LTC').html('&euro; ' + oude_koers_ltc);
-            $('#koers_verschil_LTC').html('&euro; ' + diff);
+            $('.koers_LTC').html('&euro; ' + ltc);
+            $('.koers_oude_LTC').html('&euro; ' + oude_koers_ltc);
+            $('.koers_verschil_LTC').html('&euro; ' + diff);
             
             if (diff < 0) {
-                $('#koers_verschil_LTC').css('color','red');
+                $('.koers_verschil_LTC').css('color','red');
             } else {
-                $('#koers_verschil_LTC').css('color','green');
+                $('.koers_verschil_LTC').css('color','green');
             }
             oude_koers_ltc = ltc;
         
             waarde_ltc = (ltc * portfolio_LTC).toFixed(2);
-            $('#waarde_LTC').html('&euro; ' + waarde_ltc);
+            $('.waarde_LTC').html('&euro; ' + waarde_ltc);
             
-            calcPortfolion();
+            calcPortfolioCurrentValue();
             
             updateProfits('LTC', ltc);
         });
