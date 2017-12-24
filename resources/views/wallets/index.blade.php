@@ -63,7 +63,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    &euro; {!!  number_format($diffSellsBuys[$name],2) !!}
+                                    &euro; {!!  number_format($diffSellsBuys['Today'][$name],2) !!}
                                 </td>
                                 <td>
                                     &euro; {!!  number_format($orderBuyAvg[$name],2) !!}
