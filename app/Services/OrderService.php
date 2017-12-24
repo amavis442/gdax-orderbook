@@ -19,6 +19,7 @@ class OrderService {
         $order->trade_id = $data['trade_id'];
 
         $order->filled = false;
+        $order->raw = $data['raw'];
 
         if (isset($data['created_at'])) {
             $order->created_at = $data['created_at'];
