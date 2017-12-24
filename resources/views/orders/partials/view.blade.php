@@ -131,14 +131,14 @@
                                         @if(!$order->filled) / <span class='koers_{{ $order->wallet }} currentcoinprice label'></span> @endif</td>
                                     <td><span id="profit{{ $order->id }}" class='label'></span></td>
                                     <td>&euro; {{ $order->fee > 0.0 ? $order->fee : '0.00' }}</td>
-                                    <td>&euro; {{ $order->soldfor > 0.0 ? number_format($order->soldfor,2) : '0.00' }}</td>
+                                    <td>&euro; {{ $order->soldfor > 0.0 ? number_format($order->soldfor,8) : '0.00' }}</td>
                                     <td>@if($order->profit != 0.0)
                                         @if($order->profit > 0.0)
                                             <span class='label label-success'>
                                         @else
                                             <span class='label label-danger'>
                                         @endif
-                                            &euro; {!! number_format($order->profit,2)!!}
+                                            &euro; {!! number_format($order->profit,8)!!}
                                             </span>
                                         @else
                                         &euro;  0.00

@@ -19,8 +19,8 @@ class CreateOrdersTable extends Migration
                           
             $table->enum('trade',['BUY','SELL']);
             $table->decimal('amount',15,8)->nullable();
-            $table->decimal('tradeprice',10,2)->nullable();
-            $table->decimal('coinprice',10,2)->nullable(); //spread and shit can coz less
+            $table->decimal('tradeprice',15,8)->nullable();
+            $table->decimal('coinprice',15,8)->nullable(); //spread and shit can coz less
             $table->decimal('fee',8,2)->nullable()->default('0.00');
             $table->timestamps();
         });

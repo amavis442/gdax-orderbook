@@ -145,7 +145,7 @@
             console.log('Diff ' + diff);
             
             var profit = 0.00;
-            profit = (diff * amount).toFixed(2);
+            profit = (diff * amount).toFixed(8);
             console.log('Profit ' +profit);
             
             $(row).find('#profit' + orderid).html('&euro; ' + profit);
@@ -173,7 +173,7 @@
             }
             oude_koers_ltc = bidprice;
         
-            waarde_ltc = (bidprice * portfolio_LTC).toFixed(2);
+            waarde_ltc = (bidprice * portfolio_LTC).toFixed(8);
             $('.waarde_' + wallet).html('&euro; ' + waarde_ltc);
             
             calcPortfolioCurrentValue();
@@ -192,7 +192,7 @@
                 oude_koers_btc = btc;
             }
             
-            var diff = (btc - oude_koers_btc).toFixed(2);
+            var diff = (btc - oude_koers_btc).toFixed(8);
             $('.koers_BTC').html('&euro; ' + btc);
             
             $('.koers_oude_BTC').html('&euro; ' + oude_koers_btc);
@@ -205,7 +205,7 @@
             }
             oude_koers_btc = btc;
             
-            waarde_btc = (btc * portfolio_BTC).toFixed(2);
+            waarde_btc = (btc * portfolio_BTC).toFixed(8);
             $('.waarde_BTC').html('&euro; ' + waarde_btc);
             
             calcPortfolioCurrentValue();
@@ -221,7 +221,7 @@
             }
             
             
-            var diff = (eth - oude_koers_eth).toFixed(2);
+            var diff = (eth - oude_koers_eth).toFixed(8);
             $('.koers_ETH').html('&euro; ' + eth); // Css Class
             $('.koers_oude_ETH').html('&euro; ' + oude_koers_eth);
             $('.koers_verschil_ETH').html('&euro; ' + diff);
@@ -233,7 +233,7 @@
             }
             oude_koers_eth = eth;
         
-            waarde_eth = (eth * portfolio_ETH).toFixed(2);
+            waarde_eth = (eth * portfolio_ETH).toFixed(8);
             $('.waarde_ETH').html('&euro; ' + waarde_eth);
             
             calcPortfolioCurrentValue();
@@ -248,7 +248,7 @@
                 oude_koers_ltc = ltc;
             }
             
-            var diff = (ltc - oude_koers_ltc).toFixed(2);
+            var diff = (ltc - oude_koers_ltc).toFixed(8);
             
             $('.koers_LTC').html('&euro; ' + ltc);
             $('.koers_oude_LTC').html('&euro; ' + oude_koers_ltc);
@@ -261,7 +261,7 @@
             }
             oude_koers_ltc = ltc;
         
-            waarde_ltc = (ltc * portfolio_LTC).toFixed(2);
+            waarde_ltc = (ltc * portfolio_LTC).toFixed(8);
             $('.waarde_LTC').html('&euro; ' + waarde_ltc);
             
             calcPortfolioCurrentValue();
