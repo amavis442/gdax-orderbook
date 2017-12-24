@@ -47,8 +47,8 @@ class Telegram extends Notification
     public function toTelegram($notifiable)
     {
         $data = $this->data;
-        $content = "*".$data['trade']. ' '.$data['wallet']."*\n".
-                'Koers: '. number_format($data['coinprice'],2)."\n".
+        $content = "*".$data['side']. ' '.$data['product_id']."*\n".
+                'Koers: '. number_format($data['coinprice'],8)."\n".
                 'Aantal: '. $data['amount']. "\n".
                 
                 'Handelsprijs: *'.number_format($data['tradeprice'],2). "*\n".

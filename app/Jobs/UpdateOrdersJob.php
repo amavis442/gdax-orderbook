@@ -45,13 +45,11 @@ class UpdateOrdersJob implements ShouldQueue {
 
         foreach ($response as $orderfilled) {
             $order = Order::whereTradeId($orderfilled->trade_id)->first();
-            
             $data['amount'] = $orderfilled->size;
             if (!$order) {
-                
                 $data = [];
-                $data['wallet'] = substr($orderfilled->product_id, 0, 3);
-                $data['trade'] = strtoupper($orderfilled->side);
+                $data['product_id'] = $orderfilled->product_id;
+                $data['side'] = strtoupper($orderfilled->side);
                 $data['amount'] = $orderfilled->size;
                 $data['coinprice'] = $orderfilled->price;
                 $data['tradeprice'] = $data['amount'] * $data['coinprice'];
@@ -59,8 +57,7 @@ class UpdateOrdersJob implements ShouldQueue {
                 $data['orderhash'] = $orderfilled->order_id;
                 $data['trade_id'] = $orderfilled->trade_id;
                 $data['created_at'] = \Carbon\Carbon::parse($orderfilled->created_at)->format('Y-m-d H:i:s');
-                
-      
+
                 $this->orderService->create($data);
                 
                 $user->notify(new Telegram($data));

@@ -8,6 +8,8 @@ use App\Order;
 
 class WalletController extends Controller {
 
+    const TAB_PRODUCTS = [ 1=> 'ALL', 2 => 'BTC-EUR', 3 => 'ETH-EUR', 4 => 'ETH-BTC', 5 => 'LTC-EUR', 6 => 'LTC-BTC'];
+    
     /**
      * Display a listing of the resource.
      *
@@ -15,34 +17,7 @@ class WalletController extends Controller {
      */
     public function index(Request $request, $tab = 1) {
 
-        /*
-        foreach (['EUR', 'BTC', 'ETH', 'LTC'] as $wallet) {
-            $wallets[$wallet] = Wallet::where('wallet', $wallet)->get();
-            $orderBuyAvg[$wallet] = Order::whereWallet($wallet)->whereTrade('BUY')->whereFilled(0)->get()->avg('coinprice');
-        }
 
-        switch ($tab) {
-            case 1:
-                $orderTab = ['EUR', 'BTC', 'ETH', 'LTC'];
-                break;
-            case 2:
-                $orderTab = ['BTC'];
-                break;
-            case 3:
-                $orderTab = ['ETH'];
-                break;
-            case 4:
-                $orderTab = ['LTC'];
-                break;
-            default:
-                $orderTab = ['EUR', 'BTC', 'ETH', 'LTC'];
-                break;
-        }
-        $orders = Order::orderBy('created_at', 'desc')->whereIn('wallet', $orderTab)->paginate(); // Filled orders.
-        
-        return view('wallets.index', compact('wallets', 'orders', 'tab', 'orderBuyAvg'));
-         * 
-         */
         session(['tab' => $tab]);
         return $this->search($request, $tab);
     }
@@ -138,21 +113,32 @@ class WalletController extends Controller {
     }
 
     public function search(Request $request, $tab = 1 ) {
+        
+        $products = ['BTC' => ['EUR'], 'ETH' => ['BTC', 'EUR'], 'LTC' => ['BTC', 'EUR']];
 
         foreach (['EUR', 'BTC', 'ETH', 'LTC'] as $wallet) {
             $wallets[$wallet] = Wallet::where('wallet', $wallet)->get();
-            $orderBuyAvg[$wallet] = Order::whereWallet($wallet)->whereTrade('BUY')->whereFilled(0)->get()->avg('coinprice');
-                    
-            $buysToday = Order::whereWallet($wallet)->where('created_at','>=',date('Y-m-d'). ' 00:00:00' )->whereTrade('BUY')->get()->sum('tradeprice');
-            $sellsToday = Order::whereWallet($wallet)->where('created_at', '>=',date('Y-m-d') . ' 00:00:00')->whereTrade('SELL')->get()->sum('tradeprice');
-            
-            $diffSellsBuys['Today'][$wallet] = $sellsToday - $buysToday;
-        
-            $buysAll = Order::whereWallet($wallet)->whereTrade('BUY')->get()->sum('tradeprice');
-            $sellsAll = Order::whereWallet($wallet)->whereTrade('SELL')->get()->sum('tradeprice');
-            
-            $diffSellsBuys['All'][$wallet] = $sellsAll - $buysAll;
+            if ($wallet == 'EUR') {
+                continue;
+            }
 
+            foreach ($products[$wallet] as $productId) {
+                $pair = $wallet;
+                if ($productId <> '') {
+                    $pair .= '-'.$productId;
+                } 
+                $orderBuyAvg[$pair] = Order::whereProductId($pair)->whereSide('BUY')->whereFilled(0)->get()->avg('coinprice');
+                    
+                $buysToday = Order::whereProductId($pair)->where('created_at','>=',date('Y-m-d'). ' 00:00:00' )->whereSide('BUY')->get()->sum('tradeprice');
+                $sellsToday = Order::whereProductId($pair)->where('created_at', '>=',date('Y-m-d') . ' 00:00:00')->whereSide('SELL')->get()->sum('tradeprice');
+      
+                $diffSellsBuys['Today'][$pair] = $sellsToday - $buysToday;
+        
+                $buysAll = Order::whereProductId($pair)->whereSide('BUY')->get()->sum('tradeprice');
+                $sellsAll = Order::whereProductId($pair)->whereSide('SELL')->get()->sum('tradeprice');
+            
+                $diffSellsBuys['All'][$pair] = $sellsAll - $buysAll;
+            }
         }
 
         $ordersFound = Order::Query();
@@ -187,25 +173,25 @@ class WalletController extends Controller {
         } 
         
         if($searchOpen == 'open') {
-             $ordersFound = $ordersFound->whereTrade('BUY')->whereFilled(0);
+             $ordersFound = $ordersFound->whereSide('BUY')->whereFilled(0);
         }
 
         if($searchOpen == 'closed') {
-             $ordersFound = $ordersFound->whereTrade('BUY')->whereFilled(1);
+             $ordersFound = $ordersFound->whereSide('BUY')->whereFilled(1);
         }
         
         if ($searchBuySell == 'buy') {
-            $ordersFound = $ordersFound->whereTrade('BUY');
+            $ordersFound = $ordersFound->whereSide('BUY');
         }
         if ($searchBuySell == 'sell') {
-            $ordersFound = $ordersFound->whereTrade('Sell');
+            $ordersFound = $ordersFound->whereSide('Sell');
         }
         
+        $tabProducts = self::TAB_PRODUCTS;
         if ($tab != 1) {
-            $w = [2 => 'BTC', 3 => 'ETH', 4 => 'LTC'];
-            $ordersFound->whereWallet($w[$tab]);
+            $ordersFound->whereProductId($tabProducts[$tab]);
         }
-        
+
         if (!isset($ordersFound)) {
             $ordersFound = Order::Query();
         }
@@ -213,7 +199,7 @@ class WalletController extends Controller {
         $orders = $ordersFound->orderBy('created_at', 'desc')
                 ->paginate(); // Filled orders.
 
-        return view('wallets.index', compact('wallets', 'orders', 'tab', 'diffSellsBuys','orderBuyAvg', 'searchString','searchMode','searchBuySell','searchOpen'));
+        return view('wallets.index', compact('wallets', 'orders', 'tabProducts','tab', 'diffSellsBuys','orderBuyAvg', 'searchString','searchMode','searchBuySell','searchOpen'));
     }
 
 }

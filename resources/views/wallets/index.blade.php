@@ -52,22 +52,6 @@
                                 <td>
                                     <span class='waarde_{{ $name }}'></span>
                                 </td>
-                                <td>
-                                    <span class='label label-default'>&euro; {!!  number_format($diffSellsBuys['Today'][$name],2) !!}</span> /
-                                    @if ($diffSellsBuys['All'][$name] > 0)
-                                        <span class='label label-success'>
-                                    @else
-                                        <span class='label label-danger'>
-                                    @endif
-                                    &euro; {!!  number_format($diffSellsBuys['All'][$name],2) !!}
-                                    </span>
-                                </td>
-                                <td>
-                                    &euro; {!!  number_format($diffSellsBuys['Today'][$name],2) !!}
-                                </td>
-                                <td>
-                                    &euro; {!!  number_format($orderBuyAvg[$name],2) !!}
-                                </td>
                                 @endif
                                 @if($name != config('coinbase.currency'))
                                 <td> <a href="{{ route('orders.create',['trade'=>'BUY','wallet'=> $name]) }}" class="btn btn-default">Buy</a> |  <a href="{{ route('orders.create',['trade'=>'SELL','wallet'=> $name]) }}" class="btn btn-default">Sell</a></td>

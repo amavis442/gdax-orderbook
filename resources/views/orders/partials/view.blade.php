@@ -90,10 +90,9 @@
                 <div class='row'>
                     <div class='col-md-12'>
                         <ul class="nav nav-tabs">
-                            <li @if(!isset($tab) || $tab == 1) class="active" @endif><a href="{{ route('wallets.index.tab',1) }}">All</a></li>
-                            <li @if(isset($tab) && $tab == 2) class="active" @endif><a href="{{ route('wallets.index.tab',2) }}">BTC</a></li>
-                            <li @if(isset($tab) && $tab == 3) class="active" @endif><a href="{{ route('wallets.index.tab',3) }}">ETH</a></li>
-                            <li @if(isset($tab) && $tab == 4) class="active" @endif><a href="{{ route('wallets.index.tab',4) }}">LTC</a></li>
+                            @foreach($tabProducts as $tabIndex => $tabProduct)
+                            <li @if(!isset($tab) || $tab == $tabIndex) class="active" @endif><a href="{{ route('wallets.index.tab',$tabIndex) }}">{{$tabProduct}}</a></li>
+                            @endforeach
                         </ul>
 
 
@@ -125,7 +124,7 @@
                                     <td class="orderid">{{ $order->id }}</td>
                                     <td>{{ $order->created_at->format('d-m-Y H:i') }}</td>
                                     <td><span id="orderwallet{{ $order->id }}">{{ $order->wallet }}</span></td>
-                                    <td><span id="ordertrade{{ $order->id }}">{{ $order->trade }}</span></td>
+                                    <td><span id="ordertrade{{ $order->id }}">{{ $order->side }}</span></td>
                                     <td><span id="orderamount{{ $order->id }}">{{ $order->amount }}</span></td>
                                     <td>&euro; {{ $order->tradeprice }}</td>
                                     <td><span id="ordercoinprice{{ $order->id }}" class="label label-primary">{{ $order->coinprice }}</span>
