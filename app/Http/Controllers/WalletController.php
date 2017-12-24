@@ -143,10 +143,15 @@ class WalletController extends Controller {
             $wallets[$wallet] = Wallet::where('wallet', $wallet)->get();
             $orderBuyAvg[$wallet] = Order::whereWallet($wallet)->whereTrade('BUY')->whereFilled(0)->get()->avg('coinprice');
                     
-            $buys = Order::whereWallet($wallet)->where('created_at','>=',date('Y-m-d'). ' 00:00:00' )->whereTrade('BUY')->get()->sum('tradeprice');
-            $sells = Order::whereWallet($wallet)->where('created_at', '>=',date('Y-m-d') . ' 00:00:00')->whereTrade('SELL')->get()->sum('tradeprice');
+            $buysToday = Order::whereWallet($wallet)->where('created_at','>=',date('Y-m-d'). ' 00:00:00' )->whereTrade('BUY')->get()->sum('tradeprice');
+            $sellsToday = Order::whereWallet($wallet)->where('created_at', '>=',date('Y-m-d') . ' 00:00:00')->whereTrade('SELL')->get()->sum('tradeprice');
             
-            $diffSellsBuys[$wallet] = $sells - $buys;
+            $diffSellsBuys['Today'][$wallet] = $sellsToday - $buysToday;
+        
+            $buysAll = Order::whereWallet($wallet)->whereTrade('BUY')->get()->sum('tradeprice');
+            $sellsAll = Order::whereWallet($wallet)->whereTrade('SELL')->get()->sum('tradeprice');
+            
+            $diffSellsBuys['All'][$wallet] = $sellsAll - $buysAll;
 
         }
 

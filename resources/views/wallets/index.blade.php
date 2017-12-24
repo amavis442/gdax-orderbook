@@ -17,7 +17,7 @@
                                 <th>Oude Koers</th>
                                 <th>Koers verschil</th>
                                 <th>Waarde</th>
-                                <th>Sells-Buys</th>
+                                <th>Sells-Buys vandaag / overall</th>
                                 <th>Avg(buy)</th>
                                 <th></th>
                             </tr>
@@ -53,7 +53,14 @@
                                     <span class='waarde_{{ $name }}'></span>
                                 </td>
                                 <td>
-                                    &euro; {!!  number_format($diffSellsBuys[$name],2) !!}
+                                    <span class='label label-default'>&euro; {!!  number_format($diffSellsBuys['Today'][$name],2) !!}</span> /
+                                    @if ($diffSellsBuys['All'][$name] > 0)
+                                        <span class='label label-success'>
+                                    @else
+                                        <span class='label label-danger'>
+                                    @endif
+                                    &euro; {!!  number_format($diffSellsBuys['All'][$name],2) !!}
+                                    </span>
                                 </td>
                                 <td>
                                     &euro; {!!  number_format($orderBuyAvg[$name],2) !!}
