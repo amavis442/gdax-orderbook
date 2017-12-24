@@ -37,7 +37,7 @@
                                     <label class="radio-inline">
                                         <input type="radio" id="inlineCheckbox3" name="searchBuySell" value="sell" @if($searchBuySell == 'sell') checked @endif>Sell
                                     </label>
-                                </div> | 
+                                </div> |
                                 <div class="form-group">
                                     <label class="radio-inline">
                                         <input type="radio" id="inlineCheckbox1" name="searchOpen" value="all" @if($searchOpen == 'all') checked @endif>All
@@ -48,8 +48,8 @@
                                     <label class="radio-inline">
                                         <input type="radio" id="inlineCheckbox3" name="searchOpen" value="closed" @if($searchOpen == 'closed') checked @endif>closed
                                     </label>
-        
-                                </div> | 
+
+                                </div> |
                                 <div class="form-group">
                                     <input type="text" name="searchString" id="searchstr" class="form-control" value='@if(isset($searchString)) {{ $searchString }} @endif '>
                                 </div>
@@ -128,12 +128,12 @@
                                     <td><span id="ordertrade{{ $order->id }}">{{ $order->trade }}</span></td>
                                     <td><span id="orderamount{{ $order->id }}">{{ $order->amount }}</span></td>
                                     <td>&euro; {{ $order->tradeprice }}</td>
-                                    <td><span id="ordercoinprice{{ $order->id }}" class="label label-primary">{{ $order->coinprice }}</span> 
+                                    <td><span id="ordercoinprice{{ $order->id }}" class="label label-primary">{{ $order->coinprice }}</span>
                                         @if(!$order->filled) / <span class='koers_{{ $order->wallet }} currentcoinprice label'></span> @endif</td>
                                     <td><span id="profit{{ $order->id }}" class='label'></span></td>
                                     <td>&euro; {{ $order->fee > 0.0 ? $order->fee : '0.00' }}</td>
                                     <td>&euro; {{ $order->soldfor > 0.0 ? number_format($order->soldfor,2) : '0.00' }}</td>
-                                    <td>@if($order->profit != 0.0) 
+                                    <td>@if($order->profit != 0.0)
                                         @if($order->profit > 0.0)
                                             <span class='label label-success'>
                                         @else
@@ -141,12 +141,12 @@
                                         @endif
                                             &euro; {!! number_format($order->profit,2)!!}
                                             </span>
-                                        @else 
+                                        @else
                                         &euro;  0.00
                                         @endif
-                                        
+
                                     </td>
-                                    
+
                                     <td><span id="ordercoinclosed{{ $order->id }}">{{ $order->filled }}</a></td>
                                     <td>
                                         <a href="{{ route('orders.edit', $order) }}" class="btn btn-default">Bewerken</a>
