@@ -13,7 +13,7 @@ class AlterOrdersTableRenameTradeToSide extends Migration {
      * @return void
      */
     public function up() {
-        DB::raw('ALTER TABLE orders CHANGE trade side enum("BUY","SELL")');
+        DB::statement('ALTER TABLE orders CHANGE trade side enum("BUY","SELL")');
     }
 
     /**
@@ -22,7 +22,7 @@ class AlterOrdersTableRenameTradeToSide extends Migration {
      * @return void
      */
     public function down() {
-        DB::raw('ALTER TABLE orders CHANGE side trade  enum("BUY","SELL")');
+        DB::statement('ALTER TABLE orders CHANGE side trade  enum("BUY","SELL")');
     }
 
 }
