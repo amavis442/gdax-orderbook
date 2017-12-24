@@ -63,7 +63,7 @@ class UpdateOrdersJob implements ShouldQueue {
                    
                 $this->orderService->create($data);
                 
-                //$user->notify(new Telegram($data));
+                $user->notify(new Telegram($data));
 
             } 
         }
