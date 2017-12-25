@@ -62,14 +62,13 @@ class UpdateOrdersJob implements ShouldQueue {
                 $data['created_at'] = \Carbon\Carbon::parse($orderfilled->created_at)->format('Y-m-d H:i:s');
                 $data['raw'] = $inputData;
                    
-                //$this->orderService->create($data);
+                $this->orderService->create($data);
 
                 $wallet = substr($orderfilled->product_id,0,3);
                 $balanceWallet[$wallet] = Wallet::where('wallet',$wallet)->sum('currency');
                 $wallet = substr($orderfilled->product_id,4,3);
                 $balanceWallet[$wallet] = Wallet::where('wallet',$wallet)->sum('currency');
 
-                dump($balanceWallet);
                 $user->notify(new Telegram($data, $balanceWallet));
 
             } 
