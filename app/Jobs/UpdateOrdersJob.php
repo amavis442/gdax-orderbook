@@ -11,11 +11,9 @@ use App\Coinbase\CoinbaseExchange;
 use App\Order;
 use App\Services\OrderService;
 
-use App\User;
-use App\Notifications\Telegram;
-use App\Wallet;
 
-class UpdateOrdersJob implements ShouldQueue {
+class UpdateOrdersJob implements ShouldQueue
+{
 
     use Dispatchable,
         InteractsWithQueue,
@@ -29,7 +27,8 @@ class UpdateOrdersJob implements ShouldQueue {
      *
      * @return void
      */
-    public function __construct(OrderService $orderService) {
+    public function __construct(OrderService $orderService)
+    {
         $this->orderService = $orderService;
     }
 
@@ -38,41 +37,50 @@ class UpdateOrdersJob implements ShouldQueue {
      *
      * @return void
      */
-    public function handle() {
+    public function handle()
+    {
         $coinbase = new CoinbaseExchange(config('coinbase.api_key'), config('coinbase.api_secret'), config('coinbase.password'));
         $response = $coinbase->getFills();
-
-        $user = User::find(1);
+        $orders   = [];
 
         foreach ($response as $orderfilled) {
             $order = Order::whereTradeId($orderfilled->trade_id)->first();
-            $data['amount'] = $orderfilled->size;
-
-            $inputData =  serialize($orderfilled);
             if (!$order) {
-                $data = [];
-                $data['product_id'] = $orderfilled->product_id;
-                $data['side'] = strtoupper($orderfilled->side);
+                $orders[$orderfilled->trade_id] = $orderfilled;
+            }
+        }
+        ksort($orders);
+
+        if (count($orders) > 0) {
+            foreach ($orders as $trade_id => $orderfilled) {
                 $data['amount'] = $orderfilled->size;
-                $data['coinprice'] = $orderfilled->price;
+
+                $inputData = serialize($orderfilled);
+
+                $data               = [];
+                $data['product_id'] = $orderfilled->product_id;
+                $data['side']       = strtoupper($orderfilled->side);
+                $data['amount']     = $orderfilled->size;
+                $data['coinprice']  = $orderfilled->price;
                 $data['tradeprice'] = $orderfilled->size * $orderfilled->price;
-                $data['fee'] = $orderfilled->fee;
-                $data['orderhash'] = $orderfilled->order_id;
-                $data['trade_id'] = $orderfilled->trade_id;
+                $data['fee']        = $orderfilled->fee;
+                $data['orderhash']  = $orderfilled->order_id;
+                $data['trade_id']   = $orderfilled->trade_id;
                 $data['created_at'] = \Carbon\Carbon::parse($orderfilled->created_at)->format('Y-m-d H:i:s');
-                $data['raw'] = $inputData;
-                   
+                $data['raw']        = $inputData;
+
                 $this->orderService->create($data);
 
-                $wallet = substr($orderfilled->product_id,0,3);
-                $balanceWallet[$wallet] = Wallet::where('wallet',$wallet)->sum('currency');
-                $wallet = substr($orderfilled->product_id,4,3);
-                $balanceWallet[$wallet] = Wallet::where('wallet',$wallet)->sum('currency');
+                $wallet                 = '';
+                $balanceWallet          = [];
+                $wallet                 = substr($orderfilled->product_id, 0, 3);
+                $balanceWallet[$wallet] = $this->orderService->getBalance($wallet);
 
-                $user->notify(new Telegram($data, $balanceWallet));
+                $wallet                 = substr($orderfilled->product_id, 4, 3);
+                $balanceWallet[$wallet] = $this->orderService->getBalance($wallet);
 
-            } 
+                dispatch(new SendTelegramJob($data, $balanceWallet));
+            }
         }
     }
-
 }

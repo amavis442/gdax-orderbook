@@ -16,17 +16,17 @@ class Telegram extends Notification
     use Queueable;
 
     protected $data;
-    protected $ballance;
+    protected $balance;
     
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($data, $ballance)
+    public function __construct($data, $balance = [])
     {
         $this->data = $data;
-        $this->ballance = $ballance;
+        $this->balance = $balance;
     }
 
     /**
@@ -56,7 +56,7 @@ class Telegram extends Notification
                 'Handelsprijs: *'.number_format($data['tradeprice'],8). "*\n".
                 '_Kosten: '. number_format($data['fee'],2) ."_\n";
 
-        foreach ($this->ballance as $name => $currency) {
+        foreach ($this->balance as $name => $currency) {
             $content .= '*Ballance '. $name. ' = ' .$currency.'*'."\n";
         }
 
