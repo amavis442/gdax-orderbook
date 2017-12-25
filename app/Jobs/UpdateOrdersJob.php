@@ -13,6 +13,7 @@ use App\Services\OrderService;
 
 use App\User;
 use App\Notifications\Telegram;
+use App\Wallets;
 
 class UpdateOrdersJob implements ShouldQueue {
 
@@ -62,8 +63,13 @@ class UpdateOrdersJob implements ShouldQueue {
                 $data['raw'] = $inputData;
                    
                 $this->orderService->create($data);
-                
-                $user->notify(new Telegram($data));
+
+                $wallet = substr($orderfilled->product_id,0,3);
+                $balanceWallet[$wallet] = Wallet::sum('currency')->whereWallet($wallet)->first();
+                $wallet = substr($orderfilled->product_id,4,3);
+                $balanceWallet[$wallet] = Wallet::sum('currency')->whereWallet($wallet)->first();
+
+                $user->notify(new Telegram($data, $balanceWallet));
 
             } 
         }
