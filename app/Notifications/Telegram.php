@@ -57,7 +57,7 @@ class Telegram extends Notification
                 '_Kosten: '. number_format($data['fee'],2) ."_\n";
 
         foreach ($this->ballance as $name => $currency) {
-            $content .= '*_Ballance '. $name. ' = ' .$currency.'_*';
+            $content .= '*Ballance '. $name. ' = ' .$currency.'*'."\n";
         }
 
         $content .= 'Aangemaakt op: '. $data['created_at'];
