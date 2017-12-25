@@ -51,7 +51,7 @@ class Telegram extends Notification
                 'Koers: '. number_format($data['coinprice'],8)."\n".
                 'Aantal: '. $data['amount']. "\n".
                 
-                'Handelsprijs: *'.number_format($data['tradeprice'],2). "*\n".
+                'Handelsprijs: *'.number_format($data['tradeprice'],8). "*\n".
                 '_Kosten: '. number_format($data['fee'],2) ."_\n".
                 'Aangemaakt op: '. $data['created_at']
                 ;
