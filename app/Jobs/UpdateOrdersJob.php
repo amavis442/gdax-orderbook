@@ -65,9 +65,9 @@ class UpdateOrdersJob implements ShouldQueue {
                 $this->orderService->create($data);
 
                 $wallet = substr($orderfilled->product_id,0,3);
-                $balanceWallet[$wallet] = Wallet::sum('currency')->whereWallet($wallet)->first();
+                $balanceWallet[$wallet] = Wallet::where('wallet',$wallet)->sum('currency');
                 $wallet = substr($orderfilled->product_id,4,3);
-                $balanceWallet[$wallet] = Wallet::sum('currency')->whereWallet($wallet)->first();
+                $balanceWallet[$wallet] = Wallet::where('wallet',$wallet)->sum('currency');
 
                 $user->notify(new Telegram($data, $balanceWallet));
 
