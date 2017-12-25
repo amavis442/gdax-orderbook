@@ -15,6 +15,8 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         \App\Console\Commands\UpdateOrderCommand::class,
         \App\Console\Commands\CoinbaseCsvImport::class,
+        \App\Console\Commands\UpdateTradesCommand::class,
+
     ];
 
     /**
@@ -27,6 +29,9 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('orders:update')
                   ->everyMinute();
+
+        $schedule->command('trade:update')
+                 ->everyThirtyMinutes();
     }
 
     /**
