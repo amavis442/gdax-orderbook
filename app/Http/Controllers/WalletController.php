@@ -112,6 +112,30 @@ class WalletController extends Controller {
         //
     }
 
+
+    public function getAccountBalances()
+    {
+        $client = new \GDAX\Clients\AuthenticatedClient(
+            config('coinbase.api_key'),
+            config('coinbase.api_secret'),
+            config('coinbase.password')
+        );
+
+        $accounts = $client->getAccounts();
+        /** @var  \GDAX\Types\Response\Authenticated\Account $account */
+        foreach ($accounts as $account){
+            $currency = $account->getCurrency();
+            $balance = $account->getBalance();
+
+            $balances[$currency] = $balance;
+        }
+
+        return $balances;
+    }
+
+
+
+
     public function search(Request $request, $tab = 1 ) {
         
         $products = ['BTC' => ['EUR'], 'ETH' => ['BTC', 'EUR'], 'LTC' => ['BTC', 'EUR']];
@@ -199,7 +223,9 @@ class WalletController extends Controller {
         $orders = $ordersFound->orderBy('created_at', 'desc')
                 ->paginate(); // Filled orders.
 
-        return view('wallets.index', compact('wallets', 'orders', 'tabProducts','tab', 'diffSellsBuys','orderBuyAvg', 'searchString','searchMode','searchBuySell','searchOpen'));
+        $balances = $this->getAccountBalances();
+
+        return view('wallets.index', compact('wallets', 'balances', 'orders', 'tabProducts','tab', 'diffSellsBuys','orderBuyAvg', 'searchString','searchMode','searchBuySell','searchOpen'));
     }
 
 }

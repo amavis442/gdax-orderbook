@@ -26,9 +26,9 @@
                             @foreach($wallets as $name=> $wallet)
                             <tr>
                                 <td>{{ $name }}</td>
-                                <td>@if($name == config('coinbase.currency'))&euro;  {!! number_format($wallet->sum('currency'),2) !!}
+                                <td>@if($name == config('coinbase.currency'))&euro;  {!! number_format($balances[$name],2) !!}
                                     @else
-                                    {!! number_format($wallet->sum('currency'),8) !!}
+                                    {!! number_format($balances[$name],8) !!}
                                     @endif
                                 </td>
                                 @if($name == config('coinbase.currency'))
