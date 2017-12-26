@@ -43,6 +43,14 @@ class UpdateOrdersJob implements ShouldQueue
         $response = $coinbase->getFills();
         $orders   = [];
 
+        $client = new \GDAX\Clients\AuthenticatedClient(
+            config('coinbase.api_key'),
+            config('coinbase.api_secret'),
+            config('coinbase.password')
+        );
+
+
+
         foreach ($response as $orderfilled) {
             $order = Order::whereTradeId($orderfilled->trade_id)->first();
             if (!$order) {
@@ -71,13 +79,24 @@ class UpdateOrdersJob implements ShouldQueue
 
                 $this->orderService->create($data);
 
-                $wallet                 = '';
+
+
+                $accounts = $client->getAccounts();
+                /** @var  \GDAX\Types\Response\Authenticated\Account $account */
+                foreach ($accounts as $account){
+                    $currency = $account->getCurrency();
+                    $balance = $account->getBalance();
+
+                    $balances[$currency] = $balance;
+                }
+
                 $balanceWallet          = [];
                 $wallet                 = substr($orderfilled->product_id, 0, 3);
-                $balanceWallet[$wallet] = $this->orderService->getBalance($wallet);
+                $balanceWallet[$wallet] = $balances[$wallet];
 
                 $wallet                 = substr($orderfilled->product_id, 4, 3);
-                $balanceWallet[$wallet] = $this->orderService->getBalance($wallet);
+                $balanceWallet[$wallet] = $balances[$wallet];
+
 
                 dispatch(new SendTelegramJob($data, $balanceWallet));
             }

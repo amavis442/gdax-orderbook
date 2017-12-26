@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "cfc4e1a27ed828ab9ae82f815f7f74a7",
+    "content-hash": "528308ce1ddb161e9b16e6b0510b4fec",
     "packages": [
         {
             "name": "barryvdh/laravel-debugbar",
@@ -73,6 +73,51 @@
                 "webprofiler"
             ],
             "time": "2017-09-18T13:32:46+00:00"
+        },
+        {
+            "name": "benfranke/gdax-php",
+            "version": "0.0.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/benfranke/gdax-php.git",
+                "reference": "2a29c12d6be636b18ea4ddc92441901cc604f493"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/benfranke/gdax-php/zipball/2a29c12d6be636b18ea4ddc92441901cc604f493",
+                "reference": "2a29c12d6be636b18ea4ddc92441901cc604f493",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^6.0",
+                "php": ">=5.5"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "GDAX\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Benjamin Franke",
+                    "email": "benfranke@me.com"
+                }
+            ],
+            "description": "Unofficial GDAX PHP Package",
+            "homepage": "https://github.com/benfranke/gdax-php",
+            "keywords": [
+                "gdax",
+                "php"
+            ],
+            "time": "2017-12-21T19:37:39+00:00"
         },
         {
             "name": "box/spout",
