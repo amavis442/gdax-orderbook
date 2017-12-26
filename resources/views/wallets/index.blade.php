@@ -26,7 +26,7 @@
                             @foreach($wallets as $name=> $wallet)
                             <tr>
                                 <td>{{ $name }}</td>
-                                <td>@if($name == config('coinbase.currency'))&euro;  {!! number_format($balances[$name],2) !!}
+                                <td>@if($name == config('coinbase.currency'))&euro;  <span id="currencWallet">{!! number_format($balances[$name],2) !!}</span>
                                     @else
                                     {!! number_format($balances[$name],8) !!}
                                     @endif
@@ -36,8 +36,8 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>&euro;  {!! number_format($wallet->sum('currency'),2) !!}</td>
-                                <td>&euro;  {!! number_format($wallet->sum('currency'),2) !!}</td>
+                                <td>&euro;  {!! number_format($balances[$name],2) !!}</td>
+                                <td>&euro;  {!! number_format($balances[$name],2) !!}</td>
                                 
                                 @else
                                 <td>
@@ -52,6 +52,8 @@
                                 <td>
                                     <span class='waarde_{{ $name }}'></span>
                                 </td>
+                                <td></td>
+                                <td></td>
                                 @endif
                                 @if($name != config('coinbase.currency'))
                                 <td> <a href="{{ route('orders.create',['trade'=>'BUY','wallet'=> $name]) }}" class="btn btn-default">Buy</a> |  <a href="{{ route('orders.create',['trade'=>'SELL','wallet'=> $name]) }}" class="btn btn-default">Sell</a></td>
@@ -77,6 +79,37 @@
     </div>
 
 
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">Projections</div>
+                
+                <div class="col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">BTC - <span class="koers_BTC"></span> - <span class="inkas"></span> - <span id="amount_BTC"></span></div>
+                        <div id="projections_BTC"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">ETH - <span class="koers_ETH"></span> - <span class="inkas"></span> - <span id="amount_ETH"></span></div>
+                        <div id="projections_ETH"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">LTC - <span class="koers_LTC"></span> - <span class="inkas"></span> - <span id="amount_LTC"></span></div>
+                        <div id="projections_LTC"></div>
+                    </div>
+                </div> 
+
+                <div class="panel-body">
+                </div>
+            </div>
+        </div>
+    </div>
     @include('orders.partials.view')
 
 </div>
@@ -95,7 +128,7 @@
     
     // Maybe place this in array so i can use a 1 function to get the data from gdax and calculate the rest???    
     @foreach($wallets as $name=> $wallet)
-    var portfolio_{!! $name !!} = {!! number_format($wallet->sum('currency'),8) !!}; 
+    var portfolio_{!! $name !!} = {!! number_format($balances[$name],8) !!}; 
     @endforeach
 
     $(document).ready(function () {
@@ -113,6 +146,47 @@
         $('.portfolioValue').html('&euro; ' + portfolio_value.toFixed(2));
     }
     
+    
+    function calcProjections(currency, inkas, lastTradePrice)
+    {
+        $('.inkas').html('&euro; '+ inkas);
+        
+        var amount = inkas / lastTradePrice;
+        var increases = function(price , procentpoint) {
+            return price * (1 + procentpoint / 100);
+        };
+
+        var decreases = function(price , procentpoint) {
+            return price * (1 - procentpoint / 100);
+        };
+        
+        var profits = function(lastTradePrice, amount, price) {
+            var delta = price - lastTradePrice;
+            return delta * amount;            
+        };
+        
+        var s = '';
+        s += '<ul>';
+        
+        for (i = 1; i < 10;i++) {
+            var price = increases(lastTradePrice, i);
+            var lossprice = decreases(lastTradePrice, i);
+            var profit = profits(lastTradePrice, amount, price); 
+            var losses = profits(lastTradePrice, amount, lossprice);
+            var delta = price - lastTradePrice;
+            var deltaLosses = lossprice - lastTradePrice;
+            s += '<li>+/- <span class="badge">' + i + '</span> procent<ul>';
+            s += '<li>Price : <span class="label label-primary">&euro;' + (price).toFixed(2) + '</span>/<span class="label label-danger">&euro;'+  (lossprice).toFixed(2) + '</span></li>';
+            s += '<li>Delta : &euro;' + (delta).toFixed(2) + '/ &euro;' + (deltaLosses).toFixed(2) + '</li>';
+            s += '<li>Profit : <span class="label label-primary">&euro; ' + (profit).toFixed(2) + '</span> / <span class="label label-danger">&euro; ' + (losses).toFixed(2)+ '<span></li>';
+            s += '</ul></li>';
+        }
+        s += '</ul>';
+        
+        $('#amount_' + currency).html((amount).toFixed(8));
+        
+        $('#projections_' + currency).html(s);
+    }
     
     function updateProfits(useWallet, currentPrice)
     {
@@ -211,6 +285,8 @@
             calcPortfolioCurrentValue();
             
             updateProfits('BTC', btc);
+            
+            calcProjections('BTC', $('#currencWallet').html(), btc);
         });
         
         $.get(endpoint + '/products/ETH-EUR/book', function (data) {
@@ -239,6 +315,8 @@
             calcPortfolioCurrentValue();
             
             updateProfits('ETH', eth);
+            
+            calcProjections('ETH', $('#currencWallet').html(), eth);
         });
         
         $.get(endpoint + '/products/LTC-EUR/book', function (data) {
@@ -267,6 +345,8 @@
             calcPortfolioCurrentValue();
             
             updateProfits('LTC', ltc);
+            
+            calcProjections('LTC', $('#currencWallet').html(), ltc);
         });
         
         
