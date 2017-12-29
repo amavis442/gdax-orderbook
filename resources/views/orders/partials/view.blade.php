@@ -102,10 +102,11 @@
                                     <td>#</td>
                                     <th>Datum</th>
                                     <th>Wallet</th>
-                                    <th>Trade</th>
+                                    <th>Side</th>
                                     <th>Hoeveelheid</th>
                                     <th>Handelsprijs</th>
                                     <th>Koers munt gekocht/ Huidige koers</th>
+                                    <th>Advies verkoopprijs</th>
                                     <th>P/L</th>
                                     <th>Kosten</th>
                                     <th>Verkocht voor</th>
@@ -118,8 +119,8 @@
                             <tbody>
                                 @foreach($orders as $order)
                                 <tr class="orders 
-                                    @if($order->trade == 'BUY')
-                                    @if($order->filled)success @else danger @endif
+                                    @if($order->side == 'BUY')
+                                        @if($order->filled)success @else danger @endif
                                     @endif">
                                     <td class="orderid">{{ $order->id }}</td>
                                     <td>{{ $order->created_at->format('d-m-Y H:i') }}</td>
@@ -129,6 +130,22 @@
                                     <td>&euro; {{ $order->tradeprice }}</td>
                                     <td><span id="ordercoinprice{{ $order->id }}" class="label label-primary">{{ $order->coinprice }}</span>
                                         @if(!$order->filled) / <span class='koers_{{ $order->wallet }} currentcoinprice label'></span> @endif</td>
+                                    <td>
+                                        @if($order->side == 'BUY')
+                                        <span class='label label-info'>
+                                            &euro;
+                                            @if($order->product_id == 'LTC-EUR')
+                                            {{ number_format($order->coinprice + config('coinbase.ltc_spread'),2) }}
+                                            @endif
+                                            @if($order->product_id == 'BTC-EUR')
+                                            {{ number_format($order->coinprice + config('coinbase.btc_spread'),2) }}
+                                            @endif
+                                            @if($order->product_id == 'ETH-EUR')
+                                            {{ number_format($order->coinprice + config('coinbase.eth_spread'),2) }}
+                                            @endif
+                                        </span>
+                                        @endif
+                                    </td>
                                     <td><span id="profit{{ $order->id }}" class='label'></span></td>
                                     <td>&euro; {{ $order->fee > 0.0 ? $order->fee : '0.00' }}</td>
                                     <td>&euro; {{ $order->soldfor > 0.0 ? number_format($order->soldfor,8) : '0.00' }}</td>

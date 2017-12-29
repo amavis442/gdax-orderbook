@@ -6,3 +6,11 @@
  */
 
 require('./bootstrap');
+
+window.Vue = require('vue');
+
+Vue.component('portfolio', require('./components/Portfolio.vue'));
+
+const app = new Vue({
+  el: '#app'
+});

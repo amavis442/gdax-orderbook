@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Wallet;
 use Illuminate\Http\Request;
 use App\Order;
-
 use GDAX\Utilities\GDAXConstants;
 
 class WalletController extends Controller {
@@ -83,6 +82,45 @@ class WalletController extends Controller {
         //
     }
 
+    public function getWallets() {
+        $client = new \GDAX\Clients\AuthenticatedClient(
+                config('coinbase.api_key'), config('coinbase.api_secret'), config('coinbase.password')
+        );
+
+
+
+        $accounts = $client->getAccounts();
+
+        $portfolio = 0;
+        /** @var  \GDAX\Types\Response\Authenticated\Account $account */
+        foreach ($accounts as $account) {
+            $currency = $account->getCurrency();
+            $balance = $account->getBalance();
+
+            if ($currency != 'EUR') {
+                $product = (new \GDAX\Types\Request\Market\Product())->setProductId($currency . '-EUR');
+                $productTicker = $client->getProductTicker($product);
+                $koers = number_format($productTicker->getPrice(), 3, '.', '');
+            } else {
+                $koers = 0.0;
+            }
+            $waarde = 0.0;
+            if ($currency == 'EUR') {
+                $balance = number_format($balance, 4, '.', '');
+                $waarde = $balance;
+            } else {
+                $waarde = number_format($balance * $koers, 4, '.', '');
+            }
+
+            $portfolio += $waarde;
+
+            $balances['wallets'][] = ['name' => $currency, 'balance' => $balance, 'koers' => $koers, 'waarde' => $waarde];
+        }
+        $balances['portfolio'] = number_format($portfolio, 3, '.', '');
+        
+        return $balances;
+    }
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -133,28 +171,27 @@ class WalletController extends Controller {
 
         $product = (new \GDAX\Types\Request\Market\Product())->setProductId(\GDAX\Utilities\GDAXConstants::PRODUCT_ID_LTC_EUR);
 
-      
+
         $fill = (new \GDAX\Types\Request\Authenticated\Fill())->setProductId(\GDAX\Utilities\GDAXConstants::PRODUCT_ID_LTC_EUR);
 
 //        $fills = $client->getFills($fill);
 //        dump($fills);
 
         /* $product = (new \GDAX\Types\Request\Market\Product())->setProductId(\GDAX\Utilities\GDAXConstants::PRODUCT_ID_LTC_EUR);
-        $productTicker = $client->getProductTicker($product);
-        dump($productTicker); */
+          $productTicker = $client->getProductTicker($product);
+          dump($productTicker); */
 
 
         /* $listOrders = (new \GDAX\Types\Request\Authenticated\ListOrders())
-                ->setStatus(\GDAX\Utilities\GDAXConstants::ORDER_STATUS_ALL)
-                ->setProductId(\GDAX\Utilities\GDAXConstants::PRODUCT_ID_LTC_EUR);
+          ->setStatus(\GDAX\Utilities\GDAXConstants::ORDER_STATUS_ALL)
+          ->setProductId(\GDAX\Utilities\GDAXConstants::PRODUCT_ID_LTC_EUR);
 
-        $orders = $client->getOrders($listOrders);
-        dump($orders); */
-        
-        
+          $orders = $client->getOrders($listOrders);
+          dump($orders); */
+
+
 //        $product
         //$trades = $client->getTrades($product);
-
         //dump($trades);
 
         return $balances;
