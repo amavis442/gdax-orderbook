@@ -11,6 +11,7 @@ class OrderService {
         return Wallet::where('wallet', $wallet)->sum('currency');
     }
 
+    
     public function create(Array $data) {
         $order = new Order();
         $order->product_id = $data['product_id'];

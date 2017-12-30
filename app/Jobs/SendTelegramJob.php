@@ -15,18 +15,17 @@ class SendTelegramJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $data;
-    protected $balances;
+    protected $ledger;
+   
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($data = [], $balances = [])
+    public function __construct($ledger = [])
     {
-        $this->data = $data;
-        $this->balances = $balances;
+        $this->ledger = $ledger;
     }
 
     /**
@@ -38,6 +37,7 @@ class SendTelegramJob implements ShouldQueue
     {
         $user = User::find(1);
 
-        $user->notify(new Telegram($this->data, $this->balances));
+        
+        $user->notify(new Telegram($this->ledger));
     }
 }

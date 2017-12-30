@@ -15,18 +15,16 @@ class Telegram extends Notification
 {
     use Queueable;
 
-    protected $data;
-    protected $balance;
-    
+    protected $ledger;
+        
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($data, $balance = [])
+    public function __construct($ledger = [])
     {
-        $this->data = $data;
-        $this->balance = $balance;
+        $this->ledger = $ledger;
     }
 
     /**
@@ -48,19 +46,14 @@ class Telegram extends Notification
      */
     public function toTelegram($notifiable)
     {
-        $data = $this->data;
-        $content = "*".$data['side']. ' '.$data['product_id']."*\n".
-                'Koers: '. number_format($data['coinprice'],8)."\n".
-                'Aantal: '. $data['amount']. "\n".
-                
-                'Handelsprijs: *'.number_format($data['tradeprice'],8). "*\n".
-                '_Kosten: '. number_format($data['fee'],2) ."_\n";
-
-        foreach ($this->balance as $name => $currency) {
-            $content .= '*Balance '. $name. ' = ' .$currency.'*'."\n";
+        $ledger = $this->ledger;
+        $content = "_Report van ".date('d-m-Y H:i:s')."_\n----------------\n";
+        foreach ($ledger['wallets'] as $wallet) {
+            $content .= '*'.$wallet['name'].' : '.$wallet['koers']."*\n". 
+                    'Balance : '.$wallet['balance']."\n". 
+                    'Waarde : '.$wallet['waarde']."\n-------------------------\n";
         }
-
-        $content .= 'Aangemaakt op: '. $data['created_at'];
+        $content .= '*Portfolio: '.$ledger['portfolio'].'*';
         
         return TelegramMessage::create()
             //->to($this->user->telegram_user_id) // Optional.
