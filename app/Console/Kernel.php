@@ -34,7 +34,7 @@ class Kernel extends ConsoleKernel
                  ->everyThirtyMinutes();*/
         
          $schedule->command('report:send')
-                 ->twiceDaily(9, 17);
+                 ->hourly()->between('7:00', '22:00');
     }
 
     /**
