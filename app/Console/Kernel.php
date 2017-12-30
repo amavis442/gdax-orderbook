@@ -27,11 +27,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('orders:update')
+        /* $schedule->command('orders:update')
                   ->everyMinute();
 
         $schedule->command('trade:update')
-                 ->everyThirtyMinutes();
+                 ->everyThirtyMinutes();*/
+        
+         $schedule->command('report:send')
+                 ->twiceDaily(9, 17);
     }
 
     /**
