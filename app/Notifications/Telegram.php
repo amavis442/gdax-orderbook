@@ -47,7 +47,8 @@ class Telegram extends Notification
     public function toTelegram($notifiable)
     {
         $ledger = $this->ledger;
-        $content = "_Report van ".date('d-m-Y H:i:s')."_\n----------------\n";
+	$mydate = \Carbon\Carbon::now('Europe/Amsterdam')->format('d-m-Y H:i:s');
+	$content = "_Report van ".$mydate."_\n----------------\n";
         foreach ($ledger['wallets'] as $wallet) {
             $content .= '*'.$wallet['name'].' : '.$wallet['koers']."*\n". 
                     'Balance : '.$wallet['balance']."\n". 
