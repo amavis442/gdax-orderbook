@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "bufferutil": "^3.0.3",
+    "frappe-charts": "0.0.8",
     "fs": "0.0.1-security",
     "gdax": "^0.4.2",
     "utf-8-validate": "^4.0.0"
