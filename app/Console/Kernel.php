@@ -13,9 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        \App\Console\Commands\UpdateOrderCommand::class,
-        \App\Console\Commands\CoinbaseCsvImport::class,
-        \App\Console\Commands\UpdateTradesCommand::class,
+        \App\Console\Commands\SendReportCommand::class,
 
     ];
 
@@ -27,12 +25,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        /* $schedule->command('orders:update')
-                  ->everyMinute();
 
-        $schedule->command('trade:update')
-                 ->everyThirtyMinutes();*/
-        
          $schedule->command('report:send')
                  ->everyThirtyMinutes()->between('7:00', '22:00');
     }

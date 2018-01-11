@@ -4,6 +4,13 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * App\Wallet
+ *
+ * @property-read \App\Wallet $fee
+ * @property-read \App\Order $order
+ * @mixin \Eloquent
+ */
 class Wallet extends Model
 {
     public function fee(){

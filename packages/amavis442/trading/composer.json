@@ -1,0 +1,32 @@
+{
+    "name": "trader",
+    "description": "Bot for trading cryptocoin on gdax",
+    "license": "MIT",
+    "type" :"project",
+    "require": {
+        "php": ">=7.1",
+        "ext-trader": "*",
+        "benfranke/gdax-php": "^0.0.6",
+        "nesbot/carbon": "^1.22",
+        "ratchet/pawl": "^0.3.1",
+        "predis/predis": "^1.1"
+    },
+     "autoload": {
+        "psr-4": {"Amavis442\\Trading\\": "src/"}
+    },
+    "require-dev": {
+        "fzaninotto/faker": "^1.7",
+        "phpunit/phpunit": "^6.5"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Amavis442\\Trading\\TraderServiceProvider"
+            ],
+            "aliases": {
+                "Trading": "Amavis442\\Trading\\TraderFacade"
+            }
+        }
+    }
+
+}

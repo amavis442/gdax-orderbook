@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'https://orderbook.test'),
 
     /*
     |--------------------------------------------------------------------------
@@ -168,6 +168,7 @@ return [
          * Package Service Providers...
          */
         NotificationChannels\Telegram\TelegramServiceProvider::class,
+        Amavis442\Trading\TraderServiceProvider::class,
 
         /*
          * Application Service Providers...
