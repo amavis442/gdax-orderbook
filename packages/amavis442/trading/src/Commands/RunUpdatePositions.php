@@ -47,7 +47,7 @@ class RunUpdatePositions extends Command
      *
      * @return void
      */
-    public function __construct(GdaxServiceInterface $gdax, OrderServiceInterface $order, PositionServiceInterface $position)
+    public function __construct(GdaxServiceInterface $gdax, OrderServiceInterface $order)
     {
         $this->gdax     = $gdax;
         $this->order    = $order;
@@ -60,7 +60,7 @@ class RunUpdatePositions extends Command
     protected function handle()
     {
 
-        $bot = new PositionBot($this->gdax, $this->order, $this->position);
+        $bot = new PositionBot($this->gdax, $this->order);
         $bot->setStopLossService(new Stoploss());
 
 

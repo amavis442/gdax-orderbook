@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace Amavis442\Trading\Services;
 
 use Amavis442\Trading\Contracts\PositionServiceInterface;
-use Illuminate\Database\Capsule\Manager as DB;
-use Amavis442\Trading\Util\Transform;
+use Illuminate\Support\Collection;
+use Amavis442\Trading\Models\Position;
 
 /**
  * Class OrderService
@@ -37,15 +37,15 @@ class PositionService implements PositionServiceInterface
      */
     public function open(string $order_id, float $size, float $amount): int
     {
-        $id = DB::table('positions')->insertGetId([
-                                                   'order_id'    => $order_id,
-                                                   'size'        => $size,
-                                                   'amount'      => $amount,
-                                                   'position'      => 'open',
-                                                   'created_at'  => date('Y-m-d H:i:s')
-                                               ]);
-
-        return $id;
+        $position = Position::create(['order_id'  => $order_id,
+                                    'size'        => $size,
+                                    'amount'      => $amount,
+                                    'open'        => $amount,
+                                    'position'    => 'open',
+                                    ]);
+        
+   
+        return $position->id;
     }
 
     public function pending(int $id)
@@ -53,9 +53,12 @@ class PositionService implements PositionServiceInterface
         DB::table('positions')->where('id', $id)->update(['position' => 'pending']);
     }
 
-    public function close(int $id)
+    public function close(int $id, float $amount)
     {
-        DB::table('positions')->where('id', $id)->update(['position' => 'closed']);
+        $position = Position::findOrFail($id);
+        $position->close = $amount;
+        $position->position = 'closed';
+        $position->save();
     }
 
     /**
@@ -65,11 +68,9 @@ class PositionService implements PositionServiceInterface
      *
      * @return array
      */
-    public function fetchAll(string $status = 'open'): array
+    public function fetchAll(string $status = 'open'): Collection
     {
-        $result = DB::table('positions')->select('*')->where('position', $status)->get();
-
-        return Transform::toArray($result);
+        return Position::whereStatus($status)->get();
     }
 
     /**
@@ -77,15 +78,9 @@ class PositionService implements PositionServiceInterface
      *
      * @return \stdClass
      */
-    public function fetch(int $id): ?\stdClass
+    public function fetch(int $id): Position
     {
-        $result = DB::table('positions')->select('*')->where('id', $id)->first();
-
-        if ($result) {
-            return $result;
-        } else {
-            return null;
-        }
+        return Position::findOrFail($id);
     }
 
     /**
@@ -95,7 +90,7 @@ class PositionService implements PositionServiceInterface
      *
      * @return \stdClass
      */
-    public function fetchByOrderId(string $order_id): ?\stdClass
+    public function fetchByOrderId(string $order_id): Position
     {
         $result = DB::table('positions')->select('*')->where('order_id', $order_id)->first();
         if ($result) {

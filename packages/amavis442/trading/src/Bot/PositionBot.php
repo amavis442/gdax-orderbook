@@ -11,12 +11,11 @@ namespace Amavis442\Trading\Bot;
 use Amavis442\Trading\Contracts\BotInterface;
 use Amavis442\Trading\Contracts\GdaxServiceInterface;
 use Amavis442\Trading\Contracts\OrderServiceInterface;
-use Amavis442\Trading\Contracts\PositionServiceInterface;
+use Amavis442\Trading\Models\Position;
+
 
 class PositionBot implements BotInterface
 {
-    protected $container;
-    protected $config;
     protected $orderService;
     protected $gdax;
     protected $positionService;
@@ -24,11 +23,10 @@ class PositionBot implements BotInterface
     protected $msg = [];
 
 
-    public function __construct(GdaxServiceInterface $gdax, OrderServiceInterface $orderService, PositionServiceInterface $positionService)
+    public function __construct(GdaxServiceInterface $gdax, OrderServiceInterface $orderService)
     {
         $this->gdax            = $gdax;
         $this->orderService    = $orderService;
-        $this->positionService = $positionService;
     }
 
     public function setStopLossService($stoplossRule)
@@ -71,7 +69,14 @@ class PositionBot implements BotInterface
 
                 if ($status) {
                     if ($status == 'done') {
-                        $position_id = $this->positionService->open($gdaxOrder->getId(), $gdaxOrder->getSize(), $gdaxOrder->getPrice());
+                        $position = Position::create([
+                            'order_id' => $gdaxOrder->getId(),
+                            'size' => $gdaxOrder->getSize(),
+                            'amount' => $gdaxOrder->getPrice(),
+                            'open' => $gdaxOrder->getPrice()
+                        ]);
+
+                        $position_id = $position->id;
                     }
 
                     $this->orderService->updateOrderStatus($order['id'], $gdaxOrder->getStatus(), $position_id);
@@ -94,7 +99,7 @@ class PositionBot implements BotInterface
             foreach ($orders as $order) {
                 $gdaxOrder = $this->gdax->getOrder($order['order_id']);
                 $status    = $gdaxOrder->getStatus();
-
+              
                 if ($status) {
                     $this->orderService->updateOrderStatus($order['id'], $gdaxOrder->getStatus());
                 } else {
@@ -150,7 +155,7 @@ class PositionBot implements BotInterface
                     if ($placeOrder) {
                         $sellPrice = number_format($currentPrice + 0.01, 2, '.', '');
 
-                        $order = $this->gdaxService->placeLimitSellOrderFor1Minute($size, $sellPrice);
+                        $order = $this->gdax->placeLimitSellOrderFor1Minute($size, $sellPrice);
 
                         if ($order->getMessage()) {
                             $status = $order->getMessage();

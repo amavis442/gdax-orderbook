@@ -1,5 +1,7 @@
 <?php
 namespace Amavis442\Trading\Contracts;
+use Illuminate\Support\Collection;
+use Amavis442\Trading\Models\Position;
 
 /**
  * Interface GdaxServiceInterface
@@ -41,7 +43,7 @@ interface PositionServiceInterface
      *
      * @return mixed
      */
-    public function close(int $id);
+    public function close(int $id, float $amount);
     
     /**
      * Fetch all orders that have given status
@@ -50,7 +52,7 @@ interface PositionServiceInterface
      *
      * @return array
      */
-    public function fetchAll(string $status = 'open'): array;
+    public function fetchAll(string $status = 'open'): Collection;
 
 
     /**
@@ -58,7 +60,7 @@ interface PositionServiceInterface
      *
      * @return \stdClass
      */
-    public function fetch(int $id): ?\stdClass;
+    public function fetch(int $id): Position;
 
     /**
      * Fetch order by order id from coinbase (has the form of aaaaa-aaaa-aaaa-aaaaa)
@@ -67,7 +69,7 @@ interface PositionServiceInterface
      *
      * @return \stdClass
      */
-    public function fetchByOrderId(string $order_id): ?\stdClass;
+    public function fetchByOrderId(string $order_id): Position;
 
     /**
      * @return int
@@ -80,5 +82,5 @@ interface PositionServiceInterface
      *
      * @return array
      */
-    public function getOpen(): array;
+    public function getOpen(): Collection;
 }
