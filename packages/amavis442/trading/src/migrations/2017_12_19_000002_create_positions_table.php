@@ -20,7 +20,7 @@ class CreatePositionsTable extends Migration
             $table->string('size', 20);
             $table->decimal('amount', 15, 9);
             $table->decimal('open', 15, 9);
-            $table->decimal('close', 15, 9);
+            $table->decimal('close', 15, 9)->nullable();
             $table->enum('position', ['open', 'pending', 'closed'])->default('open');
             $table->string('close_reason', 20)->nullable();
             $table->timestamps();
