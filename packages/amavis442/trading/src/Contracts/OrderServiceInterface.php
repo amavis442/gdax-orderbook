@@ -74,6 +74,10 @@ interface OrderServiceInterface {
      */
     public function sell(string $order_id, float $size, float $amount, int $position_id = 0,int $parent_id = 0): int;
 
+
+
+    public function getOpenPosition(int $id): ?\stdClass;
+
     /**
      * @return mixed
      */
@@ -110,7 +114,7 @@ interface OrderServiceInterface {
     public function fetchOrder(int $id): ?\stdClass;
 
     public function fetchOrderByParentId(int $parent_id, string $status = 'open'): ?\stdClass;
-    
+
     /**
      * @param string $order_id
      *
@@ -118,23 +122,21 @@ interface OrderServiceInterface {
      */
     public function fetchOrderByOrderId(string $order_id): ?\stdClass;
 
-    public function getOpenSellOrderByOrderId(string $order_id): ?\stdClass;
-
     /**
      * @return int
      */
     public function getNumOpenOrders(): int;
 
-    
+
     public function getTopOpenBuyOrder(): ?\stdClass;
-    
+
     public function getBottomOpenBuyOrder(): ?\stdClass;
-    
-        
+
+
     public function getTopOpenSellOrder(): ?\stdClass;
-    
+
     public function getBottomOpenSellOrder(): ?\stdClass;
-    
+
     /**
      * @param string|null $date
      *
@@ -146,10 +148,10 @@ interface OrderServiceInterface {
      * Get the lowest price of an open or pending sell
      */
     public function getLowestSellPrice(): ?float;
-    
+
     /**
-     * Get orders which have a side. vb side = buy 
-     * 
+     * Get orders which have a side. vb side = buy
+     *
      * @param string $side
      * @param string $status
      *
@@ -163,7 +165,7 @@ interface OrderServiceInterface {
     public function getOpenSellOrders(): array;
 
     /**
-     * Get the buy orders with `status` open of `pending` 
+     * Get the buy orders with `status` open of `pending`
      */
     public function getOpenBuyOrders(): array;
 
@@ -174,7 +176,7 @@ interface OrderServiceInterface {
     public function buyPriceExists(float $price): bool;
 
     /**
-     * Some sells will be rejected coz of price going up while processing to make sure the buy gets sold 
+     * Some sells will be rejected coz of price going up while processing to make sure the buy gets sold
      */
     public function fixRejectedSells();
 

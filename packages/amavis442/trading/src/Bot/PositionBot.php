@@ -9,26 +9,33 @@
 namespace Amavis442\Trading\Bot;
 
 use Amavis442\Trading\Contracts\BotInterface;
+use Amavis442\Trading\Contracts\GdaxServiceInterface;
+use Amavis442\Trading\Contracts\OrderServiceInterface;
+use Amavis442\Trading\Contracts\PositionServiceInterface;
 
 class PositionBot implements BotInterface
 {
     protected $container;
     protected $config;
     protected $orderService;
-    protected $gdaxService;
+    protected $gdax;
     protected $positionService;
     protected $stoplossRule;
     protected $msg = [];
 
-    public function setContainer($container)
+
+    public function __construct(GdaxServiceInterface $gdax, OrderServiceInterface $orderService, PositionServiceInterface $positionService)
     {
-        $this->container = $container;
+        $this->gdax            = $gdax;
+        $this->orderService    = $orderService;
+        $this->positionService = $positionService;
     }
 
-    public function setSettings(array $config = [])
+    public function setStopLossService($stoplossRule)
     {
-        $this->config = $config;
+        $this->stoplossRule = $stoplossRule;
     }
+
 
     public function getMessage(): array
     {
@@ -40,7 +47,7 @@ class PositionBot implements BotInterface
      */
     public function actualize()
     {
-        $orders = $this->gdaxService->getOpenOrders();
+        $orders = $this->gdax->getOpenOrders();
         if (count($orders)) {
             $this->orderService->fixUnknownOrdersFromGdax($orders);
         }
@@ -56,7 +63,7 @@ class PositionBot implements BotInterface
         if (count($orders)) {
             foreach ($orders as $order) {
                 /** @var \GDAX\Types\Response\Authenticated\Order $gdaxOrder */
-                $gdaxOrder = $this->gdaxService->getOrder($order['order_id']);
+                $gdaxOrder = $this->gdax->getOrder($order['order_id']);
                 // Mocken
 
                 $position_id = 0;
@@ -85,7 +92,7 @@ class PositionBot implements BotInterface
 
         if (is_array($orders)) {
             foreach ($orders as $order) {
-                $gdaxOrder = $this->gdaxService->getOrder($order['order_id']);
+                $gdaxOrder = $this->gdax->getOrder($order['order_id']);
                 $status    = $gdaxOrder->getStatus();
 
                 if ($status) {
@@ -118,24 +125,26 @@ class PositionBot implements BotInterface
     protected function watchPositions(float $currentPrice): array
     {
         $positions = $this->positionService->getOpen();
-        $msg       = [];
 
         if (is_array($positions)) {
+            $this->msg[] = $this->timestamp . ' .... <info>watchPositions</info>';
             foreach ($positions as $position) {
                 $price       = $position['amount'];
                 $size        = $position['size'];
                 $position_id = $position['id'];
                 $order_id    = $position['order_id']; // Buy order_id
 
-                $sellMe = $this->stoplossRule->trailingStop($position_id, $currentPrice, $price, $this->config['stoploss']);
-                $msg    = array_merge($msg, $this->stoplossRule->getMessage());
+                $sellMe    = $this->stoplossRule->trailingStop($position_id, $currentPrice, $price, $this->config['stoploss'], $this->config['takeprofit']);
+                $this->msg = array_merge($this->msg, $this->stoplossRule->getMessage());
 
                 $placeOrder = true;
                 if ($sellMe) {
-                    $existingSellOrder  = $this->orderService->getOpenSellOrderByOrderId($order_id);
+                    $this->msg[]       = $this->timestamp . ' .... <info>Sell trigger</info>';
+                    $existingSellOrder = $this->orderService->getOpenPosition($position_id);
 
                     if ($existingSellOrder) {
                         $placeOrder = false;
+                        $this->logger->debug('Position ' . $position_id . ' has an open sell order. ');
                     }
 
                     if ($placeOrder) {
@@ -148,17 +157,20 @@ class PositionBot implements BotInterface
                         } else {
                             $status = $order->getStatus();
                         }
+                        $this->logger->info('Place sell order status ' . $status . ' for position ' . $position_id);
+
 
                         if ($status == 'open' || $status == 'pending') {
-                            $this->orderService->sell($order->getId(), $size, $sellPrice, $position_id,0);
-                            $msg[] = ">> Place sell order " . $order->getId() . " for position " . $position_id . "\n";
+                            $this->orderService->sell($order->getId(), $size, $sellPrice, $position_id, 0);
+
+                            $this->logger->info('Place sell order ' . $order->getId() . ' for position ' . $position_id);
+
+                            $this->msg[] = $this->timestamp . ' .... <info>Place sell order ' . $order->getId() . ' for position ' . $position_id . '</info>';
                         }
                     }
                 }
             }
         }
-
-        return $msg;
     }
 
 

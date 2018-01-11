@@ -9,7 +9,24 @@
 namespace Amavis442\Trading\Contracts;
 
 
-interface RuleInterface
+use Amavis442\Trading\Models\Position;
+use Amavis442\Trading\Models\Setting;
+
+interface TriggerInterface
 {
-    public function validate(float $price, float $spread, ?float $lowestBuyPrice = null, ?float $highestBuyPrice = null, ?float $lowestSellPrice = null, ?float $highestSellPrice = null): bool;
+    const SELL = -1;
+    const HOLD = 0;
+    const BUY  = 1;
+
+    /**
+     * Result is -1, 0, 1 : -1 = sell, 0 = hold, 1 = buy
+     *
+     *
+     * @param float                              $price
+     * @param \Amavis442\Trading\Models\Position $position
+     * @param array                              $config
+     *
+     * @return int
+     */
+    public function trigger(float $price, Position $position, Setting $config): int;
 }

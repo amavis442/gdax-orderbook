@@ -26,6 +26,10 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Position whereSize($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Position whereUpdatedAt($value)
  * @mixin \Eloquent
+ * @property float $open
+ * @property float $close
+ * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Position whereClose($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Position whereOpen($value)
  */
 class Position extends Model
 {

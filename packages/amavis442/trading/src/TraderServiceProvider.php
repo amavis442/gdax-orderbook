@@ -61,7 +61,15 @@ class TraderServiceProvider extends ServiceProvider
             'Amavis442\Trading\Services\GDaxService'
         );
 
+        $this->app->bind(
+            'Amavis442\Trading\Contracts\OrderServiceInterface',
+            'Amavis442\Trading\Services\OrderService'
+        );
 
+        $this->app->bind(
+            'Amavis442\Trading\Contracts\PositionServiceInterface',
+            'Amavis442\Trading\Services\PositionService'
+        );
 
         /*$this->app->singleton('HelpSpot\API', function ($app) {
             return new HelpSpot\API($app->make('HttpClient'));

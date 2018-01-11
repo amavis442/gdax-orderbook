@@ -173,6 +173,17 @@ class OrderService implements OrderServiceInterface
         }
     }
 
+    public function getOpenPosition(int $id): ?\stdClass
+    {
+        $result = DB::table('orders')->select('*')->where('position_id', $id)->where('side', 'sell')->whereIn('status', ['open','pending'])->first();
+
+        if ($result) {
+            return $result;
+        } else {
+            return null;
+        }
+    }
+
     /**
      * @param int $id
      *
@@ -201,8 +212,8 @@ class OrderService implements OrderServiceInterface
         }
     }
 
-    
-    
+
+
     /**
      * Fetch order by order id from coinbase (has the form of aaaaa-aaaa-aaaa-aaaaa)
      *
@@ -261,7 +272,7 @@ class OrderService implements OrderServiceInterface
         }
         return null ;
     }
-    
+
     public function getBottomOpenBuyOrder(): ?\stdClass {
         $result = DB::select("SELECT * from orders WHERE side='buy' AND status = 'open' OR status = 'pending' AND amount = (SELECT MIN(amount) maxamount from orders WHERE side='buy' AND status = 'open' OR status = 'pending') limit 1");
         if ($result) {
@@ -269,7 +280,7 @@ class OrderService implements OrderServiceInterface
         }
         return null ;
     }
-    
+
     public function getTopOpenSellOrder(): ?\stdClass {
         $result = DB::select("SELECT * from orders WHERE side='sell' AND status = 'open' OR status = 'pending' AND amount = (SELECT MAX(amount) maxamount from orders WHERE side='sell' AND status = 'open' OR status = 'pending') limit 1");
         if ($result) {
@@ -277,7 +288,7 @@ class OrderService implements OrderServiceInterface
         }
         return null ;
     }
-    
+
     public function getBottomOpenSellOrder(): ?\stdClass {
         $result = DB::select("SELECT * from orders WHERE side='sell' AND status = 'open' OR status = 'pending' AND amount = (SELECT MIN(amount) maxamount from orders WHERE side='sell' AND status = 'open' OR status = 'pending') limit 1");
         if ($result) {
@@ -285,7 +296,7 @@ class OrderService implements OrderServiceInterface
         }
         return null ;
     }
-    
+
     /**
      *
      * @param string $side

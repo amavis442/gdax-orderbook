@@ -12,7 +12,6 @@ use Amavis442\Trading\Contracts\BotInterface;
 use Amavis442\Trading\Contracts\GdaxServiceInterface;
 use Amavis442\Trading\Models\Ticker;
 use Amavis442\Trading\Models\Ticker1m;
-use Amavis442\Trading\Traits\OHLC;
 
 class TickerBot implements BotInterface
 {

@@ -3,14 +3,17 @@ declare(strict_types=1);
 
 namespace Amavis442\Trading\Triggers;
 
-use Amavis442\Trading\Util\Cache;
+use Amavis442\Trading\Contracts\TriggerInterface;
+use Amavis442\Trading\Models\Position;
+use Amavis442\Trading\Models\Setting;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Description of TrailingSell
  *
  * @author patrickteunissen
  */
-class Stoploss
+class Stoploss implements TriggerInterface
 {
     protected $msg = [];
 
@@ -19,40 +22,51 @@ class Stoploss
         return $this->msg;
     }
 
-    /**
-     *
-     * @see https://www.investopedia.com/video/play/how-use-trailing-stops/
-     *
-     * @param float $currentprice
-     * @param float $buyprice
-     * @param float $stoplossPercentage
-     */
-    public function trailingStop(int $position_id, float $currentprice, float $buyprice, float $stoplossPercentage = 3): bool
+
+    public function trigger(float $currentprice, Position $position, Setting $config): int
     {
-        $stoploss = (float)($stoplossPercentage / 100);
+        $timestamp = \Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s');
+
+
+        $stoploss   = (float)($config->stoploss / 100);
+        $takeprofit = (float)($config->takeprofit / 100);
+
+        $buyprice    = $position->open;
+        $position_id = $position->id;
+
         // Hate loss
-        $limitLoss      = $buyprice * (1 - $stoploss);
-        $profitTreshold = $buyprice * (1 + $stoploss);
-        $oldLimit       = Cache::get('gdax.stoploss.' . $position_id, null);
+        $limitStopLoss  = (float)$buyprice * (1 - $stoploss);
+        $profitTreshold = $buyprice * (1 + $takeprofit);
 
-        $limit = (float)$currentprice * (1 - $stoploss); // 97 < 100 < 103, Take loss at 97 and lower
-        Cache::put('gdax.stoploss.' . $position_id, $limit, 3600);
+        $oldLimitTakeProfit = Cache::get('gdax.takeprofit.' . $position_id, 0);
 
-        $this->msg[] = '<info>Currentprice: ' . $currentprice . ',Bought: ' . $buyprice . ', Limit: ' . $limit . ', Oldlimit: ' . $oldLimit . ", Limit loss: " . $limitLoss . ", Profit treshold: " . $profitTreshold . ", Stoploss: " . $stoploss . '</info>';
+        $trailingTakeProfit = (float)$currentprice * (1 - $takeprofit); // 97 < 100 < 103, Take loss at 97 and lower
 
-        // Take profit
-        if ($limit > $buyprice && $currentprice < $oldLimit) {
-            $this->msg[] = '<comment>*** Trigger: Profit .... Sell at ' . $currentprice . "</comment>";
+        $this->msg[] = $timestamp . ' .... <info>Bought: ' . $buyprice . '</info>';
+        $this->msg[] = $timestamp . ' .... <info>Currentprice: ' . $currentprice . '<info>';
+        $this->msg[] = $timestamp . ' .... <info>Stoploss limit: ' . $limitStopLoss . '</info>';
+        $this->msg[] = $timestamp . ' .... <info>Profit treshold: ' . $profitTreshold . '</info>';
+        $this->msg[] = $timestamp . ' .... <info>Old Trailing stop: ' . $oldLimitTakeProfit . '</info>';
+        $this->msg[] = $timestamp . ' .... <info>Trailing stop: ' . $trailingTakeProfit . '</info>';
 
-            return true;
+
+        if ($trailingTakeProfit > $oldLimitTakeProfit) {
+            $this->msg[] = $timestamp . ' .... <info>Update trailing stop: from ' . $oldLimitTakeProfit . ' to ' . $trailingTakeProfit . '</info>';
+            Cache::put('gdax.takeprofit.' . $position_id, $trailingTakeProfit, 3600);
+        } else {
+            if ($currentprice > $oldLimitTakeProfit && $currentprice > $profitTreshold) {
+                $this->msg[] = $timestamp . ' .... <comment>*** Trigger: Profit .... Sell at ' . $currentprice . "</comment>";
+
+                return TriggerInterface::SELL;
+            } else {
+                if ($currentprice < $limitStopLoss) {
+                    $this->msg[] = $timestamp . ' .... <error>*** Trigger: Loss .... Sell at ' . $currentprice . "</error>";
+
+                    return TriggerInterface::SELL;
+                }
+            }
         }
 
-        if ($currentprice < $limitLoss) {
-            $this->msg[] = '<error>*** Trigger: Loss .... Sell at ' . $currentprice . "</error>";
-
-            return true;
-        }
-
-        return false;
+        return TriggerInterface::HOLD;
     }
 }
