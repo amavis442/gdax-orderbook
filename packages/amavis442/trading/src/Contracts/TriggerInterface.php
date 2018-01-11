@@ -28,5 +28,5 @@ interface TriggerInterface
      *
      * @return int
      */
-    public function trigger(float $price, Position $position, Setting $config): int;
+    public function signal(float $price, Position $position, Setting $config): int;
 }

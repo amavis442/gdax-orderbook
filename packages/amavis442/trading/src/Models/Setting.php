@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property float|null $spread
  * @property float|null $sellspread
  * @property float|null $stoploss
+ * @property float $takeprofit
  * @property int $max_orders
  * @property float $bottom
  * @property float $top
@@ -32,10 +33,9 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereTop($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereUpdatedAt($value)
  * @mixin \Eloquent
- * @property float $takeprofit
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereTakeprofit($value)
  */
 class Setting extends Model
 {
-    //
+    protected $fillable = ['spread','sellspread','stoploss','takeprofit','max_orders','bottom','top','size','lieftime','botactive'];
 }

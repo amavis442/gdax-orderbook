@@ -23,7 +23,7 @@ class Stoploss implements TriggerInterface
     }
 
 
-    public function trigger(float $currentprice, Position $position, Setting $config): int
+    public function signal(float $currentprice, Position $position, Setting $config): int
     {
         $timestamp = \Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s');
 

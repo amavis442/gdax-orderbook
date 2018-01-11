@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: patrickteunissen
- * Date: 09-01-18
- * Time: 10:41
- */
 
 namespace Amavis442\Trading\Bot;
 
@@ -45,107 +39,146 @@ class PositionBot implements BotInterface
      */
     public function actualize()
     {
-        $orders = $this->gdax->getOpenOrders();
-        if (count($orders)) {
-            $this->orderService->fixUnknownOrdersFromGdax($orders);
+        $gdaxOrders = $this->gdax->getOpenOrders();
+        if (count($gdaxOrders)) {
+             if (is_array($gdaxOrders)) {
+
+                 foreach ($gdaxOrders as $gdaxOrder) {
+                    $order_id = $gdaxOrder->getId();
+                    $order  = Order::whereOrderId($order_id)->first();
+                    
+                    // When open order with order_id is not found then add it.                    
+                    if (is_null($order)) {
+                        Order::create(                     
+                                ['side'     => $order->getSide(), 
+                                'order_id'  => $order->getId(), 
+                                'size'      => $order->getSize(), 
+                                'amount'    => $order->getPrice(), 
+                                'status'    =>  'Manual']);
+                    } else {
+                        if ($order->status != 'done') {
+                            $order->status = $order->getStatus();
+                            $order->save();
+                        }
+                    }
+                }
+             }
         }
     }
 
     /**
+     * If we have open buy order that can be filled during the looptime
+     * then update the buy order and open a position when the buy is filled (done)
+     * 
      * Update the open buys
      */
     public function updateBuyOrderStatusAndCreatePosition()
     {
-        $orders = $this->orderService->getOpenBuyOrders();
-
-        if (count($orders)) {
+        $orders = Order::whereIn('status',['open','pending'])->whereSide('buy')->get();
+        
+        if ($orders->count()) {
             foreach ($orders as $order) {
                 /** @var \GDAX\Types\Response\Authenticated\Order $gdaxOrder */
-                $gdaxOrder = $this->gdax->getOrder($order['order_id']);
-                // Mocken
-
+                $gdaxOrder = $this->gdax->getOrder($order->order_id);
+    
                 $position_id = 0;
                 $status      = $gdaxOrder->getStatus();
 
                 if ($status) {
+                    // A recently placed order had been filled so we add it as an open position
                     if ($status == 'done') {
                         $position = Position::create([
-                            'order_id' => $gdaxOrder->getId(),
-                            'size' => $gdaxOrder->getSize(),
-                            'amount' => $gdaxOrder->getPrice(),
-                            'open' => $gdaxOrder->getPrice()
+                            'order_id'  => $gdaxOrder->getId(),
+                            'size'      => $gdaxOrder->getSize(),
+                            'amount'    => $gdaxOrder->getPrice(),
+                            'open'      => $gdaxOrder->getPrice(),
+                            'position'  => 'open'
                         ]);
 
                         $position_id = $position->id;
                     }
 
-                    $this->orderService->updateOrderStatus($order['id'], $gdaxOrder->getStatus(), $position_id);
-
+                    $order->status = $gdaxOrder->getStatus();
+                    
                 } else {
-                    $this->orderService->updateOrderStatus($order['id'], $gdaxOrder->getMessage(), $position_id);
+                    $order->status = $gdaxOrder->getMessage();
                 }
+                $order->position_id = $position_id;
+                $order->save();
             }
         }
     }
 
     /**
-     * Update the open Sells
+     * Update the open Sells to see if they are filled (done)
+     * If so update the order.
      */
     public function actualizeSellOrders()
     {
-        $orders = $this->orderService->getOpenSellOrders();
+        $orders = Order::whereIn('status',['open','pending'])->whereSide('sell')->get();
 
         if (is_array($orders)) {
             foreach ($orders as $order) {
-                $gdaxOrder = $this->gdax->getOrder($order['order_id']);
+                $gdaxOrder = $this->gdax->getOrder($order->order_id);
                 $status    = $gdaxOrder->getStatus();
               
                 if ($status) {
-                    $this->orderService->updateOrderStatus($order['id'], $gdaxOrder->getStatus());
+                    $order->status = $gdaxOrder->getStatus();
                 } else {
-                    $this->orderService->updateOrderStatus($order['id'], $gdaxOrder->getMessage());
+                    $order->status = $gdaxOrder->getMessage();
                 }
+                $order->save();
             }
         }
     }
 
+    
+    /**
+     * Find positions that are open (not sold /short) and check if we have a sell order active 
+     * or maybe the sell is done. If so close the position
+     */
     public function actualizePositions()
     {
-        $positions = $this->positionService->getOpen();
-        if (is_array($positions)) {
+        $positions = Position::wherePosition('open')->get();
+        
+        if ($positions->count()) {
             foreach ($positions as $position) {
-                $position_id = $position['id'];
-                $order       = $this->orderService->fetchPosition($position_id, 'sell', 'done');
+                $order = Order::wherePositionId($position->id)->whereSide('sell')->whereStatus('done')->first();
 
-                if ($order) {
-                    $this->positionService->close($position_id);
+                if (!is_null($order)) {
+                    $position->position = 'closed';
+                    $position->save(); // The position is filled so we give it a closed status.
                 }
             }
         }
     }
 
     /**
-     * Checks the open buys and if they are filled then place a buy order for the same size but higher price
+     * Get the open positions and track the price process and if a trigger comes
+     * go short/sell
      */
-    protected function watchPositions(float $currentPrice): array
+    protected function watchPositions(float $currentPrice)
     {
-        $positions = $this->positionService->getOpen();
-
-        if (is_array($positions)) {
+        $positions = Position::wherePosition('open')->get();
+        $config = Setting::orderBy('id','desc')->first();
+        
+        
+        if ($positions->count()) {
             $this->msg[] = $this->timestamp . ' .... <info>watchPositions</info>';
+            
             foreach ($positions as $position) {
-                $price       = $position['amount'];
-                $size        = $position['size'];
-                $position_id = $position['id'];
-                $order_id    = $position['order_id']; // Buy order_id
+                $price       = $position->amount;
+                $size        = $position->size;
+                $position_id = $position->id;
+                $order_id    = $position->order_id; // Buy order_id
 
-                $sellMe    = $this->stoplossRule->trailingStop($position_id, $currentPrice, $price, $this->config['stoploss'], $this->config['takeprofit']);
+                $sellMe    = $this->stoplossRule->trigger($position, $currentPrice, $config);
                 $this->msg = array_merge($this->msg, $this->stoplossRule->getMessage());
 
                 $placeOrder = true;
                 if ($sellMe) {
                     $this->msg[]       = $this->timestamp . ' .... <info>Sell trigger</info>';
-                    $existingSellOrder = $this->orderService->getOpenPosition($position_id);
+                    $existingSellOrder = Order::wherePositionId($position->id)->whereIn('status',['open','peding'])->first();
 
                     if ($existingSellOrder) {
                         $placeOrder = false;
@@ -166,7 +199,14 @@ class PositionBot implements BotInterface
 
 
                         if ($status == 'open' || $status == 'pending') {
-                            $this->orderService->sell($order->getId(), $size, $sellPrice, $position_id, 0);
+                            Order::create([
+                                'side' => 'sell',
+                                'order_id' => $order->getId(),
+                                'size' => $size,
+                                'amount' =>$sellPrice,
+                                'position_id' => $position->id
+                                
+                            ]);
 
                             $this->logger->info('Place sell order ' . $order->getId() . ' for position ' . $position_id);
 
@@ -176,15 +216,6 @@ class PositionBot implements BotInterface
                 }
             }
         }
-    }
-
-
-    protected function init()
-    {
-        $this->orderService    = $this->container->get('bot.service.order');
-        $this->gdaxService     = $this->container->get('bot.service.gdax');
-        $this->positionService = $this->container->get('bot.service.position');
-        $this->stoplossRule    = $this->container->get('bot.rule.stoploss');
     }
 
 
@@ -200,9 +231,16 @@ class PositionBot implements BotInterface
         $msg[] = "=== RUN [" . \Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s') . "] ===";
 
 
+        
         //Cleanup
-        $this->orderService->garbageCollection();
-
+        $orders = Order::whereNull('order_id')->where('status','<>','deleted')->get();
+        if ($orders->count()) {
+            foreach($orders as $order) {
+                $order->status = 'deleted';
+                $order->save();
+            }
+        }
+      
         $this->updateBuyOrderStatusAndCreatePosition();
         $this->actualizeSellOrders();
         $this->actualizePositions();
