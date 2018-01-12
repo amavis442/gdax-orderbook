@@ -42,9 +42,6 @@ use \RuntimeException;
  */
 class Indicators
 {
-
-    use OHLC;
-
     /**
      * @var array
      *      array with the available types of moving averages

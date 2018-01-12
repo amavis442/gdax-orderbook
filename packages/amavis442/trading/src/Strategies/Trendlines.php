@@ -10,9 +10,8 @@ declare(strict_types=1);
 
 namespace Amavis442\Trading\Strategies;
 
-use Amavis442\Trading\Contracts\StrategyInterface;
 use Amavis442\Trading\Util\PositionConstants;
-use Amavis442\Trading\Util\Indicators;
+
 
 /**
  * Class TrendingLinesStrategy

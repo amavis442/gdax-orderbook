@@ -20,3 +20,6 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 Route::resource('wallets', 'WalletController')->middleware(['auth']);
 Route::get('/getwallets', 'WalletController@getWallets')->middleware('auth');
+
+Route::resource('signals', 'SignalController')->middleware(['auth']);
+Route::get('/getsignal/{signal}', 'SignalController@getSignal')->middleware('auth');

@@ -18,7 +18,9 @@ class WalletController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request, $tab = 1) {
+        $balances = $this->getAccountBalances();
 
+        return view('wallets.index', compact('balances'));
 
         session(['tab' => $tab]);
         return $this->search($request, $tab);

@@ -10,6 +10,8 @@ namespace Amavis442\Trading\Managers;
 
 use Amavis442\Trading\Contracts\IndicatorInterface;
 use Amavis442\Trading\Contracts\IndicatorManagerInterface;
+use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 
 class IndicatorManager implements IndicatorManagerInterface
@@ -46,6 +48,13 @@ class IndicatorManager implements IndicatorManagerInterface
             throw new \BadMethodCallException("Indicator [{$indicator}] does not exist");
         }
 
-        return call_user_func($this->indicators[$indicator],$parameters[0]);
+        try {
+            $r = call_user_func_array([$this->indicators[$indicator], 'run'], $parameters);
+        } catch(RuntimeException $e) {
+            Log::error('Call to '. $indicator . ' gives ['.$e->getMessage().']');
+
+            return -1000; // HOLD
+        }
+        return $r;
     }
 }

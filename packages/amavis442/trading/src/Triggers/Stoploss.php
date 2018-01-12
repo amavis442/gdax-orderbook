@@ -26,8 +26,6 @@ class Stoploss implements TriggerInterface
 
     public function signal(float $currentprice, Position $position, Setting $config): int
     {
-        $timestamp = \Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s');
-
         $buyprice    = $position->open;
         $position_id = $position->id;
 
@@ -43,14 +41,7 @@ class Stoploss implements TriggerInterface
         $tp                 = $buyprice + $config->takeprofittreshold;
 
         Log::info('--- TRIGGER RUN --- ' . $cacheKey);
-        Log::info('Currentprice is : ' . $currentprice);
-        //Log::info('Bought for : ' . $buyprice);
-        Log::info('Stoploss limit (loss): ' . $limitStopLoss);
-        //Log::info('Profit treshold (profit): ' . $profitTreshold);
-        //Log::info('Old Trailing stop: ' . $oldLimitTakeProfit);
-        Log::info('Trailing stop: ' . $trailingTakeProfit);
-        //Log::info('Trailing stop treshold: ' . $config->takeprofittreshold);
-        //Log::info('Trailing stop treshold with buyprice: ' . $tp);
+        Log::info('Currentprice is : ' . $currentprice.', Stoploss limit (loss): ' . $limitStopLoss.', Trailing stop: ' . $trailingTakeProfit);
 
         if ($trailingTakeProfit < $buyprice) {
             $trailingTakeProfit = $tp;

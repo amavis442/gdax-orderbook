@@ -3,6 +3,7 @@
 namespace Amavis442\Trading\Indicators;
 
 use Amavis442\Trading\Contracts\IndicatorInterface;
+use Illuminate\Support\Collection;
 
 /**
  * 
@@ -17,14 +18,13 @@ use Amavis442\Trading\Contracts\IndicatorInterface;
  */
 class MoneyFlowIndexIndicator implements IndicatorInterface
 {
-    public function __invoke(array $data, int $period = 14): int
+    public function run(Collection $data, int $period = 14): int
     {
-
         $mfi = trader_mfi(
-            $data['high'],
-            $data['low'],
-            $data['close'],
-            $data['volume'],
+            $data->get('high'),
+            $data->get('low'),
+            $data->get('close'),
+            $data->get('volume'),
             $period
         );
 

@@ -71,9 +71,11 @@ class TraderServiceProvider extends ServiceProvider
             'Amavis442\Trading\Contracts\PositionServiceInterface', 'Amavis442\Trading\Services\PositionService'
         );
 
-        /* $this->app->singleton('HelpSpot\API', function ($app) {
-          return new HelpSpot\API($app->make('HttpClient'));
-          }); */
+        $this->app->singleton('Amavis442\Trading\Contracts\IndicatorManagerInterface', function ($app) {
+            $manager = new \Amavis442\Trading\Managers\IndicatorManager();
+            $manager->add('mfi', new \Amavis442\Trading\Indicators\MoneyFlowIndexIndicator());
+            return $manager;
+          });
     }
 
 }
