@@ -32,12 +32,14 @@ class GDaxService implements GdaxServiceInterface
     protected  function connect(bool $sandbox = false)
     {
         $this->client = new \GDAX\Clients\AuthenticatedClient(
-            config('trading.api_key'), config('trading.api_secret'), getenv('trading.password')
+            config('trading.api_key'), config('trading.api_secret'), config('trading.password')
         );
 
         if ($sandbox) {
             $this->client->setBaseURL(\GDAX\Utilities\GDAXConstants::GDAX_API_SANDBOX_URL);
         }
+        
+        $this->setCoin(config('trading.coin'));
     }
 
     /**
