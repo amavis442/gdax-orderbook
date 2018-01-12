@@ -28,6 +28,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Ticker whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Ticker whereVolume($value)
  * @mixin \Eloquent
+ * @property string $pair
+ * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Ticker wherePair($value)
  */
 class Ticker extends Model
 {

@@ -30,6 +30,8 @@ use Illuminate\Support\Facades\Cache;
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Ticker whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Ticker whereVolume($value)
  * @mixin \Eloquent
+ * @property string $pair
+ * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Ticker1m wherePair($value)
  */
 class Ticker1m extends Model
 {
@@ -93,13 +95,13 @@ class Ticker1m extends Model
      *
      * @return array|\Illuminate\Support\Collection|null
      */
-    public function getRecentData(string $product_id = 'BTC-EUR', int $limit = 168, bool $day_data = false, int $hour = 12, bool $returnResultSet = false)
+    public function getRecentData(string $pair = 'BTC-EUR', int $limit = 168, bool $day_data = false, int $hour = 12, bool $returnResultSet = false)
     {
         /**
          *  we need to cache this as many strategies will be
          *  doing identical pulls for signals.
          */
-        $key   = 'recent.' . $product_id . '.' . $limit . ".$day_data.$hour.1m";
+        $key   = 'recent.' . $pair . '.' . $limit . ".$day_data.$hour.1m";
         $value = Cache::get($key);
 
 
@@ -108,7 +110,7 @@ class Ticker1m extends Model
         }
 
         $rows = Ticker1m::selectRaw('*, unix_timestamp(created_at) as buckettime')
-                        ->where('product_id', $product_id)
+                        ->where('pair', $pair)
                         ->orderby('timeid', 'DESC')
                         ->limit($limit)
                         ->get();

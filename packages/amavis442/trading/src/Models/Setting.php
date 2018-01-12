@@ -34,6 +34,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereUpdatedAt($value)
  * @mixin \Eloquent
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereTakeprofit($value)
+ * @property float $takeprofittreshold
+ * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereTakeprofittreshold($value)
  */
 class Setting extends Model
 {

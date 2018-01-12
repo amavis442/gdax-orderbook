@@ -49,20 +49,26 @@ class TickerBot implements BotInterface
             $last_price   = (float)number_format($tickerData->getPrice(), 2, '.', '');
 
 
-            Ticker::updateOrCreate(
-                [
-                    'product_id' => $pair,
-                    'timeid'     => $timeidTicker
-                ],
-                [
-                    'product_id' => $pair,
-                    'timeid'     => $timeidTicker,
-                    'open'       => $last_price,
-                    'close'      => $last_price,
-                    'low'        => $last_price,
-                    'high'       => $last_price,
-                    'volume'     => $volume
-                ]);
+            $tick = Ticker::wherePair($pair)->whereTimeid($timeidTicker)->first();
+            if ($tick) {
+                $tick->open   = $last_price;
+                $tick->timeid = $timeidTicker;
+                $tick->close  = $last_price;
+                $tick->low    = $last_price;
+                $tick->high   = $last_price;
+                $tick->volume = $volume;
+            } else {
+                $tick         = new Ticker();
+                $tick->pair   = $pair;
+                $tick->timeid = $timeidTicker;
+                $tick->open   = $last_price;
+                $tick->close  = $last_price;
+                $tick->low    = $last_price;
+                $tick->high   = $last_price;
+                $tick->volume = $volume;
+            }
+            $tick->save();
+
 
             $timeid = (int)$d->setTimezone('Europe/Amsterdam')->format('YmdHi');
 
@@ -84,7 +90,14 @@ class TickerBot implements BotInterface
         $low    = null;
         $volume = null;
 
-        $lastRecordedTimeId = Ticker1m::selectRaw('MAX(timeid) AS timeid')->where('product_id', $pair)->first();
+        /*
+        select MAX(high),MIN(low), AVG(volume) from tickers where timeid >= 20180112152700 AND timeid <= 20180112152759;
+        select timeid,`open` from tickers where timeid >= 20180112152700 AND timeid <= 20180112152759 order by timeid asc limit 1;
+        select timeid,`close` from tickers where timeid >= 20180112152700 AND timeid <= 20180112152759 order by timeid desc limit 1;
+        */
+
+
+        $lastRecordedTimeId = Ticker1m::selectRaw('MAX(timeid) AS timeid')->where('pair', $pair)->first();
 
         if ($lastRecordedTimeId && $lastRecordedTimeId->timeid) {
             $lasttimeidRecorded = (int)\Carbon\Carbon::createFromFormat('YmdHi', $lastRecordedTimeId->timeid)->format('YmdHi');
@@ -92,14 +105,15 @@ class TickerBot implements BotInterface
             $lasttimeidRecorded = 0;
         }
 
-        if ($lasttimeidRecorded < $timeid) {
+        if ($lasttimeidRecorded <= $timeid) {
 
             /* Get High and Low from ticker data for insertion */
             $starttimeid = (int)(\Carbon\Carbon::now()->subMinute(1)->setTimezone('Europe/Amsterdam')->format('YmdHi') . '00');
             $lasttimeid  = (int)$starttimeid + 59;
 
+
             $accumHighLowVolume = Ticker::selectRaw('MAX(high) as high, MIN(low) as low, AVG(volume) as volume')
-                                        ->where('product_id', $pair)
+                                        ->where('pair', $pair)
                                         ->where('timeid', '>=', $starttimeid)
                                         ->where('timeid', '<=', $lasttimeid)
                                         ->first();
@@ -111,9 +125,10 @@ class TickerBot implements BotInterface
 
             /* Get Open price from ticker data and last minute */
             $accumOpen = Ticker::select('open')
-                               ->where('product_id', $pair)
+                               ->where('pair', $pair)
                                ->where('timeid', '>=', $starttimeid)
                                ->where('timeid', '<=', $lasttimeid)
+                               ->orderBy('timeid', 'asc')
                                ->limit(1)
                                ->first();
 
@@ -123,10 +138,11 @@ class TickerBot implements BotInterface
 
             /* Get close price from ticker data and last minute */
             $accumClose = Ticker::select('close')
-                                ->where('product_id', $pair)
+                                ->where('pair', $pair)
                                 ->where('timeid', '>=', $starttimeid)
                                 ->where('timeid', '<=', $lasttimeid)
                                 ->orderBy('created_at', 'desc')
+                                ->orderBy('timeid', 'desc')
                                 ->limit(1)
                                 ->first();
 
@@ -134,20 +150,31 @@ class TickerBot implements BotInterface
                 $close = (float)$accumClose->close;
             }
 
+            dump($pair . ' ' . $timeid . ' ' . $starttimeid . ' to ' . $lasttimeid . ' open ' . $open . ' close ' . $close . ' high ' . $high . ' low ' . $low);
+
+
             if ($open && $close && $high && $low) {
-                Ticker1m::updateOrCreate([
-                                             'product_id' => $pair,
-                                             'timeid'     => $timeid
-                                         ],
-                                         [
-                                             'product_id' => $pair,
-                                             'timeid'     => $timeid,
-                                             'open'       => $open,
-                                             'close'      => $close,
-                                             'low'        => $low,
-                                             'high'       => $high,
-                                             'volume'     => $volume
-                                         ]);
+                $tick = Ticker1m::wherePair($pair)->whereTimeid($timeid)->first();
+                if ($tick) {
+                    $tick->pair   = $pair;
+                    $tick->timeid = $timeid;
+                    $tick->open   = $open;
+                    $tick->close  = $close;
+                    $tick->low    = $low;
+                    $tick->high   = $high;
+                    $tick->volume = $volume;
+                } else {
+                    $tick         = new Ticker1m();
+                    $tick->pair   = $pair;
+                    $tick->timeid = $timeid;
+                    $tick->open   = $open;
+                    $tick->close  = $close;
+                    $tick->low    = $low;
+                    $tick->high   = $high;
+                    $tick->volume = $volume;
+
+                }
+                $tick->save();
             }
         }
     }

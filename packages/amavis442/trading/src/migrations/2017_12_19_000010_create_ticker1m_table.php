@@ -15,14 +15,14 @@ class CreateTicker1mTable extends Migration
     {
         Schema::create('ticker_1m', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('product_id', 10);
+            $table->string('pair', 10);
             $table->bigInteger('timeid', false,true)->nullable();
             $table->decimal('open', 15, 4)->nullable();
             $table->decimal('high', 15, 4)->nullable();
             $table->decimal('low', 15, 4)->nullable();
             $table->decimal('close', 15, 4)->nullable();
             $table->decimal('volume', 15, 4)->nullable();
-            $table->unique(['product_id','timeid']);
+            $table->unique(['pair','timeid']);
 
             $table->timestamps();
         });
