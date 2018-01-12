@@ -49,16 +49,20 @@ class TickerBot implements BotInterface
             $last_price   = (float)number_format($tickerData->getPrice(), 2, '.', '');
 
 
-            Ticker::updateOrCreate([
-                                       'product_id' => $pair,
-                                       'timeid'     => $timeidTicker,
-                                       'open'       => $last_price,
-                                       'close'      => $last_price,
-                                       'low'        => $last_price,
-                                       'high'       => $last_price,
-                                       'volume'     => $volume
-                                   ]);
-
+            Ticker::updateOrCreate(
+                [
+                    'product_id' => $pair,
+                    'timeid'     => $timeidTicker
+                ],
+                [
+                    'product_id' => $pair,
+                    'timeid'     => $timeidTicker,
+                    'open'       => $last_price,
+                    'close'      => $last_price,
+                    'low'        => $last_price,
+                    'high'       => $last_price,
+                    'volume'     => $volume
+                ]);
 
             $timeid = (int)$d->setTimezone('Europe/Amsterdam')->format('YmdHi');
 
@@ -132,6 +136,10 @@ class TickerBot implements BotInterface
 
             if ($open && $close && $high && $low) {
                 Ticker1m::updateOrCreate([
+                                             'product_id' => $pair,
+                                             'timeid'     => $timeid
+                                         ],
+                                         [
                                              'product_id' => $pair,
                                              'timeid'     => $timeid,
                                              'open'       => $open,

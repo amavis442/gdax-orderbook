@@ -3,6 +3,7 @@
 namespace Amavis442\Trading\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -44,8 +45,10 @@ class Ticker1m extends Model
      *
      * @return array
      */
-    public function transformPairData(\Illuminate\Support\Collection $datas): array
+    public function transformPairData(Collection $datas): Collection
     {
+        $retCollection = new Collection();
+
         $ret['date']   = [];
         $ret['low']    = [];
         $ret['high']   = [];
@@ -68,7 +71,16 @@ class Ticker1m extends Model
             $ret[$key] = array_reverse($rettemmp);
         }
 
-        return $ret;
+        $retCollection->put('date',$ret['date']);
+        $retCollection->put('low',$ret['low']);
+        $retCollection->put('high',$ret['high']);
+        $retCollection->put('open',$ret['open']);
+        $retCollection->put('close',$ret['close']);
+        $retCollection->put('volume',$ret['volume']);
+
+
+
+        return $retCollection;
     }
 
     /**
