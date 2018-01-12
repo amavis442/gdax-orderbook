@@ -78,7 +78,6 @@ class PositionBot implements BotInterface
             foreach ($orders as $order) {
                 /** @var \GDAX\Types\Response\Authenticated\Order $gdaxOrder */
                 $gdaxOrder = $this->gdax->getOrder($order->order_id);
-
                 $position_id = 0;
                 $status      = $gdaxOrder->getStatus();
 
@@ -113,7 +112,9 @@ class PositionBot implements BotInterface
      */
     public function actualizeSellOrders()
     {
-        $orders = Order::whereIn('status', ['open', 'pending'])->orWhereNull('status')->whereSide('sell')->get();
+        //$orders = Order::whereNull('status')->whereSide('sell')->get();
+            
+        $orders = Order::whereIn('status', ['open', 'pending'])->whereSide('sell')->get();
 
         if ($orders->count()) {
             foreach ($orders as $order) {
@@ -156,6 +157,9 @@ class PositionBot implements BotInterface
      */
     protected function watchPositions(float $currentPrice, Setting $config)
     {
+        
+        return;
+        
         $positions = Position::wherePosition('open')->get();
 
         if ($positions->count()) {
@@ -179,7 +183,7 @@ class PositionBot implements BotInterface
                         Log::info('Position ' . $position_id . ' has an open sell order. ');
                     }
 
-                    if ($placeOrder) {
+                    if (false && $placeOrder) {
                         $sellPrice = number_format($currentPrice + 0.01, 2, '.', '');
 
                         $order = $this->gdax->placeLimitSellOrderFor1Minute($size, $sellPrice);
@@ -212,7 +216,8 @@ class PositionBot implements BotInterface
 
     protected function garbageCleanup()
     {
-        $orders = Order::whereNull('order_id')->orWhere('order_id', '')->where('status', '<>', 'deleted')->get();
+         //$orders = Order::where('order_id', '')->where('status', '<>', 'deleted')->get();
+        $orders = Order::whereNull('order_id')->where('status', '<>', 'deleted')->get();
         if ($orders->count()) {
             foreach ($orders as $order) {
                 $order->status = 'deleted';
