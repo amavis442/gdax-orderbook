@@ -158,7 +158,7 @@ class PositionBot implements BotInterface
     protected function watchPositions(float $currentPrice, Setting $config)
     {
         
-        return;
+       
         
         $positions = Position::wherePosition('open')->get();
 
@@ -183,7 +183,7 @@ class PositionBot implements BotInterface
                         Log::info('Position ' . $position_id . ' has an open sell order. ');
                     }
 
-                    if (false && $placeOrder) {
+                    if ( $placeOrder) {
                         $sellPrice = number_format($currentPrice + 0.01, 2, '.', '');
 
                         $order = $this->gdax->placeLimitSellOrderFor1Minute($size, $sellPrice);
