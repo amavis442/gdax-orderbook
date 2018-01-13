@@ -3,7 +3,7 @@ namespace Amavis442\Trading\Database\Seeder;
 
 use Illuminate\Database\Seeder;
 
-class DummyDatabaseSeeder extends Seeder
+class DatabaseSeeder extends Seeder
 {
     /**
      * Run the database seeds.
