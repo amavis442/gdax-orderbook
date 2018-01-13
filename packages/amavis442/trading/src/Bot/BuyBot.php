@@ -14,8 +14,6 @@ use Amavis442\Trading\Util\PositionConstants;
 
 class BuyBot implements BotInterface
 {
-    use OHLC;
-
     protected $container;
     protected $config;
 
