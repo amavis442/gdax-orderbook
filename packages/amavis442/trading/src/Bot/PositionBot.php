@@ -32,7 +32,7 @@ class PositionBot implements BotInterface
      */
     protected function watch(float $currentPrice, Setting $config)
     {
-        $positions = Position::wherePosition('open')->get();
+        $positions = Position::whereStatus('trailing')->get();
 
         if ($positions->count()) {
             Log::info('--- watchPositions ---');
@@ -44,7 +44,7 @@ class PositionBot implements BotInterface
 
                 // Are we only watching or do we really wonna place a sell order (stoploss and at what price)
                 if ($sellMe && !$position->watch) {
-                    $existingSellOrder = Order::wherePositionId($position->id)->whereIn('status', ['open', 'peding'])->first();
+                    $existingSellOrder = Order::wherePositionId($position->id)->whereIn('status', ['open', 'pending'])->first();
 
                     if ($existingSellOrder) {
                         $placeOrder = false;
@@ -52,16 +52,16 @@ class PositionBot implements BotInterface
                     }
 
                     if ( $placeOrder) {
-                        $this->sellPosition($position);
+                        $sellPrice = number_format($currentPrice + 0.01,2,'.',''); // Spread of 0.01. If the spread is higher the sell will be rejected
+                        $this->sellPosition($sellPrice, $position,'limit');
                     }
                 }
             }
         }
     }
 
-    public function sellPosition(Position $position, $sellType = 'limit', $realSell = false): bool
+    public function sellPosition(float $sellPrice, Position $position, $sellType = 'limit', $realSell = false): bool
     {
-        $sellPrice = number_format($position->sellfor, 2, '.', '');
         $size = $position->size;
         $status = '';
 
@@ -82,20 +82,22 @@ class PositionBot implements BotInterface
                 $status = $order->getStatus();
             }
             Log::info('Place sell order status ' . $status . ' for position ' . $position->id);
-        }
 
-        if ($status == 'open' || $status == 'pending') {
-            Order::create([
-                              'pair'        => $order->getProductId(),
-                              'side'        => 'sell',
-                              'order_id'    => $order->getId(),
-                              'size'        => $size,
-                              'amount'      => $sellPrice,
-                              'position_id' => $position->id
-                          ]);
 
-            Log::info('Place sell order ' . $order->getId() . ' for position ' . $position->id);
-            return true;
+            if ($status == 'open' || $status == 'pending') {
+                Order::create([
+                                  'pair'        => $order->getProductId(),
+                                  'side'        => 'sell',
+                                  'order_id'    => $order->getId(),
+                                  'size'        => $size,
+                                  'amount'      => $sellPrice,
+                                  'position_id' => $position->id
+                              ]);
+
+                Log::info('Place sell order ' . $order->getId() . ' for position ' . $position->id);
+
+                return true;
+            }
         }
 
         // For testing/simulating
@@ -117,7 +119,11 @@ class PositionBot implements BotInterface
         return false;
     }
 
-
+    public function setTrailing(Position $position)
+    {
+       $position->status = 'trailing';
+       $position->save();
+    }
 
     public function run()
     {
@@ -140,11 +146,6 @@ class PositionBot implements BotInterface
             $currentPrice = $this->gdax->getCurrentPrice();
             $this->watchPositions($currentPrice, $config);
         }
-
-        $this->actualizeSellOrders();
-        $this->actualizePositions();
-
-        $this->actualize();
     }
 
 }

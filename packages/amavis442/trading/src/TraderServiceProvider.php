@@ -72,7 +72,9 @@ class TraderServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton('Amavis442\Trading\Bot\PositionBot', function ($app) {
-            return new \Amavis442\Trading\Bot\PositionBot($app->make('Amavis442\Trading\Contracts\GdaxServiceInterface'));
+            $bot = new \Amavis442\Trading\Bot\PositionBot($app->make('Amavis442\Trading\Contracts\GdaxServiceInterface'));
+            $bot->setStopLossService(new \Amavis442\Trading\Triggers\Stoploss());
+            return $bot;
         });
 
         $this->app->singleton('Amavis442\Trading\Bot\OrderBot', function ($app) {
