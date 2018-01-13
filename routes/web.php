@@ -23,3 +23,7 @@ Route::get('/getwallets', 'WalletController@getWallets')->middleware('auth');
 
 Route::resource('signals', 'SignalController')->middleware(['auth']);
 Route::get('/getsignal/{signal}', 'SignalController@getSignal')->middleware('auth');
+
+
+Route::get('/getorders/{page?}', 'OrderController@index')->middleware('auth');
+Route::get('/getpositions/{page?}', 'PositionController@index')->middleware('auth');

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Amavis442\Trading\Models\Order;
+use Amavis442\Trading\Models\Position;
 use Illuminate\Http\Request;
 
-class OrderController extends Controller
+class PositionController extends Controller
 {
 
     /**
@@ -15,7 +15,7 @@ class OrderController extends Controller
      */
     public function index(Request $request, $page = 1)
     {
-        $orders = Order::select('*')->orderBy('created_at', 'desc')->paginate(); // Filled orders.
+        $orders = Position::select('*')->orderBy('created_at', 'desc')->paginate(); // positions.
 
         return $orders;
     }
@@ -27,7 +27,7 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function show(Order $order)
+    public function show(Position $order)
     {
         //
     }
@@ -39,7 +39,7 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function edit(Order $order)
+    public function edit(Position $order)
     {
         //
     }
@@ -52,7 +52,7 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Order $order)
+    public function destroy(Position $order)
     {
         //
     }
