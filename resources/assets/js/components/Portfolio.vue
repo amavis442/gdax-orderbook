@@ -53,7 +53,7 @@
             }
         },
         created: function () {
-            this.timer = setInterval(this.fetchWallets, 3000)
+            this.timer = setInterval(this.fetchWallets, 5000)
         },
 
         mounted() {

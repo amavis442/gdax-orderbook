@@ -24,9 +24,11 @@ Route::get('/getwallets', 'WalletController@getWallets')->middleware('auth');
 Route::resource('signals', 'SignalController')->middleware(['auth']);
 Route::get('/getsignal/{signal}', 'SignalController@getSignal')->middleware('auth');
 
-
 Route::get('/getorders/{page?}', 'OrderController@index')->middleware('auth');
 Route::get('/getpositions/{page?}', 'PositionController@index')->middleware('auth');
+Route::get('/gettrailing/{page?}', 'PositionController@getTrailing')->middleware('auth');
+
 Route::post('/updateposition', 'PositionController@update')->middleware('auth');
 
 Route::post('/sellposition','PositionController@sellPosition')->middleware('auth');
+Route::post('/trailingposition','PositionController@trailingPosition')->middleware('auth');

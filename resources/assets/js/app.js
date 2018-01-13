@@ -15,6 +15,7 @@ const app = new Vue({
     components: {
         'portfolio': require('./components/Portfolio.vue'),
         'positions': require('./components/Positions.vue'),
-        'orders': require('./components/Orders.vue')
+        'orders': require('./components/Orders.vue'),
+        'trailingpositions': require('./components/TrailingPositions.vue')
     }
 });

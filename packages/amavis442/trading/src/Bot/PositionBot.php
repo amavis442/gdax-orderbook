@@ -119,10 +119,17 @@ class PositionBot implements BotInterface
         return false;
     }
 
-    public function setTrailing(Position $position)
+    public function setTrailing(Position $position): bool
     {
        $position->status = 'trailing';
        $position->save();
+
+       return true;
+    }
+
+    public function getCurrentPrice()
+    {
+        return $this->gdax->getCurrentPrice();
     }
 
     public function run()

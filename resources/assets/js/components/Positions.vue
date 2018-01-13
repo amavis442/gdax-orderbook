@@ -48,12 +48,15 @@
                         <input type="text" class="form-control" v-model="position.trailingstop">
                     </div>
                 </td>
-                <td><input type="radio" value="1" v-model="position.watch" v-on:click="watch(position,1)"> On <input type="radio" value="0" v-model="position.watch" v-on:click="watch(position,0)"> Off</td>
+                <td><input type="radio" value="1" v-model="position.watch" v-on:click="toggle(position,1)"> On <input type="radio" value="0" v-model="position.watch" v-on:click="toggle(position,0)"> Off</td>
                 <td>
                     <button class="btn btn-default" v-on:click="updatePosition(position)">update</button>
                 </td>
                 <td>
-                    <button class="btn btn-danger" v-on:click="placeSellOrder(position)">place sell order</button>
+                    <button class="btn btn-danger" v-on:click="placeTrailingOrder(position)">Trailing</button>
+                </td>
+                <td>
+                    <button class="btn btn-danger" v-on:click="placeSellOrder(position)">Sell</button>
                 </td>
             </tr>
             </tbody>
@@ -117,7 +120,7 @@
             cancelAutoUpdate: function () {
                 clearInterval(this.timer)
             },
-            watch: function (position, toggle) {
+            toggle: function (position, toggle) {
                 console.log('Toggle ' + toggle);
                 position.watch = toggle;
             },
@@ -147,6 +150,11 @@
                 this.message = '';
                 this.errors = [];
 
+                if (position.sellfor < 0 || !position.sellfor) {
+                    this.errors.push('First give the amount for the sell');
+                    return;
+                }
+
                 axios.post('/sellposition', {id: position.id, sellfor: position.sellfor, trailingstop: position.trailingstop, watch: position.watch})
                     .then(response => {
                         // JSON responses are automatically parsed.
@@ -154,6 +162,31 @@
                             this.message = 'Sell order for position ' + position.id + ' succesfully placed...';
                         } else {
                             this.message = 'Placing sell order for position ' + position.id + ' failed '.response.data.msg;
+                        }
+                    })
+                    .catch(e => {
+                        this.errors.push(e)
+                    })
+            },
+            placeTrailingOrder: function (position) {
+                console.log('Sellfor ' + position.sellfor + ' Trailingstop ' + position.trailingstop + ' watch ' + position.watch);
+
+                this.message = '';
+                this.errors = [];
+
+                if (position.trailingstop < 0 || !position.trailingstop) {
+                    this.errors.push('First give the amount for the sell');
+                    return;
+                }
+
+
+                axios.post('/trailingposition', {id: position.id, sellfor: position.sellfor, trailingstop: position.trailingstop, watch: position.watch})
+                    .then(response => {
+                        // JSON responses are automatically parsed.
+                        if (response.data.result == 'ok') {
+                            this.message = 'Trailing sell order for position ' + position.id + ' succesfully placed...';
+                        } else {
+                            this.errors.push('Placing trailing sell order for position ' + position.id + ' failed '.response.data.msg);
                         }
                     })
                     .catch(e => {

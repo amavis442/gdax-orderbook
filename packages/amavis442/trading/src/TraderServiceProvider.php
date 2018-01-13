@@ -71,9 +71,17 @@ class TraderServiceProvider extends ServiceProvider
             'Amavis442\Trading\Contracts\PositionServiceInterface', 'Amavis442\Trading\Services\PositionService'
         );
 
+
+
+        $this->app->singleton('Amavis442\Trading\Trigger\Stoploss', function ($app) {
+            return new \Amavis442\Trading\Triggers\Stoploss();
+        });
+
+
+
         $this->app->singleton('Amavis442\Trading\Bot\PositionBot', function ($app) {
             $bot = new \Amavis442\Trading\Bot\PositionBot($app->make('Amavis442\Trading\Contracts\GdaxServiceInterface'));
-            $bot->setStopLossService(new \Amavis442\Trading\Triggers\Stoploss());
+            $bot->setStopLossService($app->make('Amavis442\Trading\Triggers\Stoploss'));
             return $bot;
         });
 
