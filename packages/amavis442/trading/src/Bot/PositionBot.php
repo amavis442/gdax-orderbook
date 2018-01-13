@@ -2,6 +2,7 @@
 
 namespace Amavis442\Trading\Bot;
 
+use Amavis442\Trading\Database\Seeder\PositionTableSeeder;
 use Illuminate\Support\Facades\Log;
 use Amavis442\Trading\Contracts\BotInterface;
 use Amavis442\Trading\Contracts\GdaxServiceInterface;
@@ -31,18 +32,14 @@ class PositionBot implements BotInterface
      */
     protected function watch(float $currentPrice, Setting $config)
     {
-
         $positions = Position::wherePosition('open')->get();
 
         if ($positions->count()) {
             Log::info('--- watchPositions ---');
 
             foreach ($positions as $position) {
-                $size        = $position->size;
-                $position_id = $position->id;
 
                 $sellMe = $this->stoplossRule->signal($currentPrice, $position, $config);
-
                 $placeOrder = true;
 
                 // Are we only watching or do we really wonna place a sell order (stoploss and at what price)
@@ -51,45 +48,79 @@ class PositionBot implements BotInterface
 
                     if ($existingSellOrder) {
                         $placeOrder = false;
-                        Log::info('Position ' . $position_id . ' has an open sell order. ');
+                        Log::info('Position ' . $position->id . ' has an open sell order. ');
                     }
 
                     if ( $placeOrder) {
-                        $sellPrice = number_format($position->sellfor);
-
-                        $order = $this->gdax->placeLimitSellOrderFor1Minute($size, $sellPrice);
-
-                        if ($order->getMessage()) {
-                            $status = $order->getMessage();
-                        } else {
-                            $status = $order->getStatus();
-                        }
-                        Log::info('Place sell order status ' . $status . ' for position ' . $position_id);
-
-
-                        if ($status == 'open' || $status == 'pending') {
-                            Order::create([
-                                'pair'        => $order->getProductId(),
-                                'side'        => 'sell',
-                                'order_id'    => $order->getId(),
-                                'size'        => $size,
-                                'amount'      => $sellPrice,
-                                'position_id' => $position->id
-                            ]);
-
-                            Log::info('Place sell order ' . $order->getId() . ' for position ' . $position_id);
-                        }
+                        $this->sellPosition($position);
                     }
                 }
             }
         }
     }
 
+    public function sellPosition(Position $position, $sellType = 'limit', $realSell = false): bool
+    {
+        $sellPrice = number_format($position->sellfor, 2, '.', '');
+        $size = $position->size;
+        $status = '';
+
+        if ($realSell) {
+            switch ($sellType) {
+                case 'limit':
+                    $order = $this->gdax->placeLimitSellOrderFor1Minute($size, $sellPrice);
+                    break;
+                case 'market':
+                    break;
+                case 'stop':
+                    break;
+            }
+
+            if ($order->getMessage()) {
+                $status = $order->getMessage();
+            } else {
+                $status = $order->getStatus();
+            }
+            Log::info('Place sell order status ' . $status . ' for position ' . $position->id);
+        }
+
+        if ($status == 'open' || $status == 'pending') {
+            Order::create([
+                              'pair'        => $order->getProductId(),
+                              'side'        => 'sell',
+                              'order_id'    => $order->getId(),
+                              'size'        => $size,
+                              'amount'      => $sellPrice,
+                              'position_id' => $position->id
+                          ]);
+
+            Log::info('Place sell order ' . $order->getId() . ' for position ' . $position->id);
+            return true;
+        }
+
+        // For testing/simulating
+        if (!$realSell) {
+            Order::create([
+                              'pair'        => $position->pair,
+                              'side'        => 'sell',
+                              'order_id'    => 'simulate',
+                              'size'        => $size,
+                              'amount'      => $sellPrice,
+                              'position_id' => $position->id,
+                              'status'      => 'simulate'
+                          ]);
+
+            Log::info('Place sell order [simulate] for position ' . $position->id);
+            return true;
+        }
+
+        return false;
+    }
+
+
+
     public function run()
     {
-
-
-
         $config = Setting::select('*')->orderBy('id', 'desc')->first();
 
         if (is_null($config)) {

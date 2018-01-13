@@ -44,7 +44,6 @@ class OrderController extends Controller
         //
     }
 
-
     /**
      * Remove the specified resource from storage.
      *

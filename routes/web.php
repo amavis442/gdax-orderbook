@@ -27,3 +27,6 @@ Route::get('/getsignal/{signal}', 'SignalController@getSignal')->middleware('aut
 
 Route::get('/getorders/{page?}', 'OrderController@index')->middleware('auth');
 Route::get('/getpositions/{page?}', 'PositionController@index')->middleware('auth');
+Route::post('/updateposition', 'PositionController@update')->middleware('auth');
+
+Route::post('/sellposition','PositionController@sellPosition')->middleware('auth');

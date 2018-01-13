@@ -57,7 +57,8 @@
         },
 
         created: function () {
-
+            let current_page = this.pagination.current_page || 1;
+            this.timer = setInterval(this.fetchOrders('/getorders?page='+ current_page),10000)
         },
 
         mounted() {

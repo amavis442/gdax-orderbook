@@ -71,7 +71,14 @@ class TraderServiceProvider extends ServiceProvider
             'Amavis442\Trading\Contracts\PositionServiceInterface', 'Amavis442\Trading\Services\PositionService'
         );
 
-        //$this->app->instance('Amavis442\Trading\Bot\OrderBot', new \Amavis442\Trading\Bot\OrderBot());
+        $this->app->singleton('Amavis442\Trading\Bot\PositionBot', function ($app) {
+            return new \Amavis442\Trading\Bot\PositionBot($app->make('Amavis442\Trading\Contracts\GdaxServiceInterface'));
+        });
+
+        $this->app->singleton('Amavis442\Trading\Bot\OrderBot', function ($app) {
+            return new \Amavis442\Trading\Bot\OrderBot($app->make('Amavis442\Trading\Contracts\GdaxServiceInterface'));
+        });
+
 
         $this->app->singleton('Amavis442\Trading\Contracts\IndicatorManagerInterface', function ($app) {
             $manager = new \Amavis442\Trading\Managers\IndicatorManager();
