@@ -11,8 +11,6 @@ namespace Amavis442\Trading\Contracts;
 
 interface BotInterface
 {
-    public function getMessage(): array;
-
     /**
      * @return array
      */

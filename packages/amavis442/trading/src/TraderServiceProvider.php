@@ -30,7 +30,7 @@ class TraderServiceProvider extends ServiceProvider
             __DIR__ . '/config/config.php' => config_path('trading.php'),
             ], 'config');
 
-        $this->loadMigrationsFrom(__DIR__ . '/migrations/');
+        $this->loadMigrationsFrom(__DIR__ . '/database/migrations/');
 
         $this->loadRoutesFrom(__DIR__ . '/routes.php');
 
@@ -70,6 +70,8 @@ class TraderServiceProvider extends ServiceProvider
         $this->app->bind(
             'Amavis442\Trading\Contracts\PositionServiceInterface', 'Amavis442\Trading\Services\PositionService'
         );
+
+        //$this->app->instance('Amavis442\Trading\Bot\OrderBot', new \Amavis442\Trading\Bot\OrderBot());
 
         $this->app->singleton('Amavis442\Trading\Contracts\IndicatorManagerInterface', function ($app) {
             $manager = new \Amavis442\Trading\Managers\IndicatorManager();

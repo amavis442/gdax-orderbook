@@ -64,7 +64,7 @@ class RunTicker extends Command
                 $this->info($msg);
             }
 
-            sleep(5);
+            sleep(1);
         }
         
         $this->info("Exit ticker");

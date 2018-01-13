@@ -21,8 +21,11 @@ class CreatePositionsTable extends Migration
             $table->decimal('amount', 15, 9);
             $table->decimal('open', 15, 9);
             $table->decimal('close', 15, 9)->nullable();
-            $table->enum('position', ['open', 'pending', 'closed'])->default('open');
+            $table->decimal('sellfor', 15, 2)->nullable();
+            $table->decimal('trailingstop', 5, 2)->nullable();
+            $table->enum('status', ['open', 'pending', 'closed'])->default('open');
             $table->string('close_reason', 20)->nullable();
+            $table->boolean('watch')->default(true);
             $table->timestamps();
         });
     }
