@@ -20,7 +20,7 @@ class PositionController extends Controller
      */
     public function index(Request $request, $page = 1)
     {
-        $orders = Position::select('*')->orderBy('created_at', 'desc')->paginate(); // positions.
+        $orders = Position::select('*')->where('status','!=','closed')->orderBy('created_at', 'desc')->paginate(); // positions.
 
         return $orders;
     }
