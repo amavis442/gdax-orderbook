@@ -26,11 +26,28 @@ class PositionBot implements BotInterface
         $this->stoplossRule = $stoplossRule;
     }
 
+    protected function updatePositions()
+    {
+        $positions = Position::whereIn('status',['open','trailing'])->get();
+        dump($positions);
+        foreach ($positions as $position)
+        {
+            $exchangeOrder = Order::whereSide('sell')->whereStatus('done')->wherePositionId($position->id)->first();
+            if ($exchangeOrder) {
+                $position->status = 'closed';
+                $position->close =  $exchangeOrder->amount;
+                $position->save();
+            }
+        }
+
+    }
+
+
     /**
      * Get the open positions and track the price process and if a trigger comes
      * go short/sell
      */
-    protected function watch(float $currentPrice, Setting $config)
+    protected function watch(float $currentPrice)
     {
         $positions = Position::whereStatus('trailing')->get();
 
@@ -39,12 +56,12 @@ class PositionBot implements BotInterface
 
             foreach ($positions as $position) {
 
-                $sellMe = $this->stoplossRule->signal($currentPrice, $position, $config);
+                $sellMe = $this->stoplossRule->signal($currentPrice, $position);
                 $placeOrder = true;
 
                 // Are we only watching or do we really wonna place a sell order (stoploss and at what price)
                 if ($sellMe && !$position->watch) {
-                    $existingSellOrder = Order::wherePositionId($position->id)->whereIn('status', ['open', 'pending'])->first();
+                    $existingSellOrder = Order::wherePositionId($position->id)->whereSide('sell')->whereIn('status', ['open', 'pending'])->first();
 
                     if ($existingSellOrder) {
                         $placeOrder = false;
@@ -68,7 +85,7 @@ class PositionBot implements BotInterface
         if ($realSell) {
             switch ($sellType) {
                 case 'limit':
-                    $order = $this->gdax->placeLimitSellOrderFor1Minute($size, $sellPrice);
+                    $order = $this->exchange->placeLimitSellOrderFor1Minute($size, $sellPrice);
                     break;
                 case 'market':
                     break;
@@ -129,20 +146,15 @@ class PositionBot implements BotInterface
 
     public function getCurrentPrice()
     {
-        return $this->gdax->getCurrentPrice();
+        return $this->exchange->getCurrentPrice();
     }
 
     public function run()
     {
-        $config = Setting::select('*')->orderBy('id', 'desc')->first();
-
-        if (is_null($config)) {
-            Log::error("No config");
-            return;
-        }
+        $this->updatePositions();
 
         // Get Account
-        //$account = $this->gdaxService->getAccount('EUR');
+        //$account = $this->exchange->getAccount('EUR');
 
         Log::info("=== RUN [" . \Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s') . "] ===");
 
@@ -150,8 +162,8 @@ class PositionBot implements BotInterface
         if (!$botactive) {
             Log::warning("Bot is not active at the moment");
         } else {
-            $currentPrice = $this->gdax->getCurrentPrice();
-            $this->watchPositions($currentPrice, $config);
+            $currentPrice = $this->exchange->getCurrentPrice();
+            $this->watchPositions($currentPrice);
         }
     }
 

@@ -25,7 +25,7 @@ class Stoploss implements TriggerInterface
         return $this->msg;
     }
 
-    public function signal(float $currentprice, Position $position, Setting $config): int
+    public function signal(float $currentprice, Position $position): int
     {
         $cacheKey    = 'gdax.stoploss.' . $position->id;
         $oldStoploss = Cache::get($cacheKey, 0.0);

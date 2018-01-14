@@ -146,10 +146,14 @@ class OrderBot implements BotInterface
                     // Check if the sell order has a position and if so, close the position
                     $position_id = $order->position_id;
                     if ($position_id > 0) {
-                        $position = Position::find($position_id);
-                        $position->close = $order->amount;
-                        $position->status = 'closed';
-                        $position->save();
+                        try {
+                            $position = Position::findOrFail($position_id);
+                            $position->close = $order->amount;
+                            $position->status = 'closed';
+                            $position->save();
+                        } catch(\Exception $e) {
+                            Log::error($e->getTraceAsString());
+                        }
                     }
                 }
             }
