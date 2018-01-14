@@ -115,15 +115,20 @@ class PositionController extends Controller
 
         $positions = Position::whereStatus('trailing')->get();
 
-        $positions = $positions->map(function ($position, $key) use ($setting, $currentPrice, $stoploss) {
-            $position->currentprice = $currentPrice;
-            $position->trailingstoptrigger = $stoploss->signal($currentPrice, $position, $setting);
-            $cacheKey = 'gdax.stoploss.' . $position->id;
-            $trailingstopprice = Cache::get($cacheKey, 0.0);
-            $position->trailingstopprice = $trailingstopprice;
+        try {
+            $positions = $positions->map(function ($position, $key) use ($setting, $currentPrice, $stoploss) {
+                $position->currentprice = $currentPrice;
+                $position->trailingstoptrigger = $stoploss->signal($currentPrice, $position, $setting);
+                $cacheKey = 'gdax.stoploss.' . $position->id;
+                $trailingstopprice = Cache::get($cacheKey, 0.0);
+                $position->trailingstopprice = $trailingstopprice;
 
-            return $position;
-        });
+                return $position;
+            });
+        } catch (\Exception $e) {
+            Log::error($e->getTraceAsString());
+            return $e->getMessage();
+        }
 
         return $positions;
     }
