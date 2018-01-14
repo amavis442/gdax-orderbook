@@ -16,6 +16,11 @@
         <testsuite name="Unit">
             <directory suffix="Test.php">./tests/Unit</directory>
         </testsuite>
+
+        <testsuite name="TraderUnit">
+            <directory suffix="Test.php">./packages/amavis442/trading/tests/Unit</directory>
+        </testsuite>
+
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">

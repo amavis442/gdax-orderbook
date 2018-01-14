@@ -9,10 +9,19 @@
         "benfranke/gdax-php": "^0.0.6",
         "nesbot/carbon": "^1.22",
         "ratchet/pawl": "^0.3.1",
-        "predis/predis": "^1.1"
+        "predis/predis": "^1.1",
+        "illuminate/support": "5.5.*",
+        "illuminate/console": "5.5.*"
     },
      "autoload": {
-        "psr-4": {"Amavis442\\Trading\\": "src/"}
+        "psr-4": {
+            "Amavis442\\Trading\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Amavis442\\Trading\\Tests": "tests/"
+        }
     },
     "require-dev": {
         "fzaninotto/faker": "^1.7",
@@ -27,6 +36,19 @@
                 "Trading": "Amavis442\\Trading\\TraderFacade"
             }
         }
+    },
+    "scripts": {
+        "lint": "phpcs -p --standard=psr2 src",
+        "phpunit": "phpunit",
+        "phpunit-integration": "phpunit --testsuite Integration",
+        "phpunit-unit": "phpunit --testsuite Unit",
+        "phpunit-coverage": "phpunit --coverage-clover=coverage.clover",
+        "test": [
+            "@lint",
+            "@phpunit"
+        ]
+    },
+    "config": {
+        "sort-packages": true
     }
-
 }

@@ -16,12 +16,13 @@
         "predis/predis": "^1.1"
     },
     "require-dev": {
-        "filp/whoops": "~2.0",
         "barryvdh/laravel-debugbar": "^3.1",
         "barryvdh/laravel-ide-helper": "^2.4",
+        "filp/whoops": "~2.0",
         "fzaninotto/faker": "~1.4",
         "mockery/mockery": "~1.0",
-        "phpunit/phpunit": "~6.0"
+        "phpunit/phpunit": "~6.0",
+        "squizlabs/php_codesniffer": "^3.2"
     },
     "autoload": {
         "classmap": [
@@ -35,7 +36,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "Amavis442\\Trading\\Tests\\": "packages/amavis442/trading/tests"
         }
     },
     "extra": {
@@ -54,6 +56,15 @@
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover"
+        ],
+        "lint": "phpcs -p --standard=psr2 packages/amavis442/trading/src",
+        "phpunit": "phpunit",
+        "phpunit-integration": "phpunit --testsuite Integration",
+        "phpunit-unit": "phpunit --testsuite Unit --testsuit TraderUnit",
+        "phpunit-coverage": "phpunit --coverage-clover=coverage.clover",
+        "test": [
+            "@lint",
+            "@phpunit"
         ]
     },
     "config": {
