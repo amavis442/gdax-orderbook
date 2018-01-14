@@ -8,6 +8,7 @@ use Amavis442\Trading\Models\Setting;
 use Amavis442\Trading\Triggers\Stoploss;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class PositionController extends Controller
 {
@@ -67,8 +68,12 @@ class PositionController extends Controller
         $position->trailingstop = $request->get('trailingstop');
         $position->watch = $request->get('watch', 1) ? 1 : 0;
         $position->save();
-
-        $result = $positionBot->sellPosition($position);
+        try {
+            $result = $positionBot->sellPosition($position);
+        } catch (Exception $e) {
+            Log::error($e->getTraceAsString());
+            return $e->getMessage();
+        }
         if ($result) {
             return ['result' => 'ok'];
         } else {
@@ -85,7 +90,12 @@ class PositionController extends Controller
         $position->watch = $request->get('watch', 1) ? 1 : 0;
         $position->save();
 
-        $result = $positionBot->setTrailing($position);
+        try {
+            $result = $positionBot->setTrailing($position);
+        } catch (Exception $e) {
+            Log::error($e->getTraceAsString());
+            return $e->getMessage();
+        }
         if ($result) {
             return ['result' => 'ok'];
         } else {
@@ -95,7 +105,12 @@ class PositionController extends Controller
 
     public function getTrailing(Request $request, PositionBot $positionBot, Stoploss $stoploss)
     {
-        $currentPrice = $positionBot->getCurrentPrice();
+        try {
+            $currentPrice = $positionBot->getCurrentPrice();
+        } catch (\Exception $e) {
+            Log::error($e->getTraceAsString());
+            return $e->getMessage();
+        }
         $setting = new Setting();
 
         $positions = Position::whereStatus('trailing')->get();
