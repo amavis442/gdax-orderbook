@@ -108,15 +108,15 @@ class ChangeSellOrderCommand extends Command {
         }
         $output->writeln('Placing order.');
 
-        $gdaxService = new \Amavis442\Trading\Services\GDaxService();
-        $gdaxService->setCoin(getenv('CRYPTOCOIN'));
+        $exchange = new \Amavis442\Trading\Exchanges\GDaxExchange();
+        $exchange->setCoin(getenv('CRYPTOCOIN'));
 
-        $gdaxService->connect(false);
+        $exchange->connect(false);
 
-        $order = $gdaxService->getOrder($sellOrder->order_id);
+        $order = $exchange->getOrder($sellOrder->order_id);
         if ($order->getMessage() !== 'NotFound' && ($order->getStatus() == 'open' || $order->getStatus() == 'pending')) {
-            $gdaxService->cancelOrder($sellOrder->order_id);
-            $order = $gdaxService->placeLimitSellOrder($size, $newprice);
+            $exchange->cancelOrder($sellOrder->order_id);
+            $order = $exchange->placeLimitSellOrder($size, $newprice);
 
             if ($order->getMessage() != 'rejected' && ($order->getStatus() == 'pending' || $order->getStatus() == 'open')) {
                 $order_id = $order->getId();

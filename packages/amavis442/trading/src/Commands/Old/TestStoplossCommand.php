@@ -53,16 +53,16 @@ class TestStoplossCommand extends Command
         $buyprice = $input->getArgument('buyprice');
         $percentage = $input->getArgument('percentage');
         
-        $gdaxService = new \Amavis442\Trading\Services\GDaxService();
-        $gdaxService->setCoin(getenv('CRYPTOCOIN'));
-        $gdaxService->connect(false);
+        $exchange = new \Amavis442\Trading\Exchanges\GDaxExchange();
+        $exchange->setCoin(getenv('CRYPTOCOIN'));
+        $exchange->connect(false);
         
-        $stoploss = new \Amavis442\Trading\Rules\Stoploss();
+        $stoploss = new \Amavis442\Trading\Triggers\Stoploss();
 
         
         while(1)
         {
-            $currentprice = $gdaxService->getCurrentPrice();
+            $currentprice = $exchange->getCurrentPrice();
             $sell = $stoploss->trailingStop(0, $currentprice, $buyprice, $percentage, $output);
             
             sleep(5);

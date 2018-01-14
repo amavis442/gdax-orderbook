@@ -13,20 +13,23 @@ use Amavis442\Trading\Models\Order;
 
 use Illuminate\Support\Facades\Log;
 use Amavis442\Trading\Contracts\BotInterface;
-use Amavis442\Trading\Contracts\GdaxServiceInterface;
+use Amavis442\Trading\Contracts\ExchangeInterface;
 
 
 class OrderBot implements BotInterface
 {
-    public function __construct(GdaxServiceInterface $gdax)
+    public function __construct(ExchangeInterface $exchange)
     {
-        $this->gdax = $gdax;
+        $this->exchange = $exchange;
     }
 
     protected function garbageCleanup()
     {
-        //$orders = Order::where('order_id', '')->where('status', '<>', 'deleted')->get();
-        $orders = Order::whereNull('order_id')->where('status', '<>', 'deleted')->get();
+        $orders = Order::where(function($q){
+            $q->whereNull('order_id');
+            $q->orWhere('order_id','');
+        })->where('status', '<>', 'deleted')->get();
+
         if ($orders->count()) {
             foreach ($orders as $order) {
                 $order->status = 'deleted';
@@ -40,27 +43,27 @@ class OrderBot implements BotInterface
      */
     public function updateOpenOrders()
     {
-        $gdaxOrders = $this->gdax->getOpenOrders();
-        if (count($gdaxOrders)) {
-            if (is_array($gdaxOrders)) {
-                foreach ($gdaxOrders as $gdaxOrder) {
-                    $order_id = $gdaxOrder->getId();
+        $exchangeOrders = $this->exchange->getOpenOrders();
+        if (count($exchangeOrders)) {
+            if (is_array($exchangeOrders)) {
+                foreach ($exchangeOrders as $exchangeOrder) {
+                    $order_id = $exchangeOrder->getId();
                     $order = Order::whereOrderId($order_id)->first();
 
                     // When open order with order_id is not found then add it.
                     if (is_null($order)) {
                         Order::create(
                             [
-                                'pair'     => $gdaxOrder->getProductId(),
-                                'side'     => $gdaxOrder->getSide(),
-                                'order_id' => $gdaxOrder->getId(),
-                                'size'     => $gdaxOrder->getSize(),
-                                'amount'   => $gdaxOrder->getPrice(),
-                                'status'   => 'Manual',
+                                'pair'     => $exchangeOrder->getProductId(),
+                                'side'     => $exchangeOrder->getSide(),
+                                'order_id' => $exchangeOrder->getId(),
+                                'size'     => $exchangeOrder->getSize(),
+                                'amount'   => $exchangeOrder->getPrice(),
+                                'status'   => 'manual',
                             ]);
                     } else {
                         if ($order->status != 'done') {
-                            $order->status = $gdaxOrder->getStatus();
+                            $order->status = $exchangeOrder->getStatus();
                             $order->save();
                         }
                     }
@@ -78,41 +81,42 @@ class OrderBot implements BotInterface
     public function updateBuyOrderStatusAndCreatePosition()
     {
         $orders = Order::where(function ($q) {
-            $q->whereIn('status', ['open', 'pending']);
+            $q->whereIn('status', ['open', 'pending','manual']);
             $q->orWhereNull('status');
         })->whereSide('buy')->get();
 
         if ($orders->count()) {
             foreach ($orders as $order) {
-                /** @var \GDAX\Types\Response\Authenticated\Order $gdaxOrder */
-                $gdaxOrder = $this->gdax->getOrder($order->order_id);
+                /** @var \GDAX\Types\Response\Authenticated\Order $exchangeOrder */
+                $exchangeOrder = $this->exchange->getOrder($order->order_id);
                 $position_id = 0;
-                $status = $gdaxOrder->getStatus();
+                $status = $exchangeOrder->getStatus();
 
                 if ($status) {
                     // A recently placed buy order had been filled so we add it as an open position
                     if ($status == 'done') {
                         $position = Position::create([
-                                                         'pair'     => $gdaxOrder->getProductId(),
-                                                         'order_id' => $gdaxOrder->getId(),
-                                                         'size'     => $gdaxOrder->getSize(),
-                                                         'amount'   => $gdaxOrder->getPrice(),
-                                                         'open'     => $gdaxOrder->getPrice(),
+                                                         'pair'     => $exchangeOrder->getProductId(),
+                                                         'order_id' => $exchangeOrder->getId(),
+                                                         'size'     => $exchangeOrder->getSize(),
+                                                         'amount'   => $exchangeOrder->getPrice(),
+                                                         'open'     => $exchangeOrder->getPrice(),
                                                          'status'   => 'open',
                                                      ]);
 
                         $position_id = $position->id;
                     }
 
-                    $order->status = $gdaxOrder->getStatus();
+                    $order->status = $exchangeOrder->getStatus();
                 } else {
-                    $order->status = $gdaxOrder->getMessage();
+                    $order->status = $exchangeOrder->getMessage();
                 }
                 $order->position_id = $position_id;
                 $order->save();
             }
         }
     }
+
 
     /**
      * Update the open Sells to see if they are filled (done)
@@ -121,20 +125,20 @@ class OrderBot implements BotInterface
     public function updateSellOrdersAndClosePosition()
     {
         $orders = \Amavis442\Trading\Models\Order::where(function ($q) {
-            $q->whereIn('status', ['open', 'pending']);
+            $q->whereIn('status', ['open', 'pending','manual']);
             $q->orWhereNull('status');
         })->whereSide('sell')->get();
 
 
         if ($orders->count()) {
             foreach ($orders as $order) {
-                $gdaxOrder = $this->gdax->getOrder($order->order_id);
-                $status = $gdaxOrder->getStatus();
+                $exchangeOrder = $this->exchange->getOrder($order->order_id);
+                $status = $exchangeOrder->getStatus();
 
                 if ($status) {
-                    $order->status = $gdaxOrder->getStatus();
+                    $order->status = $exchangeOrder->getStatus();
                 } else {
-                    $order->status = $gdaxOrder->getMessage();
+                    $order->status = $exchangeOrder->getMessage();
                 }
                 $order->save();
 

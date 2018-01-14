@@ -5,7 +5,7 @@ namespace Amavis442\Trading\Bot;
 use Amavis442\Trading\Database\Seeder\PositionTableSeeder;
 use Illuminate\Support\Facades\Log;
 use Amavis442\Trading\Contracts\BotInterface;
-use Amavis442\Trading\Contracts\GdaxServiceInterface;
+use Amavis442\Trading\Contracts\ExchangeInterface;
 use Amavis442\Trading\Models\Position;
 use Amavis442\Trading\Models\Setting;
 use Amavis442\Trading\Models\Order;
@@ -13,12 +13,12 @@ use Amavis442\Trading\Models\Order;
 class PositionBot implements BotInterface
 {
 
-    protected $gdax;
+    protected $exchange;
     protected $stoplossRule;
 
-    public function __construct(GdaxServiceInterface $gdax)
+    public function __construct(ExchangeInterface $exchange)
     {
-        $this->gdax = $gdax;
+        $this->exchange = $exchange;
     }
 
     public function setStopLossService($stoplossRule)

@@ -10,10 +10,7 @@ namespace Amavis442\Trading\Commands;
 
 use Amavis442\Trading\Bot\OrderBot;
 use Illuminate\Console\Command;
-use Amavis442\Trading\Contracts\GdaxServiceInterface;
-use Amavis442\Trading\Contracts\OrderServiceInterface;
-use Amavis442\Trading\Contracts\PositionServiceInterface;
-
+use Amavis442\Trading\Contracts\ExchangeInterface;
 use Amavis442\Trading\Triggers\Stoploss;
 use Amavis442\Trading\Bot\PositionBot;
 
@@ -22,32 +19,32 @@ use Amavis442\Trading\Bot\PositionBot;
  *
  * @author patrick
  */
-class UpdatePositions extends Command
+class Position extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'trading:run:positions {strategy=trailingstop : Which strategy to use} {--watch : Only update but do not place sell orders (sl)}';
+    protected $signature = 'trading:run:position {strategy=trailingstop : Which strategy to use} {--watch : Only update but do not place sell orders (sl)}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Runs the positions.';
+    protected $description = 'Runs the positionbot.';
 
-    protected $gdax;
+    protected $exchange;
 
     /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct(GdaxServiceInterface $gdax)
+    public function __construct(ExchangeInterface $exchange)
     {
-        $this->gdax = $gdax;
+        $this->exchange = $exchange;
 
         parent::__construct();
     }
@@ -55,13 +52,11 @@ class UpdatePositions extends Command
 
     public function handle()
     {
-        $orderBot = new OrderBot($this->gdax);
-        $bot = new PositionBot($this->gdax);
+        $bot = new PositionBot($this->exchange);
 
         $bot->setStopLossService(new Stoploss());
 
         while (1) {
-            $orderBot->run();
             $bot->run($this->option('watch'));
             sleep(2);
         }

@@ -18,9 +18,9 @@ class BuyBot implements BotInterface
     protected $config;
 
     /**
-     * @var \Amavis442\Trading\Contracts\GdaxServiceInterface
+     * @var \Amavis442\Trading\Contracts\ExchangeInterface
      */
-    protected $gdaxService;
+    protected $exchange;
 
     /**
      * @var \Amavis442\Trading\Contracts\OrderServiceInterface;
@@ -34,22 +34,7 @@ class BuyBot implements BotInterface
 
     protected $msg = [];
 
-    public function setContainer($container)
-    {
-        $this->container = $container;
-    }
-
-    public function setSettings(array $config = [])
-    {
-        $this->config = $config;
-    }
-
-    public function getMessage(): array
-    {
-        return $this->msg;
-    }
-
-    /**
+s    /**
      * Factory
      *
      * @return \Amavis442\Trading\Commands\active
@@ -69,7 +54,7 @@ class BuyBot implements BotInterface
     {
         $positionCreated = false;
 
-        $order = $this->gdaxService->placeLimitBuyOrder($size, $price);
+        $order = $this->exchange->placeLimitBuyOrder($size, $price);
 
         if ($order->getId() && ($order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_PENDING || $order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_OPEN)) {
             $this->orderService->buy($order->getId(), $size, $price);

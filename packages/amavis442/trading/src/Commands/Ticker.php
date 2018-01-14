@@ -7,7 +7,7 @@
 namespace Amavis442\Trading\Commands;
 
 use Illuminate\Console\Command;
-use Amavis442\Trading\Contracts\GdaxServiceInterface;
+use Amavis442\Trading\Contracts\ExchangeInterface;
 use Amavis442\Trading\Bot\TickerBot;
 
 /**
@@ -15,7 +15,7 @@ use Amavis442\Trading\Bot\TickerBot;
  *
  * @author patrickteunissen
  */
-class RunTicker extends Command
+class Ticker extends Command
 {
 
     /**
@@ -32,16 +32,15 @@ class RunTicker extends Command
      */
     protected $description = 'Runs the ticker.';
 
-    protected $gdax;
+    protected $exchange;
+
 
     /**
-     * Create a new command instance.
      *
-     * @return void
      */
-    public function __construct(GdaxServiceInterface $gdax)
+    public function __construct(ExchangeInterface $exchange)
     {
-        $this->gdax = $gdax;
+        $this->exchange = $exchange;
 
         parent::__construct();
     }
@@ -55,18 +54,13 @@ class RunTicker extends Command
     {
         $this->info("=== RUN [" . \Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s') . "] ===");
 
-        $bot = new TickerBot($this->gdax);
+        $bot = new TickerBot($this->exchange);
 
         while (1) {
             $bot->run();
-            $msgs= $bot->getMessage();
-            foreach ($msgs as $msg){
-                $this->info($msg);
-            }
-
             sleep(1);
         }
-        
+
         $this->info("Exit ticker");
     }
 }

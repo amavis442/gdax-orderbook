@@ -34,12 +34,12 @@ class ReportCommand extends Command {
     }
     
      protected function execute(InputInterface $input, OutputInterface $output) {
-        $gdaxService = new \Amavis442\Trading\Services\GDaxService(); 
-        $gdaxService->setCoin(getenv('CRYPTOCOIN'));
-        $gdaxService->connect();
+         $exchange = new \Amavis442\Trading\Exchanges\GDaxExchange();
+        $exchange->setCoin(getenv('CRYPTOCOIN'));
+        $exchange->connect();
         
     
-        $data = $gdaxService->getAccountReport(getenv('CRYPTOCOIN'));
+        $data = $exchange->getAccountReport(getenv('CRYPTOCOIN'));
           
         $rows[] = [getenv('CRYPTOCOIN'), $data['balance'], $data['koers'], $data['waarde']];
         
