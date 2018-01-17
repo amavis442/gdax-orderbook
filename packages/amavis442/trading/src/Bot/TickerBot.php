@@ -8,11 +8,11 @@
 
 namespace Amavis442\Trading\Bot;
 
-use Amavis442\Trading\Contracts\BotInterface;
+use Amavis442\Trading\Contracts\Bot;
 use Amavis442\Trading\Contracts\ExchangeInterface;
 use Amavis442\Trading\Models\Ticker;
 
-class TickerBot implements BotInterface
+class TickerBot implements Bot
 {
     protected $msg = [];
     protected $exchange;

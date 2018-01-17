@@ -9,9 +9,13 @@
 namespace Amavis442\Trading\Contracts;
 
 
-interface IndicatorInterface
+use Illuminate\Support\Collection;
+
+interface Indicator
 {
     const SELL = -1;
     const HOLD = 0;
     const BUY  = 1;
+
+    public function check(Collection $data): int;
 }

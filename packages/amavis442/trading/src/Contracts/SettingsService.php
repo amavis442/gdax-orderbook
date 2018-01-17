@@ -2,7 +2,7 @@
 
 namespace Amavis442\Trading\Contracts;
 
-interface SettingsServiceInterface {
+interface SettingsService {
 
     public function getSettings(): array;
 }

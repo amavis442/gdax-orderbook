@@ -12,11 +12,11 @@ use Amavis442\Trading\Models\Position;
 use Amavis442\Trading\Models\Order;
 
 use Illuminate\Support\Facades\Log;
-use Amavis442\Trading\Contracts\BotInterface;
+use Amavis442\Trading\Contracts\Bot;
 use Amavis442\Trading\Contracts\ExchangeInterface;
 
 
-class OrderBot implements BotInterface
+class OrderBot implements Bot
 {
     public function __construct(ExchangeInterface $exchange)
     {

@@ -8,7 +8,7 @@ use Amavis442\Trading\Models\Position;
  *
  * @package Amavis442\Trading\Contracts
  */
-interface PositionServiceInterface
+interface PositionService
 {
     public function purgeDatabase();
     

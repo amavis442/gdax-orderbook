@@ -8,20 +8,14 @@
 
 namespace Amavis442\Trading\Contracts;
 
+use Amavis442\Trading\Models\Position;
+
 /**
  *
  * @author patrick
  */
-interface StrategyInterface {
+interface Strategy {
 
-    public function  getName(): string;
-
-    /**
-     * Signal will be buy, sell or hold
-     */
-    public function getSignal(): int;
-    
-
-    public function getMessage(): array;
+    public function check(float $currentprice, Position $position): int;
 
 }

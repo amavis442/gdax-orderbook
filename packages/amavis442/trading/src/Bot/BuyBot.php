@@ -8,46 +8,28 @@
 
 namespace Amavis442\Trading\Bot;
 
-use Amavis442\Trading\Contracts\BotInterface;
-use Amavis442\Trading\Traits\OHLC;
+use Amavis442\Trading\Contracts\Bot;
 use Amavis442\Trading\Util\PositionConstants;
 
-class BuyBot implements BotInterface
+class BuyBot implements Bot
 {
-    protected $container;
     protected $config;
 
     /**
-     * @var \Amavis442\Trading\Contracts\ExchangeInterface
+     * @var \Amavis442\Trading\Contracts\Exchange
      */
     protected $exchange;
 
     /**
-     * @var \Amavis442\Trading\Contracts\OrderServiceInterface;
+     * @var \Amavis442\Trading\Contracts\OrderService
      */
     protected $orderService;
 
     /**
-     * @var \Amavis442\Trading\Contracts\StrategyInterface;
+     * @var \Amavis442\Trading\Contracts\Strategy;
      */
     protected $settingsService;
 
-    protected $msg = [];
-
-s    /**
-     * Factory
-     *
-     * @return \Amavis442\Trading\Commands\active
-     */
-    protected function getStrategy()
-    {
-        return $this->container->get('bot.strategy');
-    }
-
-    protected function getRule($side)
-    {
-        return $this->container->get('bot.' . $side . '.rule');
-    }
 
 
     protected function placeBuyOrder($size, $price): bool
@@ -67,28 +49,20 @@ s    /**
         return $positionCreated;
     }
 
-    protected function init()
-    {
-        $this->orderService    = $this->container->get('bot.service.order');
-        $this->gdaxService     = $this->container->get('bot.service.gdax');
-        $this->positionService = $this->container->get('bot.service.position');
-    }
-
-
     public function run()
     {
         $this->init();
         $msg = [];
 
         $strategy = $this->getStrategy();
-        $buyRule  = $this->getRule('buy');
+        $buyRule = $this->getRule('buy');
 
         // Even when the limit is reached, i want to know the signal
         $signal = $strategy->getSignal();
-        $msg    = array_merge($msg, $strategy->getMessage());
+        $msg = array_merge($msg, $strategy->getMessage());
 
 
-        $numOpenOrders        = (int)$this->orderService->getNumOpenBuyOrders() + (int)$this->positionService->getNumOpen();
+        $numOpenOrders = (int)$this->orderService->getNumOpenBuyOrders() + (int)$this->positionService->getNumOpen();
         $numOrdersLeftToPlace = (int)$this->config['max_orders'] - $numOpenOrders;
         if (!$numOrdersLeftToPlace) {
             $numOrdersLeftToPlace = 0;
@@ -102,21 +76,23 @@ s    /**
             $currentPrice = $this->gdaxService->getCurrentPrice();
 
             // Create safe limits
-            $topLimit    = $this->config['top'];
+            $topLimit = $this->config['top'];
             $bottomLimit = $this->config['bottom'];
 
             if (!$currentPrice || $currentPrice < 1 || $currentPrice > $topLimit || $currentPrice < $bottomLimit) {
-                $msg[] = sprintf("Treshold reached %s  [%s]  %s so no buying for now.", $bottomLimit, $currentPrice, $topLimit);
+                $msg[] = sprintf("Treshold reached %s  [%s]  %s so no buying for now.", $bottomLimit, $currentPrice,
+                    $topLimit);
             } else {
                 if ($signal == PositionConstants::BUY && $numOrdersLeftToPlace > 0) {
 
-                    $size     = $this->config['size'];
+                    $size = $this->config['size'];
                     $buyPrice = number_format($currentPrice - 0.01, 2, '.', '');
-                    $msg[]    = "Place buyorder for size " . $size . ' and price ' . $buyPrice;
+                    $msg[] = "Place buyorder for size " . $size . ' and price ' . $buyPrice;
                     $this->placeBuyOrder($size, $buyPrice);
                 } else {
                     if ($numOrdersLeftToPlace < 1) {
-                        $msg[] = sprintf("Num orders has been reached: Allowed: %d, placed %d", (int)$this->config['max_orders'], (int) $numOpenOrders);
+                        $msg[] = sprintf("Num orders has been reached: Allowed: %d, placed %d",
+                            (int)$this->config['max_orders'], (int)$numOpenOrders);
                     }
                 }
                 $msg[] = "=== DONE " . date('Y-m-d H:i:s') . " ===";
