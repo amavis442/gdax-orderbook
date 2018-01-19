@@ -1,13 +1,14 @@
 <?php
+
 namespace Amavis442\Trading\Indicators;
 
-use Amavis442\Trading\Contracts\IndicatorInterface;
+use Amavis442\Trading\Contracts\Indicator;
+use Amavis442\Trading\Exceptions\NotEnoughDataPointsException;
+use Illuminate\Support\Collection;
 
 /**
- * Average Directional Movement Index
+ * Class AverageDirectionalMovementIndexIndicator
  *
- * @TODO, this one needs more research for the returns
- * 
  * @see http://www.investopedia.com/terms/a/adx.asp
  *
  * The ADX calculates the potential strength of a trend.
@@ -15,24 +16,29 @@ use Amavis442\Trading\Contracts\IndicatorInterface;
  * ADX can be used as confirmation whether the pair could possibly continue in its current trend or not.
  * ADX can also be used to determine when one should close a trade early. For instance, when ADX starts to slide below 50,
  * it indicates that the current trend is possibly losing steam.
+ *
+ * @package Amavis442\Trading\Indicators
  */
-class AverageDirectionalMovementIndexIndicator implements IndicatorInterface
+class AverageDirectionalMovementIndexIndicator implements Indicator
 {
 
-    public function __invoke(array $data, int $period = 14): int
+
+    public function check(Collection $config): int
     {
+
+        $data = (array)$config->get('data', []);
+        $period = (int)$config->get('period', 14);
+
         $adx = trader_adx($data['high'], $data['low'], $data['close'], $period);
 
-        if (empty($adx)) {
-            return -9;
-        }
+        throw_unless($adx, NotEnoughDataPointsException::class, "Not enough datapoints");
 
-        $adx = array_pop($adx); //[count($adx) - 1];
+        $adx = array_pop($adx);
 
         if ($adx > 50) {
-            return static::BUY; // overbought
+            return static::BUY;
         } elseif ($adx < 20) {
-            return static::SELL;  // underbought
+            return static::SELL;
         } else {
             return static::HOLD;
         }

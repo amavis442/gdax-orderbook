@@ -1,16 +1,15 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Amavis442\Trading\Exchanges;
 
-use Amavis442\Trading\Contracts\ExchangeInterface;
+use Amavis442\Trading\Contracts\Exchange;
 
 /**
- * Description of GDaxService
- *
- * @author patrick
+ * Class GDaxExchange
+ * @package Amavis442\Trading\Exchanges
  */
-class GDaxExchange implements ExchangeInterface
+class GDaxExchange implements Exchange
 {
 
     protected $client;
@@ -29,7 +28,7 @@ class GDaxExchange implements ExchangeInterface
         $this->connect((bool)config('trading.sandbox'));
     }
 
-    protected  function connect(bool $sandbox = false)
+    protected function connect(bool $sandbox = false)
     {
         $this->client = new \GDAX\Clients\AuthenticatedClient(
             config('trading.api_key'), config('trading.api_secret'), config('trading.password')
@@ -38,7 +37,7 @@ class GDaxExchange implements ExchangeInterface
         if ($sandbox) {
             $this->client->setBaseURL(\GDAX\Utilities\GDAXConstants::GDAX_API_SANDBOX_URL);
         }
-        
+
         $this->setCoin((string)config('trading.coin'));
     }
 
@@ -49,7 +48,6 @@ class GDaxExchange implements ExchangeInterface
     {
         $this->cryptoCoin = $cryptoCoin;
     }
-
 
 
     public function getClient(): \GDAX\Clients\AuthenticatedClient
@@ -132,8 +130,8 @@ class GDaxExchange implements ExchangeInterface
     public function getFilledOrder(string $order_id, string $pair = 'BTC-EUR'): \GDAX\Types\Response\Authenticated\Fill
     {
         $fill = (new \GDAX\Types\Request\Authenticated\Fill())
-                ->setProductId($pair)
-                ->setOrderId($order_id);
+            ->setProductId($pair)
+            ->setOrderId($order_id);
 
         $response = $this->client->getFills($fill);
 
@@ -261,7 +259,7 @@ class GDaxExchange implements ExchangeInterface
 
         return $response;
     }
-    
+
     /**
      * Get acount data like balance (can be handy to check if there is enough funds left)
      */

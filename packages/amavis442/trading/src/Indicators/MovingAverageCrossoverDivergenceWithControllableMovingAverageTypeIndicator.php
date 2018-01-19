@@ -1,37 +1,51 @@
 <?php
+
 namespace Amavis442\Trading\Indicators;
 
-use Amavis442\Trading\Contracts\IndicatorInterface;
+use Amavis442\Trading\Contracts\Indicator;
+use Illuminate\Support\Collection;
 
 /**
- *      MACD indicator with controllable types and tweakable periods.
+ * Class MovingAverageCrossoverDivergenceWithControllableMovingAverageTypeIndicator
  *
- *      TODO This will be for various backtesting and tests
- *      all periods are ranges of 2 to 100,000
+ * MACD indicator with controllable types and tweakable periods.
+ *
+ * @package Amavis442\Trading\Indicators
  */
-class MovingAverageCrossoverDivergenceWithControllableMovingAverageTypeIndicator implements IndicatorInterface
+class MovingAverageCrossoverDivergenceWithControllableMovingAverageTypeIndicator implements Indicator
 {
 
-    public function __invoke(array $data, int $fastPeriod = 12, int $fastMAType = 0, int $slowPeriod = 26, int $slowMAType = 0, int $signalPeriod = 9, int $signalMAType = 0): int
+    public function check(Collection $config): int
     {
+        $data = (array)$config->get('data', []);
+        $fastPeriod = (int)$config->get('fastPeriod', 12);
+        $fastMAType = (int)$config->get('fastMAType', 0);
+        $slowPeriod = (int)$config->get('slowPeriod', 26);
+        $slowMAType = (int)$config->get('slowMAType', 0);
+        $signalPeriod = (int)$config->get('signalPeriod', 9);
+        $signalMAType = (int)$config->get('signalMAType', 0);
 
-        $fastMAType   = $this->ma_type($fastMAType);
-        $slowMAType   = $this->ma_type($slowMAType);
+        $fastMAType = $this->ma_type($fastMAType);
+        $slowMAType = $this->ma_type($slowMAType);
         $signalMAType = $this->ma_type($signalMAType);
 
-        // Create the MACD signal and pass in the three parameters: fast period, slow period, and the signal.
-        // we will want to tweak these periods later for now these are fine.
-        $macd     = trader_macdext($data['close'], $fastPeriod, $fastMAType, $slowPeriod, $slowMAType, $signalPeriod, $signalMAType);
-        $macd_raw = $macd[0];
-        $signal   = $macd[1];
-        $hist     = $macd[2];
-        
+
+        $macd = trader_macdext(
+            $data['close'],
+            $fastPeriod,
+            $fastMAType,
+            $slowPeriod,
+            $slowMAType,
+            $signalPeriod,
+            $signalMAType
+        );
+
         if (!empty($macd)) {
-            $macd = array_pop($macd[0]) - array_pop($macd[1]); #$macd_raw[count($macd_raw)-1] - $signal[count($signal)-1];
-            // Close position for the pair when the MACD signal is negative
+            $macd = array_pop($macd[0]) - array_pop($macd[1]);
+
             if ($macd < 0) {
                 return static::SELL;
-                // Enter the position for the pair when the MACD signal is positive
+
             } elseif ($macd > 0) {
                 return static::BUY;
             } else {

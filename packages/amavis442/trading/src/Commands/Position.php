@@ -10,8 +10,8 @@ namespace Amavis442\Trading\Commands;
 
 use Amavis442\Trading\Bot\OrderBot;
 use Illuminate\Console\Command;
-use Amavis442\Trading\Contracts\ExchangeInterface;
-use Amavis442\Trading\Triggers\Stoploss;
+use Amavis442\Trading\Contracts\Exchange;
+use Amavis442\Trading\Strategies\Stoploss;
 use Amavis442\Trading\Bot\PositionBot;
 
 /**
@@ -42,7 +42,7 @@ class Position extends Command
      *
      * @return void
      */
-    public function __construct(ExchangeInterface $exchange)
+    public function __construct(Exchange $exchange)
     {
         $this->exchange = $exchange;
 

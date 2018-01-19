@@ -9,7 +9,7 @@
 namespace Amavis442\Trading\Bot;
 
 use Amavis442\Trading\Contracts\Bot;
-use Amavis442\Trading\Contracts\ExchangeInterface;
+use Amavis442\Trading\Contracts\Exchange;
 use Amavis442\Trading\Models\Ticker;
 
 class TickerBot implements Bot
@@ -18,7 +18,7 @@ class TickerBot implements Bot
     protected $exchange;
 
 
-    public function __construct(ExchangeInterface $exchange)
+    public function __construct(Exchange $exchange)
     {
         $this->exchange = $exchange;
     }

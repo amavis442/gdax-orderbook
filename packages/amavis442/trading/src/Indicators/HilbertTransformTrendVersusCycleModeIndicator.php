@@ -2,24 +2,30 @@
 
 namespace Amavis442\Trading\Indicators;
 
-use Amavis442\Trading\Contracts\IndicatorInterface;
+use Amavis442\Trading\Contracts\Indicator;
+use Illuminate\Support\Collection;
 
 /**
- * Hilbert Transform - Trend vs Cycle Mode Simply tell us if the market is
+ * Class HilbertTransformTrendVersusCycleModeIndicator
+ *
+ * Simply tell us if the market is
  * either trending or cycling, with an additional parameter the method returns
  * the number of days we have been in a trend or a cycle.
+ *
+ * @package Amavis442\Trading\Indicators
  */
-class HilbertTransformTrendVersusCycleModeIndicator implements IndicatorInterface
+class HilbertTransformTrendVersusCycleModeIndicator implements Indicator
 {
 
-    public function __invoke(array $data, bool $numperiods = false): int
+    public function check(Collection $config): int
     {
+        $data = (array)$config->get('data', []);
+        $numperiods = (bool)$config->get('numperiods', false);
+
 
         $a_htm = trader_ht_trendmode($data['close']);
 
-        if (!$a_htm) {
-            throw new \RuntimeException('Not enough data points. Maybe clear cache and start over.');
-        }
+        throw_unless($a_htm, NotEnoughDataPointsException::class, "Not enough datapoints");
 
         $htm = array_pop($a_htm);
 

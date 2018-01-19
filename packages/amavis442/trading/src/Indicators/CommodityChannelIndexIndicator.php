@@ -1,25 +1,32 @@
 <?php
+
 namespace Amavis442\Trading\Indicators;
 
-use Amavis442\Trading\Contracts\IndicatorInterface;
+use Amavis442\Trading\Contracts\Indicator;
+use Illuminate\Support\Collection;
 
 /**
- *      Commodity Channel Index
+ * Class CommodityChannelIndexIndicator
+ * @package Amavis442\Trading\Indicators
  */
-class CommodityChannelIndexIndicator implements IndicatorInterface
+class CommodityChannelIndexIndicator implements Indicator
 {
 
-    public function __invoke(array $data, int $period = 14): int
+    public function check(Collection $config): int
     {
+        $data = (array)$config->get('data', []);
+        $period = (int)$config->get('period', 14);
 
-        # array $high , array $low , array $close [, integer $timePeriod ]
         $cci = trader_cci($data['high'], $data['low'], $data['close'], $period);
-        $cci = array_pop($cci); #[count($cci) - 1];
+
+        throw_unless($cci, NotEnoughDataPointsException::class, "Not enough datapoints");
+
+        $cci = array_pop($cci);
 
         if ($cci > 100) {
-            return static::SELL; // overbought
+            return static::SELL;
         } elseif ($cci < -100) {
-            return static::BUY;  // underbought
+            return static::BUY;
         } else {
             return static::HOLD;
         }

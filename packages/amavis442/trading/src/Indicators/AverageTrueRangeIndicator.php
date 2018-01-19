@@ -2,12 +2,14 @@
 
 namespace Amavis442\Trading\Indicators;
 
-use Amavis442\Trading\Contracts\IndicatorInterface;
+use Amavis442\Trading\Contracts\Indicator;
+use Illuminate\Support\Collection;
 
 /**
- * Average True Range
- * 
+ * Class AverageTrueRangeIndicator
+ *
  * http://www.investopedia.com/articles/trading/08/atr.asp
+ *
  * The idea is to use ATR to identify breakouts, if the price goes higher than
  * the previous close + ATR, a price breakout has occurred.
  *
@@ -15,34 +17,36 @@ use Amavis442\Trading\Contracts\IndicatorInterface;
  *
  * This algorithm uses ATR as a momentum strategy, but the same signal can be used for
  * a reversion strategy, since ATR doesn't indicate the price direction (like adx below)
+ *
+ * @package Amavis442\Trading\Indicators
  */
-class AverageTrueRangeIndicator implements IndicatorInterface
+class AverageTrueRangeIndicator implements Indicator
 {
 
-    public function __invoke(array $data, int $period = 14): int
+    public function check(Collection $config): int
     {
+        $data = (array)$config->get('data', []);
+        $period = (int)$config->get('period', 14);
 
         if ($period > count($data['close'])) {
             $period = round(count($data['close']) / 2);
         }
 
         $data2      = $data;
-        $current    = array_pop($data2['close']); //[count($data['close']) - 1];    // we assume this is current
-        $prev_close = array_pop($data2['close']); //[count($data['close']) - 2]; // prior close
+        $current    = array_pop($data2['close']); // we assume this is current
+        $prev_close = array_pop($data2['close']); // prior close
 
         $atr = trader_atr(
             $data['high'], 
             $data['low'], 
-            $data['close'], 
-            $period);
+            $data['close'],
+            $period
+        );
+
+        throw_unless($atr, NotEnoughDataPointsException::class, "Not enough datapoints");
         
-        if (false === $atr) {
-            throw new \RuntimeException('Not enough data points');
-        }
         
-        
-        $atr = array_pop($atr); //[count($atr)-1]; 
-        // pick off the last
+        $atr = array_pop($atr);
         
         // An upside breakout occurs when the price goes 1 ATR above the previous close
         $upside_signal = ($current - ($prev_close + $atr));

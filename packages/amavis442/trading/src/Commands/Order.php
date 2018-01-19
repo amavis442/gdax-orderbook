@@ -10,7 +10,7 @@ namespace Amavis442\Trading\Commands;
 
 use Amavis442\Trading\Bot\OrderBot;
 use Illuminate\Console\Command;
-use Amavis442\Trading\Contracts\ExchangeInterface;
+use Amavis442\Trading\Contracts\Exchange;
 
 /**
  * Description of RunBotCommand
@@ -40,7 +40,7 @@ class Order extends Command
      *
      * @return void
      */
-    public function __construct(ExchangeInterface $exchange)
+    public function __construct(Exchange $exchange)
     {
         $this->exchange = $exchange;
 

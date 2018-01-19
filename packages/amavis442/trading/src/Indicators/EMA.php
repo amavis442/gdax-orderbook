@@ -1,25 +1,28 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: patrickteunissen
- * Date: 17-01-18
- * Time: 15:46
- */
 
 namespace Amavis442\Trading\Triggers;
 
-
 use Amavis442\Trading\Contracts\Indicator;
-use Amavis442\Trading\Contracts\Strategy;
 use Illuminate\Support\Collection;
 
+/**
+ * Class EMA
+ * @package Amavis442\Trading\Triggers
+ */
 class EMA implements Indicator
 {
 
-    public function check(Collection $data): int
+    public function check(Collection $config): int
     {
-        $ema  = trader_ema($data, 20);
+        $data = (array)$config->get('data', []);
+        $period = (int)$config->get('period', 20);
+
+        $ema  = trader_ema($data, $period);
+
+        throw_unless($ema, NotEnoughDataPointsException::class, "Not enough datapoints");
+
         $ema  = @array_pop($ema) ?? 0;
+
         $cand = $this->candle_value();
 
         $current_price  = array_pop($data['close']);

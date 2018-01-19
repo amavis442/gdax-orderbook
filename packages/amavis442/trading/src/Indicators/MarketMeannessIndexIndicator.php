@@ -2,26 +2,31 @@
 
 namespace Amavis442\Trading\Indicators;
 
-use Amavis442\Trading\Contracts\IndicatorInterface;
+use Amavis442\Trading\Contracts\Indicator;
+use Illuminate\Support\Collection;
 
 /**
- * Market Meanness Index (link) — This indicator is not a measure of how
+ * Class MarketMeannessIndexIndicator
+ *
+ * This indicator is not a measure of how
  * grumpy the market is, it shows if we are currently in or out of a trend
  * based on price reverting to the mean.
- * 
- *   NO TALib specific function
- *  Market Meanness Index - tendency to revert to the mean
- *  currently moving in our out of a trend?
- *  prevent loss by false trend signals
  *
- *  if mmi > 75 then not trending
- *  if mmi < 75 then trending
+ * NO TALib specific function
+ *
+ * if mmi > 75 then not trending
+ * if mmi < 75 then trending
+ *
+ * @package Amavis442\Trading\Indicators
  */
-class MarketMeannessIndexIndicator implements IndicatorInterface
+class MarketMeannessIndexIndicator implements Indicator
 {
 
-    public function __invoke(array $data, int $period = 200): int
+    public function check(Collection $config): int
     {
+        $data = (array)$config->get('data', []);
+        $period = (int)$config->get('period', 200);
+
 
         $data_close = [];
         foreach ($data['close'] as $point) {

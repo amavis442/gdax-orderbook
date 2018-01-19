@@ -62,15 +62,15 @@ class TraderServiceProvider extends ServiceProvider
     {
 
         $this->app->bind(
-            'Amavis442\Trading\Contracts\ExchangeInterface', 'Amavis442\Trading\Exchanges\GDaxExchange'
+            'Amavis442\Trading\Contracts\Exchange', 'Amavis442\Trading\Exchanges\GDaxExchange'
         );
 
         $this->app->bind(
-            'Amavis442\Trading\Contracts\OrderServiceInterface', 'Amavis442\Trading\Services\OrderService'
+            'Amavis442\Trading\Contracts\OrderService', 'Amavis442\Trading\Services\OrderService'
         );
 
         $this->app->bind(
-            'Amavis442\Trading\Contracts\PositionServiceInterface', 'Amavis442\Trading\Services\PositionService'
+            'Amavis442\Trading\Contracts\PositionService', 'Amavis442\Trading\Services\PositionService'
         );
 
 
@@ -82,29 +82,29 @@ class TraderServiceProvider extends ServiceProvider
 
         // The bots
         $this->app->singleton('Amavis442\Trading\Bot\PositionBot', function ($app) {
-            $bot = new \Amavis442\Trading\Bot\PositionBot($app->make('Amavis442\Trading\Contracts\ExchangeInterface'));
+            $bot = new \Amavis442\Trading\Bot\PositionBot($app->make('Amavis442\Trading\Contracts\Exchange'));
             $bot->setStopLossService($app->make('Amavis442\Trading\Triggers\Stoploss'));
             return $bot;
         });
 
         $this->app->singleton('Amavis442\Trading\Bot\OrderBot', function ($app) {
-            return new \Amavis442\Trading\Bot\OrderBot($app->make('Amavis442\Trading\Contracts\ExchangeInterface'));
+            return new \Amavis442\Trading\Bot\OrderBot($app->make('Amavis442\Trading\Contracts\Exchange'));
         });
 
         $this->app->singleton('Amavis442\Trading\Bot\TickerBot', function ($app) {
-            return new \Amavis442\Trading\Bot\TickerBot($app->make('Amavis442\Trading\Contracts\ExchangeInterface'));
+            return new \Amavis442\Trading\Bot\TickerBot($app->make('Amavis442\Trading\Contracts\Exchang'));
         });
 
         /* WIP
         $this->app->singleton('Amavis442\Trading\Bot\BuyBot', function ($app) {
-            return new \Amavis442\Trading\Bot\BuyBot($app->make('Amavis442\Trading\Contracts\ExchangeInterface'));
+            return new \Amavis442\Trading\Bot\BuyBot($app->make('Amavis442\Trading\Contracts\Exchange'));
         });
         */
 
 
-        $this->app->singleton('Amavis442\Trading\Contracts\IndicatorManagerInterface', function ($app) {
+        $this->app->singleton('Amavis442\Trading\Contracts\IndicatorManager', function ($app) {
             $manager = new \Amavis442\Trading\Managers\IndicatorManager();
-            $manager->add('mfi', new \Amavis442\Trading\Indicators\MoneyFlowIndexIndicator());
+            $manager->add('mfi', new \Amavis442\Trading\Indicators\MoneyFlowIndex());
             return $manager;
           });
     }

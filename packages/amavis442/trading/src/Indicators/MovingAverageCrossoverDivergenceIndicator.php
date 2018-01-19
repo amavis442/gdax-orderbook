@@ -2,7 +2,7 @@
 
 namespace Amavis442\Trading\Indicators;
 
-use Amavis442\Trading\Contracts\IndicatorInterface;
+use Amavis442\Trading\Contracts\Indicator;
 
 /**
  *
@@ -22,8 +22,11 @@ use Amavis442\Trading\Contracts\IndicatorInterface;
 class MovingAverageCrossoverDivergenceIndicator implements IndicatorInterface
 {
 
-    public function __invoke(array $data, int $period1 = 12, int $period2 = 26, int $period3 = 9): int
+    public function check(Collection $config): int//public function __invoke(array $data, int $period1 = 12, int $period2 = 26, int $period3 = 9): int
     {
+        $data = (array)$config->get('data', []);
+        $period = (int)$config->get('period', 14);
+
 
         /* 
          * Create the MACD signal and pass in the three parameters: fast period, slow period, and the signal.
@@ -38,10 +41,8 @@ class MovingAverageCrossoverDivergenceIndicator implements IndicatorInterface
             $period2, 
             $period3
             );
-        
-        if (false === $macd) {
-            throw new \RuntimeException('Not enough data points');
-        }
+
+        throw_unless($atr, NotEnoughDataPointsException::class, "Not enough datapoints");
 
         
         $macd_raw = $macd[0];

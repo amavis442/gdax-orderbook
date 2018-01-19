@@ -1,34 +1,41 @@
 <?php
+
 namespace Amavis442\Trading\Indicators;
 
-use Amavis442\Trading\Contracts\IndicatorInterface;
+use Amavis442\Trading\Contracts\Indicator;
+use Illuminate\Support\Collection;
 
 /**
- *      On Balance Volume
- *      http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:on_balance_volume_obv
- *      signal assumption that volume precedes price on confirmation, divergence and breakouts
+ * Class OnBalanceVolumeIndicator
  *
- *      use with mfi to confirm
+ * @see http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:on_balance_volume_obv
+ *
+ * signal assumption that volume precedes price on confirmation, divergence and breakouts
+ * use with mfi to confirm
+ *
+ * @package Amavis442\Trading\Indicators
  */
-class OnBalanceVolumeIndicator implements IndicatorInterface
+class OnBalanceVolumeIndicator implements Indicator
 {
 
-    public function __invoke(array $data, int $period = 14): int
+    public function check(Collection $config): int
     {
+        $data = (array)$config->get('data', []);
+        $period = (int)$config->get('period', 14);
 
-        $_obv        = trader_obv($data['close'], $data['volume']);
-        $current_obv = array_pop($_obv); #[count($_obv) - 1];
-        $prior_obv   = array_pop($_obv); #[count($_obv) - 2];
-        $earlier_obv = array_pop($_obv); #[count($_obv) - 3];
+        $_obv = trader_obv($data['close'], $data['volume']);
 
-        /**
-         *   This forecasts a trend in the last three periods
-         *   TODO: this needs to be tested more, we might need to look closer for crypto currencies
-         */
+        throw_unless($_obv, NotEnoughDataPointsException::class, "Not enough datapoints");
+
+
+        $current_obv = array_pop($_obv);
+        $prior_obv = array_pop($_obv);
+        $earlier_obv = array_pop($_obv);
+
         if (($current_obv > $prior_obv) && ($prior_obv > $earlier_obv)) {
-            return static::BUY; // upwards momentum
+            return static::BUY;
         } elseif (($current_obv < $prior_obv) && ($prior_obv < $earlier_obv)) {
-            return static::SELL; // downwards momentum
+            return static::SELL;
         } else {
             return static::HOLD;
         }

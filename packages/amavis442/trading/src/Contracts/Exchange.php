@@ -3,7 +3,7 @@
 namespace Amavis442\Trading\Contracts;
 
 /**
- * Interface ExchangeInterface
+ * Interface Exchange
  *
  * @package Amavis442\Trading\Contracts
  */

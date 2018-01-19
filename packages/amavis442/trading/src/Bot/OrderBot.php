@@ -13,12 +13,12 @@ use Amavis442\Trading\Models\Order;
 
 use Illuminate\Support\Facades\Log;
 use Amavis442\Trading\Contracts\Bot;
-use Amavis442\Trading\Contracts\ExchangeInterface;
+use Amavis442\Trading\Contracts\Exchange;
 
 
 class OrderBot implements Bot
 {
-    public function __construct(ExchangeInterface $exchange)
+    public function __construct(Exchange $exchange)
     {
         $this->exchange = $exchange;
     }

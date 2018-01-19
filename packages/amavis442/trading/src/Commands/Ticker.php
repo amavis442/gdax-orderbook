@@ -7,7 +7,7 @@
 namespace Amavis442\Trading\Commands;
 
 use Illuminate\Console\Command;
-use Amavis442\Trading\Contracts\ExchangeInterface;
+use Amavis442\Trading\Contracts\Exchange;
 use Amavis442\Trading\Bot\TickerBot;
 
 /**
@@ -38,7 +38,7 @@ class Ticker extends Command
     /**
      *
      */
-    public function __construct(ExchangeInterface $exchange)
+    public function __construct(Exchange $exchange)
     {
         $this->exchange = $exchange;
 

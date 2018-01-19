@@ -1,24 +1,31 @@
 <?php
 namespace Amavis442\Trading\Indicators;
 
-use Amavis442\Trading\Contracts\IndicatorInterface;
+use Amavis442\Trading\Contracts\Indicator;
+use Illuminate\Support\Collection;
 
 /**
- *      Chande Momentum Oscillator
+ * Class ChandeMomentumOscillatorIndicator
+ * @package Amavis442\Trading\Indicators
  */
-class ChandeMomentumOscillatorIndicator implements IndicatorInterface
+class ChandeMomentumOscillatorIndicator implements Indicator
 {
 
-    public function __invoke(array $data, int $period = 14): int
+    public function check(Collection $config): int
     {
+        $data = (array)$config->get('data', []);
+        $period = (int)$config->get('period', 14);
 
         $cmo = trader_cmo($data['close'], $period);
-        $cmo = array_pop($cmo); #[count($cmo) - 1];
+
+        throw_unless($cmo, NotEnoughDataPointsException::class, "Not enough datapoints");
+
+        $cmo = array_pop($cmo);
 
         if ($cmo > 50) {
-            return static::SELL; // overbought
+            return static::SELL;
         } elseif ($cmo < -50) {
-            return static::BUY;  // underbought
+            return static::BUY;
         } else {
             return static::HOLD;
         }
