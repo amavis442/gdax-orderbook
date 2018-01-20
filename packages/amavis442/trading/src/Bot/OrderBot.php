@@ -1,23 +1,19 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: patrickteunissen
- * Date: 13-01-18
- * Time: 15:13
- */
 
 namespace Amavis442\Trading\Bot;
 
 use Amavis442\Trading\Models\Position;
 use Amavis442\Trading\Models\Order;
-
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Amavis442\Trading\Contracts\Bot;
 use Amavis442\Trading\Contracts\Exchange;
-
+use Amavis442\Trading\Events\Position as PositionEvent;
 
 class OrderBot implements Bot
 {
+    protected $exchange;
+
     public function __construct(Exchange $exchange)
     {
         $this->exchange = $exchange;
@@ -25,9 +21,9 @@ class OrderBot implements Bot
 
     protected function garbageCleanup()
     {
-        $orders = Order::where(function($q){
+        $orders = Order::where(function ($q) {
             $q->whereNull('order_id');
-            $q->orWhere('order_id','');
+            $q->orWhere('order_id', '');
         })->where('status', '<>', 'deleted')->get();
 
         if ($orders->count()) {
@@ -48,7 +44,7 @@ class OrderBot implements Bot
             if (is_array($exchangeOrders)) {
                 foreach ($exchangeOrders as $exchangeOrder) {
                     $order_id = $exchangeOrder->getId();
-                    $order = Order::whereOrderId($order_id)->first();
+                    $order    = Order::whereOrderId($order_id)->first();
 
                     // When open order with order_id is not found then add it.
                     if (is_null($order)) {
@@ -81,7 +77,7 @@ class OrderBot implements Bot
     public function updateBuyOrderStatusAndCreatePosition()
     {
         $orders = Order::where(function ($q) {
-            $q->whereIn('status', ['open', 'pending','manual']);
+            $q->whereIn('status', ['open', 'pending', 'manual']);
             $q->orWhereNull('status');
         })->whereSide('buy')->get();
 
@@ -89,8 +85,8 @@ class OrderBot implements Bot
             foreach ($orders as $order) {
                 /** @var \GDAX\Types\Response\Authenticated\Order $exchangeOrder */
                 $exchangeOrder = $this->exchange->getOrder($order->order_id);
-                $position_id = 0;
-                $status = $exchangeOrder->getStatus();
+                $position_id   = 0;
+                $status        = $exchangeOrder->getStatus();
 
                 if ($status) {
                     // A recently placed buy order had been filled so we add it as an open position
@@ -105,6 +101,15 @@ class OrderBot implements Bot
                                                      ]);
 
                         $position_id = $position->id;
+
+                        event(new PositionEvent(
+                                  $exchangeOrder->getProductId(),
+                                  $exchangeOrder->getSide(),
+                                  $exchangeOrder->getSize(),
+                                  $exchangeOrder->getPrice(),
+                                  $position->status
+                              )
+                        );
                     }
 
                     $order->status = $exchangeOrder->getStatus();
@@ -125,7 +130,7 @@ class OrderBot implements Bot
     public function updateSellOrdersAndClosePosition()
     {
         $orders = \Amavis442\Trading\Models\Order::where(function ($q) {
-            $q->whereIn('status', ['open', 'pending','manual']);
+            $q->whereIn('status', ['open', 'pending', 'manual']);
             $q->orWhereNull('status');
         })->whereSide('sell')->get();
 
@@ -133,7 +138,7 @@ class OrderBot implements Bot
         if ($orders->count()) {
             foreach ($orders as $order) {
                 $exchangeOrder = $this->exchange->getOrder($order->order_id);
-                $status = $exchangeOrder->getStatus();
+                $status        = $exchangeOrder->getStatus();
 
                 if ($status) {
                     $order->status = $exchangeOrder->getStatus();
@@ -147,11 +152,21 @@ class OrderBot implements Bot
                     $position_id = $order->position_id;
                     if ($position_id > 0) {
                         try {
-                            $position = Position::findOrFail($position_id);
-                            $position->close = $order->amount;
+                            $position         = Position::findOrFail($position_id);
+                            $position->close  = $order->amount;
                             $position->status = 'closed';
                             $position->save();
-                        } catch(\Exception $e) {
+
+                            event(new PositionEvent(
+                                      $exchangeOrder->getProductId(),
+                                      $exchangeOrder->getSide(),
+                                      $exchangeOrder->getSize(),
+                                      $exchangeOrder->getPrice(),
+                                      $position->status
+                                  )
+                            );
+
+                        } catch (\Exception $e) {
                             Log::error($e->getTraceAsString());
                         }
                     }

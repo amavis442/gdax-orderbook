@@ -4,9 +4,11 @@ declare(strict_types=1);
 namespace Amavis442\Trading\Exchanges;
 
 use Amavis442\Trading\Contracts\Exchange;
+use Exception;
 
 /**
  * Class GDaxExchange
+ *
  * @package Amavis442\Trading\Exchanges
  */
 class GDaxExchange implements Exchange
@@ -60,7 +62,7 @@ class GDaxExchange implements Exchange
      */
     public function getOrderbook(): \GDAX\Types\Response\Market\ProductOrderBook
     {
-        $product = (new \GDAX\Types\Request\Market\Product())->setProductId($this->getProductId())->setLevel(2);
+        $product          = (new \GDAX\Types\Request\Market\Product())->setProductId($this->getProductId())->setLevel(2);
         $productOrderBook = $this->client->getProductOrderBook($product);
 
         return $productOrderBook;
@@ -115,7 +117,7 @@ class GDaxExchange implements Exchange
      */
     public function getOrder(string $order_id): \GDAX\Types\Response\Authenticated\Order
     {
-        $order = (new \GDAX\Types\Request\Authenticated\Order())->setId($order_id);
+        $order    = (new \GDAX\Types\Request\Authenticated\Order())->setId($order_id);
         $response = $this->client->getOrder($order);
 
         return $response;
@@ -164,7 +166,7 @@ class GDaxExchange implements Exchange
     public function getCurrentPrice(): float
     {
 
-        $product = (new \GDAX\Types\Request\Market\Product())->setProductId($this->getProductId());
+        $product       = (new \GDAX\Types\Request\Market\Product())->setProductId($this->getProductId());
         $productTicker = $this->client->getProductTicker($product);
 
         //Current asking price
@@ -180,11 +182,77 @@ class GDaxExchange implements Exchange
      */
     public function cancelOrder(string $order_id): \GDAX\Types\Response\RawData
     {
-        $order = (new \GDAX\Types\Request\Authenticated\Order())->setId($order_id);
+        $order    = (new \GDAX\Types\Request\Authenticated\Order())->setId($order_id);
         $response = $this->client->cancelOrder($order);
 
         return $response;
     }
+
+    public function placeOrder(
+        string $pair = 'BTC-EUR',
+        string $side = 'buy',
+        float $size,
+        float $price,
+        string $ordertype = 'limit',
+        string $cancelafter = 'minute',
+        float $stopprice = 0.0,
+        float $stoplimit = 0.0,
+        bool $fake = false
+    ): \GDAX\Types\Response\Authenticated\Order {
+        $order = (new \GDAX\Types\Request\Authenticated\Order())
+            ->setProductId($pair)
+            ->setSize($size)
+            ->setPrice($price)
+            ->setPostOnly(true);
+
+        switch ($side) {
+            case 'buy':
+                $order->setSide(\GDAX\Utilities\GDAXConstants::ORDER_SIDE_BUY);
+                break;
+            case 'sell':
+                $order->setSide(\GDAX\Utilities\GDAXConstants::ORDER_SIDE_BUY);
+                break;
+            default:
+                throw new Exception("Only buy or sell are accepted values for the order.");
+                break;
+        }
+
+        switch ($ordertype) {
+            case 'limit':
+                $order->setType(\GDAX\Utilities\GDAXConstants::ORDER_TYPE_LIMIT);
+                break;
+            case 'market':
+                throw new Exception('Market order is not implemented yet');
+                break;
+            case 'stop':
+                throw new Exception('Stop order is not implemented yet');
+                break;
+        }
+
+        $order->setTimeInForce(\GDAX\Utilities\GDAXConstants::TIME_IN_FORCE_GTT);
+
+        switch ($cancelafter) {
+            case 'minute':
+                $order->setCancelAfter(\GDAX\Utilities\GDAXConstants::CANCEL_AFTER_MIN);
+                break;
+            case 'hour':
+                $order->setCancelAfter(\GDAX\Utilities\GDAXConstants::CANCEL_AFTER_HOUR);
+                break;
+            case 'day':
+                $order->setCancelAfter(\GDAX\Utilities\GDAXConstants::CANCEL_AFTER_DAY);
+                break;
+            default:
+                throw new Exception("Cancel after can only be 1 minute, 1 hour or 1 day.");
+                break;
+        }
+
+        if (!$fake) {
+            $response = $this->client->placeOrder($order);
+        }
+
+        return $response;
+    }
+
 
     /**
      * Place a buy order
@@ -305,19 +373,19 @@ class GDaxExchange implements Exchange
         /** @var  \GDAX\Types\Response\Authenticated\Account $account */
         foreach ($accounts as $account) {
             $currency = $account->getCurrency();
-            $balance = $account->getBalance();
+            $balance  = $account->getBalance();
 
             if ($currency != 'EUR') {
-                $product = (new \GDAX\Types\Request\Market\Product())->setProductId($currency . '-EUR');
+                $product       = (new \GDAX\Types\Request\Market\Product())->setProductId($currency . '-EUR');
                 $productTicker = $this->client->getProductTicker($product);
-                $koers = number_format($productTicker->getPrice(), 3, '.', '');
+                $koers         = number_format($productTicker->getPrice(), 3, '.', '');
             } else {
                 $koers = 0.0;
             }
             $waarde = 0.0;
             if ($currency == 'EUR') {
                 $balance = number_format($balance, 4, '.', '');
-                $waarde = $balance;
+                $waarde  = $balance;
             } else {
                 $waarde = number_format($balance * $koers, 4, '.', '');
             }

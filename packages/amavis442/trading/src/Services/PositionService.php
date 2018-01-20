@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Amavis442\Trading\Services;
 
-use Amavis442\Trading\Contracts\PositionServiceInterface;
 use Illuminate\Support\Collection;
 use Amavis442\Trading\Models\Position;
 
@@ -12,7 +11,7 @@ use Amavis442\Trading\Models\Position;
  *
  * @package Amavis442\Trading\Services
  */
-class PositionService implements PositionServiceInterface
+class PositionService
 {
     /**
      *

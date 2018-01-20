@@ -65,18 +65,17 @@ class TraderServiceProvider extends ServiceProvider
             'Amavis442\Trading\Contracts\Exchange', 'Amavis442\Trading\Exchanges\GDaxExchange'
         );
 
-        $this->app->bind(
-            'Amavis442\Trading\Contracts\OrderService', 'Amavis442\Trading\Services\OrderService'
-        );
+        $this->app->singleton('Amavis442\Trading\Services\OrderService', function ($app) {
+            return new \Amavis442\Trading\Services\OrderService($app->make('Amavis442\Trading\Contracts\Exchange'));
+        });
 
-        $this->app->bind(
-            'Amavis442\Trading\Contracts\PositionService', 'Amavis442\Trading\Services\PositionService'
-        );
+        $this->app->singleton('Amavis442\Trading\Services\PositionService', function ($app) {
+            return new \Amavis442\Trading\Services\PositionService();
+        });
 
 
-
-        $this->app->singleton('Amavis442\Trading\Trigger\Stoploss', function ($app) {
-            return new \Amavis442\Trading\Triggers\Stoploss();
+        $this->app->singleton('Amavis442\Trading\Strategies\Stoploss', function ($app) {
+            return new \Amavis442\Trading\Strategies\Stoploss();
         });
 
 
@@ -100,13 +99,6 @@ class TraderServiceProvider extends ServiceProvider
             return new \Amavis442\Trading\Bot\BuyBot($app->make('Amavis442\Trading\Contracts\Exchange'));
         });
         */
-
-
-        $this->app->singleton('Amavis442\Trading\Contracts\IndicatorManager', function ($app) {
-            $manager = new \Amavis442\Trading\Managers\IndicatorManager();
-            $manager->add('mfi', new \Amavis442\Trading\Indicators\MoneyFlowIndex());
-            return $manager;
-          });
     }
 
 }

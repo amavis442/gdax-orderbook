@@ -72,7 +72,7 @@ interface Exchange
      *
      * @return float
      */
-    public function getCurrentPrice() : float;
+    public function getCurrentPrice(): float;
 
     /**
      * Cancel a open/pending order
@@ -94,6 +94,30 @@ interface Exchange
     public function placeLimitBuyOrder(float $size, float $price): \GDAX\Types\Response\Authenticated\Order;
 
     /**
+     * @param string $pair
+     * @param string $side
+     * @param float  $size
+     * @param float  $price
+     * @param string $ordertype
+     * @param string $cancelafter
+     * @param float  $stopprice
+     * @param float  $stoplimit
+     * @param bool   $fake
+     * @return \GDAX\Types\Response\Authenticated\Order
+     */
+    public function placeOrder(
+        string $pair = 'BTC-EUR',
+        string $side = 'buy',
+        float $size,
+        float $price,
+        string $ordertype = 'limit',
+        string $cancelafter = 'minute',
+        float $stopprice = 0.0,
+        float $stoplimit = 0.0,
+        bool $fake = false
+    ): \GDAX\Types\Response\Authenticated\Order;
+
+    /**
      * Place a sell order of a certain size and the limit price
      *
      * @param float $size
@@ -107,9 +131,9 @@ interface Exchange
      * Get the accounts (balance etc)
      */
     public function getAccounts();
-    
+
     public function getAccount(string $currency): \GDAX\Types\Response\Authenticated\Account;
-    
+
 
     /**
      * Get the fills for a certain product_id (vb. BTC-EUR)
