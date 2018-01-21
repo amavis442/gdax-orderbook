@@ -275,6 +275,7 @@ class BuySellStrategy extends Command
                 }
 
                 if (!is_null($position) && (float)$position->open < (float)$config->get('currentprice')) {
+                    Log::info('Currentprice is higher then sellprice (open ' . $position->open . '/ current ' . (float)$config->get('currentprice') . ')');
                     $placeOrder = false;
                 }
 
