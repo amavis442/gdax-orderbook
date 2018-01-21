@@ -5,7 +5,7 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "php": ">=7.0.0",
+        "php": ">=7.1.0",
         "benfranke/gdax-php": "^0.0.6",
         "box/spout": "^2.7",
         "doctrine/dbal": "^2.6",

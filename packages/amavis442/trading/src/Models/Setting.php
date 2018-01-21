@@ -36,6 +36,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereTakeprofit($value)
  * @property float $takeprofittreshold
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereTakeprofittreshold($value)
+ * @property float $trailingstop
+ * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereTrailingstop($value)
  */
 class Setting extends Model
 {

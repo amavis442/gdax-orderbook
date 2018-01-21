@@ -30,6 +30,14 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Position whereSize($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Position whereUpdatedAt($value)
  * @mixin \Eloquent
+ * @property float|null $sellfor
+ * @property float|null $trailingstop
+ * @property string $status
+ * @property int $watch
+ * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Position whereSellfor($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Position whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Position whereTrailingstop($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Position whereWatch($value)
  */
 class Position extends Model
 {

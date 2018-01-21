@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 class PositionService
 {
     /**
-     *
+     * Purges the table
      */
     public function purgeDatabase()
     {
@@ -24,16 +24,21 @@ class PositionService
 
     /**
      * @param int $id
-     *
-     * @return mixed|void
      */
     public function delete(int $id)
     {
-        DB::table('positions')->delete($id);
+        $position = Position::findOrFail($id);
+        $position->delete();
     }
 
+
     /**
+     * @param string $pair
+     * @param string $order_id
+     * @param float  $size
+     * @param float  $price
      *
+     * @return \Amavis442\Trading\Models\Position
      */
     public function open(string $pair, string $order_id, float $size, float $price): Position
     {
@@ -50,11 +55,25 @@ class PositionService
         return $position;
     }
 
+    /**
+     * Sets status to pending
+     *
+     * @param int $id
+     */
     public function pending(int $id)
     {
-        DB::table('positions')->where('id', $id)->update(['status' => 'pending']);
+        $position = Position::findOrFail($id);
+        $position->status = 'pending';
+        $position->save();
     }
 
+    /**
+     * @param int   $id
+     * @param float $size
+     * @param float $price
+     *
+     * @return \Amavis442\Trading\Models\Position
+     */
     public function close(int $id, float $size, float $price): Position
     {
         $position = Position::findOrFail($id);
@@ -71,7 +90,7 @@ class PositionService
      *
      * @param string $status
      *
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
     public function fetchAll(string $status = 'open'): Collection
     {
@@ -81,7 +100,7 @@ class PositionService
     /**
      * @param int $id
      *
-     * @return \stdClass
+     * @return \Amavis442\Trading\Models\Position
      */
     public function fetch(int $id): Position
     {
@@ -93,11 +112,11 @@ class PositionService
      *
      * @param string $order_id
      *
-     * @return \stdClass
+     * @return \Amavis442\Trading\Models\Position
      */
     public function fetchByOrderId(string $order_id): Position
     {
-        $result = DB::table('positions')->select('*')->where('order_id', $order_id)->first();
+        $result = Position::whereOrderId($order_id)->first();
         if ($result) {
             return $result;
         } else {
@@ -106,11 +125,16 @@ class PositionService
     }
 
     /**
+     * @param string $pair
+     *
      * @return int
      */
-    public function getNumOpen(): int
+    public function getNumOpen(string $pair = 'BTC-EUR'): int
     {
-        $result = Position::selectRaw('count(*) total')->where('status', 'open')->first();
+        $result = Position::selectRaw('count(*) total')
+                          ->wherePair($pair)
+                          ->where('status', 'open')
+                          ->first();
 
         return isset($result->total) ? $result->total : 0;
     }
@@ -119,18 +143,29 @@ class PositionService
     /**
      * Get the open sell orders
      *
-     * @return array
+     * @param string $pair
+     *
+     * @return \Illuminate\Support\Collection
      */
-    public function getOpen($pair = 'BTC-EUR'): Collection
+    public function getOpen(string $pair = 'BTC-EUR'): Collection
     {
-        $result = Position::wherePair($pair)->whereStatus('open')->get();
+        $result = Position::wherePair($pair)
+                          ->whereStatus('open')
+                          ->get();
 
         return $result;
     }
 
+    /**
+     * @param string $pair
+     *
+     * @return \Illuminate\Support\Collection
+     */
     public function getClosed($pair = 'BTC-EUR'): Collection
     {
-        $result = Position::wherePair($pair)->whereStatus('closed')->get();
+        $result = Position::wherePair($pair)
+                          ->whereStatus('closed')
+                          ->get();
 
         return $result;
     }

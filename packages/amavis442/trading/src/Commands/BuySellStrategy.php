@@ -12,6 +12,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Amavis442\Trading\Events\Position as PositionEvent;
 use Amavis442\Trading\Models\Order;
+use Amavis442\Trading\Models\Position;
+
 
 /**
  * Description of RunBotCommand
@@ -52,8 +54,7 @@ class BuySellStrategy extends Command
         parent::__construct();
     }
 
-
-    public function updateBuyOrderStatusAndClosePosition()
+    protected function updateBuyOrderStatusAndClosePosition()
     {
         $orders = Order::where(function ($q) {
             $q->whereIn('status', ['open', 'pending', 'manual']);
@@ -64,7 +65,6 @@ class BuySellStrategy extends Command
             foreach ($orders as $order) {
                 /** @var \GDAX\Types\Response\Authenticated\Order $exchangeOrder */
                 $exchangeOrder = $this->exchange->getOrder($order->order_id);
-                $position_id = 0;
                 $status = $exchangeOrder->getStatus();
 
                 if ($status) {
@@ -94,24 +94,21 @@ class BuySellStrategy extends Command
                             }
                         }
                     }
-
                     $order->status = $exchangeOrder->getStatus();
                 } else {
                     $order->status = $exchangeOrder->getMessage();
                 }
-                $order->position_id = $position_id;
                 $order->save();
             }
         }
     }
 
-    public function updateSellOrdersAndOpenPosition()
+    protected function updateSellOrdersAndOpenPosition()
     {
         $orders = \Amavis442\Trading\Models\Order::where(function ($q) {
             $q->whereIn('status', ['open', 'pending', 'manual']);
             $q->orWhereNull('status');
         })->whereSide('sell')->get();
-
 
         if ($orders->count()) {
             foreach ($orders as $order) {
@@ -150,10 +147,19 @@ class BuySellStrategy extends Command
     protected function placeOrder(string $pair, string $cryptocoin, Collection $result, Position $position = null)
     {
         if (!$this->option('simulate', false)) {
+
+            if (!is_null($position) && $result->get('side') == 'buy') {
+                $position_id = $position->id;
+            } else {
+                $position_id = 0;
+            }
+
+
             $this->info(
                 'Placing order for crypto: ' . $cryptocoin . ',side: ' .
-                $result->get('side') . ', size: ' . $result->get('size') .
-                ' at price: ' . $result->get('price')
+                $result->get('side') . ',size: ' . $result->get('size') .
+                ' at price: ' . $result->get('price') .
+                ' position_id: ' . $position_id
             );
 
             $placedOrder = $this->exchange->placeOrder(
@@ -165,7 +171,7 @@ class BuySellStrategy extends Command
 
             if ($placedOrder->getId() != null) {
                 $position_id = 0;
-                if (!is_null($position)) {
+                if (!is_null($position) && $result->get('side') == 'buy') {
                     $position_id = $position->id;
                 }
                 $this->orderService->insert($placedOrder, 'GrowingAndHarvesting', $position_id);
@@ -198,8 +204,9 @@ class BuySellStrategy extends Command
 
         while (1) {
             $this->updateSellOrdersAndOpenPosition();
+            $this->updateBuyOrderStatusAndClosePosition();
 
-            $openOrders = $this->orderService->getNumOpenOrders('BTC-EUR');
+            $openOrders = $this->orderService->getNumOpenOrders($pair);
             $openExchangeOrders = $this->exchange->getOpenOrders();
 
             $used_slots = count($openExchangeOrders) + $openOrders;
@@ -240,25 +247,22 @@ class BuySellStrategy extends Command
             $funds = true;
             if ($config->get('fund', 0.0) == 0.00 && $config->get('coin', 0.0) == 0.0) {
                 $this->warn("no funds for coin: {$cryptocoin} and fund: {$fundAccount}");
+                Log::warning("no funds for coin: {$cryptocoin} and fund: {$fundAccount}");
                 $funds = false;
             }
 
-            // Use all the account EUR to buy
-            // sell 0.001 coin and buy it 30 lower unless currentprice
-
-            // Check if slots are open and f not check if positions are still open (order canceld
-            //
-
             if ($slots <= 0 || !$funds) {
-                //$this->warn('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
+                Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
             } else {
 
                 $openPosition = $this->positionService->getOpen($pair);
+
                 if ($openPosition) {
                     $position = $openPosition->first();
                 } else {
                     $position = null;
                 }
+
                 $result = $strategy->advise($config, $position);
                 $placeOrder = false;
 
@@ -270,21 +274,14 @@ class BuySellStrategy extends Command
                     }
                 }
 
-
-                // Make sure the buy price is under the sell price
                 if (!is_null($position) && (float)$position->open < (float)$config->get('currentprice')) {
                     $placeOrder = false;
-                    //$this->warn(\Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s') . ' Currentprice is above sell price');
                 }
 
                 if ($placeOrder) {
                     $this->placeOrder($pair, $cryptocoin, $result, $position);
-                } else {
-                    //$this->info('Not placing order');
                 }
             }
-
-            $this->updateBuyOrderStatusAndClosePosition();
 
             sleep(5);
         }

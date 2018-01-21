@@ -6,7 +6,6 @@ namespace Amavis442\Trading\Services;
 use Amavis442\Trading\Contracts\Exchange;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Amavis442\Trading\Util\Transform;
 use Amavis442\Trading\Models\Order;
 
 /**
@@ -25,7 +24,7 @@ class OrderService
 
 
     /**
-     *
+     * Purges the table
      */
     public function purgeDatabase()
     {
@@ -34,19 +33,16 @@ class OrderService
 
     /**
      * @param int $id
-     *
-     * @return mixed|void
      */
     public function deleteOrder(int $id)
     {
-        Order::delete($id);
+        $order = Order::findOrFail($id);
+        $order->delete($id);
     }
 
     /**
      * @param int    $id
      * @param string $side
-     *
-     * @return mixed|void
      */
     public function updateOrder(int $id, string $side)
     {
@@ -58,29 +54,32 @@ class OrderService
     /**
      * @param int    $id
      * @param string $status
-     *
-     * @return mixed|void
+     * @param int    $position_id
      */
     public function updateOrderStatus(int $id, string $status, int $position_id = 0)
     {
-        if ($position_id == 0) {
-            $data = ['status' => $status];
-        } else {
-            $data = ['status' => $status, 'position_id' => $position_id];
-        }
+        $order = Order::findOrFail($id);
 
-        DB::table('orders')->where('id', $id)->update($data);
+        if ($position_id == 0) {
+            $order->position_id = $position_id;
+        }
+        $order->status = $status;
+        $order->save();
+
     }
 
     /**
      * Insert an order into the database
      *
+     * @param string $pair
      * @param string $side
      * @param string $order_id
-     * @param string $size
-     * @param string $amount
+     * @param float  $size
+     * @param float  $amount
      * @param string $status
      * @param int    $parent_id
+     * @param int    $position_id
+     * @param string $strategy
      *
      * @return int
      */
@@ -104,22 +103,32 @@ class OrderService
             'position_id' => $position_id,
             'status'      => $status,
             'parent_id'   => $parent_id,
+            'strategy'    => $strategy,
             'created_at'  => date('Y-m-d H:i:s'),
         ]);
 
         return $id;
     }
 
-    public function buy(float $size, float $price, int $position_id = 0, int $parent_id = 0): int
+    /**
+     * @param string $pair
+     * @param float  $size
+     * @param float  $price
+     * @param int    $position_id
+     * @param int    $parent_id
+     *
+     * @return int
+     */
+    public function buy(string $pair, float $size, float $price, int $position_id = 0, int $parent_id = 0): int
     {
-        //$order = $this->exchange->placeimitBuyOrder($size, $price);
-        $order = $this->exchange->placeOrder('BTC-EUR', 'buy', $size, $price);
+        $order = $this->exchange->placeOrder($pair, 'buy', $size, $price);
 
         if ($order->getId() && ($order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_PENDING ||
                                 $order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_OPEN)
         ) {
 
             $id = DB::table('orders')->insertGetId([
+                'pair'        => $pair,
                 'side'        => 'buy',
                 'order_id'    => $order->getId(),
                 'size'        => $size,
@@ -131,7 +140,7 @@ class OrderService
             ]);
         } else {
             $reason = $order->getMessage() . $order->getRejectReason() . ' ';
-            $this->insertOrder('buy', 'rejected', $size, $price, $reason);
+            $this->insertOrder($pair, 'buy', 'rejected', $size, $price, (string)$reason);
             $id = -1;
         }
 
@@ -139,15 +148,31 @@ class OrderService
         return $id;
     }
 
-    public function sell(string $order_id, float $size, float $price, int $position_id = 0, int $parent_id = 0): int
-    {
-        //$order = $this->exchange->placeLimitSellOrderFor1Minute($size, $price);
-        $order = $this->exchange->placeOrder('BTC-EUR', 'sell', $size, $price);
+    /**
+     * @param string $pair
+     * @param string $order_id
+     * @param float  $size
+     * @param float  $price
+     * @param int    $position_id
+     * @param int    $parent_id
+     *
+     * @return int
+     */
+    public function sell(
+        string $pair,
+        string $order_id,
+        float $size,
+        float $price,
+        int $position_id = 0,
+        int $parent_id = 0
+    ): int {
+        $order = $this->exchange->placeOrder($pair, 'sell', $size, $price);
 
         if ($order->getId() && ($order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_PENDING ||
                                 $order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_OPEN)
         ) {
             $id = DB::table('orders')->insertGetId([
+                'pair'        => $pair,
                 'side'        => 'sell',
                 'order_id'    => $order_id,
                 'size'        => $size,
@@ -159,14 +184,20 @@ class OrderService
             ]);
         } else {
             $reason = $order->getMessage() . $order->getRejectReason() . ' ';
-            $this->insertOrder('sell', 'rejected', $size, $price, $reason);
+            $this->insertOrder($pair, 'sell', 'rejected', $size, $price, (string)$reason);
             $id = -1;
         }
 
         return $id;
     }
 
-
+    /**
+     * @param \GDAX\Types\Response\Authenticated\Order $order
+     * @param string                                   $strategy
+     * @param int                                      $position_id
+     *
+     * @return int
+     */
     public function insert(\GDAX\Types\Response\Authenticated\Order $order, $strategy = '', $position_id = 0)
     {
         if ($order->getId() && ($order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_PENDING ||
@@ -186,7 +217,14 @@ class OrderService
             ]);
         } else {
             $reason = $order->getMessage() . $order->getRejectReason() . ' ';
-            $this->insertOrder($order->getProductId(),'sell', 'rejected', $order->getSize(), $order->getPrice(), $reason);
+            $this->insertOrder(
+                $order->getProductId(),
+                'sell',
+                'rejected',
+                $order->getSize(),
+                $order->getPrice(),
+                $reason
+            );
             $id = -1;
         }
 
@@ -198,19 +236,23 @@ class OrderService
      */
     public function garbageCollection()
     {
-        DB::table('orders')->where('order_id', '')->where('status', '<>', 'deleted')->update(['status' => 'deleted']);
+        DB::table('orders')->where('order_id', '')
+          ->where('status', '<>', 'deleted')
+          ->update(['status' => 'deleted']);
     }
 
 
     /**
      * Get the open buy orders
      *
-     * @return array
+     * @param string $pair
+     *
+     * @return \Illuminate\Support\Collection
      */
-    public function getPendingBuyOrders(string $pair):Collection
+    public function getPendingBuyOrders(string $pair): Collection
     {
         $result = Order::whereSide('buy')
-                       ->where('status', 'IN', ['pending', 'open'])
+                       ->whereIn('status', ['pending', 'open'])
                        ->wherePair($pair)->get();
 
         return $result;
@@ -221,12 +263,12 @@ class OrderService
      *
      * @param string $status
      *
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
     public function fetchAllOrders(string $status = 'pending'): Collection
     {
         $result = Order::whereStatus($status)
-                    ->get();
+                       ->get();
 
         return $result;
     }
@@ -234,9 +276,9 @@ class OrderService
     /**
      * @param int $id
      *
-     * @return \stdClass
+     * @return \Amavis442\Trading\Models\Order|null
      */
-    public function fetchOrder(int $id): ?Collection
+    public function fetchOrder(int $id): ?Order
     {
         $result = Order::find($id);
 
@@ -247,13 +289,17 @@ class OrderService
         }
     }
 
-    public function getOpenPosition(int $id): ?Collection
+    /**
+     * @param int $id
+     *
+     * @return \Amavis442\Trading\Models\Order|null
+     */
+    public function getOpenPosition(int $id): ?Order
     {
-        $result = Order::where('position_id', $id)->where('side', 'sell')->whereIn('status',
-            [
-                'open',
-                'pending',
-            ])->first();
+        $result = Order::wherePositionId($id)
+                       ->whereSide('sell')
+                       ->whereIn('status', ['open', 'pending'])
+                       ->first();
 
         if ($result) {
             return $result;
@@ -263,15 +309,15 @@ class OrderService
     }
 
     /**
-     * @param int $id
+     * @param int    $position_id
+     * @param string $side
+     * @param string $status
      *
-     * @return \stdClass
+     * @return \Amavis442\Trading\Models\Order|null
      */
-    public function fetchPosition(int $position_id, string $side, string $status = 'done'): ?\stdClass
+    public function fetchPosition(int $position_id, string $side, string $status = 'done'): ?Order
     {
-        $result = DB::table('orders')->select('*')->where('position_id', $position_id)->where('side',
-            $side)->where('status',
-            $status)->first();
+        $result = Order::wherePositionId($position_id)->whereSide($side)->whereStatus($status)->first();
 
         if ($result) {
             return $result;
@@ -280,10 +326,15 @@ class OrderService
         }
     }
 
-
-    public function fetchOrderByParentId(int $parent_id, string $status = 'open'): ?\stdClass
+    /**
+     * @param int    $parent_id
+     * @param string $status
+     *
+     * @return \Amavis442\Trading\Models\Order|null
+     */
+    public function fetchOrderByParentId(int $parent_id, string $status = 'open'): ?Order
     {
-        $result = DB::table('orders')->select('*')->where('parent_id', $parent_id)->where('status', $status)->first();
+        $result = Order::whereParentId($parent_id)->whereStatus($status)->first();
 
         if ($result) {
             return $result;
@@ -298,40 +349,45 @@ class OrderService
      *
      * @param string $order_id
      *
-     * @return \stdClass
+     * @return \Amavis442\Trading\Models\Order|null
      */
-    public function fetchOrderByOrderId(string $order_id): ?\stdClass
+    public function fetchOrderByOrderId(string $order_id): ?Order
     {
-        $result = DB::table('orders')->select('*')->where('order_id', $order_id)->first();
+        $result = Order::whereOrderId($order_id)->first();
         if ($result) {
             return $result;
         } else {
             return null;
         }
     }
-
-    public function getOpenSellOrderByOrderId(string $order_id): ?\stdClass
-    {
-        $result = DB::table('orders')->select('*')->where('order_id', $order_id)->whereIn('status', [
-            'open',
-            'pending',
-        ])->orderBy('id', 'desc')->first();
-
-        if ($result) {
-            return $result;
-        } else {
-            return null;
-        }
-    }
-
 
     /**
+     * @param string $order_id
+     *
+     * @return \Amavis442\Trading\Models\Order|null
+     */
+    public function getOpenSellOrderByOrderId(string $order_id): ?Order
+    {
+        $result = Order::whereOrderId($order_id)
+                       ->whereIn('status', ['open', 'pending',])
+                       ->orderBy('id', 'desc')->first();
+
+        if ($result) {
+            return $result;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @param string $pair
+     *
      * @return int
      */
     public function getNumOpenOrders(string $pair = 'BTC-EUR'): int
     {
         $result = Order::selectRaw('count(*) total')
-                       ->whereIn('status', ['open','pending'])
+                       ->whereIn('status', ['open', 'pending'])
                        ->wherePair($pair)
                        ->first();
 
@@ -339,19 +395,25 @@ class OrderService
     }
 
     /**
-     * @return float
+     * @return float|null
      */
     public function getLowestSellPrice(): ?float
     {
-        $result = DB::select("SELECT min(amount) minprice FROM orders WHERE side='sell' AND status = 'open' OR status = 'pending'");
+        $result = DB::select("SELECT min(amount) minprice FROM orders WHERE side='sell'" .
+                             " AND status = 'open' OR status = 'pending'");
         $row = $result[0];
 
         return isset($row->minprice) ? $row->minprice : null;
     }
 
+    /**
+     * @return null|\stdClass
+     */
     public function getTopOpenBuyOrder(): ?\stdClass
     {
-        $result = DB::select("SELECT * from orders WHERE side='buy' AND status = 'open' OR status = 'pending' AND amount = (SELECT MAX(amount) maxamount from orders WHERE side='buy' AND status = 'open' OR status = 'pending') limit 1");
+        $result = DB::select("SELECT * from orders WHERE side='buy' AND status = 'open' OR status = 'pending'" .
+                             " AND amount = (SELECT MAX(amount) maxamount from orders WHERE side='buy'" .
+                             " AND status = 'open' OR status = 'pending') limit 1");
         if ($result) {
             return (object)$result[0];
         }
@@ -359,9 +421,14 @@ class OrderService
         return null;
     }
 
+    /**
+     * @return null|\stdClass
+     */
     public function getBottomOpenBuyOrder(): ?\stdClass
     {
-        $result = DB::select("SELECT * from orders WHERE side='buy' AND status = 'open' OR status = 'pending' AND amount = (SELECT MIN(amount) maxamount from orders WHERE side='buy' AND status = 'open' OR status = 'pending') limit 1");
+        $result = DB::select("SELECT * from orders WHERE side='buy' AND status = 'open' OR status = 'pending'" .
+                             " AND amount = (SELECT MIN(amount) maxamount from orders WHERE side='buy'" .
+                             " AND status = 'open' OR status = 'pending') limit 1");
         if ($result) {
             return $result[0];
         }
@@ -369,19 +436,14 @@ class OrderService
         return null;
     }
 
+    /**
+     * @return null|\stdClass
+     */
     public function getTopOpenSellOrder(): ?\stdClass
     {
-        $result = DB::select("SELECT * from orders WHERE side='sell' AND status = 'open' OR status = 'pending' AND amount = (SELECT MAX(amount) maxamount from orders WHERE side='sell' AND status = 'open' OR status = 'pending') limit 1");
-        if ($result) {
-            return (object)$result[0];
-        }
-
-        return null;
-    }
-
-    public function getBottomOpenSellOrder(): ?\stdClass
-    {
-        $result = DB::select("SELECT * from orders WHERE side='sell' AND status = 'open' OR status = 'pending' AND amount = (SELECT MIN(amount) maxamount from orders WHERE side='sell' AND status = 'open' OR status = 'pending') limit 1");
+        $result = DB::select("SELECT * from orders WHERE side='sell' AND status = 'open' OR status = 'pending'" .
+                             " AND amount = (SELECT MAX(amount) maxamount from orders WHERE side='sell'" .
+                             " AND status = 'open' OR status = 'pending') limit 1");
         if ($result) {
             return (object)$result[0];
         }
@@ -390,49 +452,72 @@ class OrderService
     }
 
     /**
-     *
+     * @return null|\stdClass
+     */
+    public function getBottomOpenSellOrder(): ?\stdClass
+    {
+        $result = DB::select("SELECT * from orders WHERE side='sell' AND status = 'open' OR status = 'pending'" .
+                             " AND amount = (SELECT MIN(amount) maxamount from orders WHERE side='sell' AND" .
+                             " status = 'open' OR status = 'pending') limit 1");
+        if ($result) {
+            return (object)$result[0];
+        }
+
+        return null;
+    }
+
+    /**
      * @param string $side
      * @param string $status
      *
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
-    public function getOrdersBySide(string $side, string $status = 'pending'): array
+    public function getOrdersBySide(string $side, string $status = 'pending'): Collection
     {
-        $result = DB::table('order')->where('side', $side)->where('status', $status)->get();
+        $result = Order::whereSide($side)
+                       ->whereStatus($status)
+                       ->get();
 
-        return Transform::toArray($result);
+        return $result;
     }
 
     /**
      * Get the open sell orders
-     *
-     * @return array
-     */
-    public function getOpenSellOrders(): array
-    {
-        $result = DB::select("SELECT * FROM orders WHERE side = 'sell' AND (status = 'pending' OR status = 'open')");
 
-        return Transform::toArray($result);
+     * @return \Illuminate\Support\Collection
+     */
+    public function getOpenSellOrders(): Collection
+    {
+        $result = Order::whereSide('sell')
+                       ->whereIn('status', ['pending', 'open'])
+                       ->get();
+
+        return $result;
     }
 
     /**
      * Get the open buy orders
      *
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
-    public function getOpenBuyOrders(): array
+    public function getOpenBuyOrders(): Collection
     {
-        $result = DB::select("SELECT * FROM orders WHERE side = 'buy' AND (status = 'pending' OR status = 'open')");
+        $result = Order::whereSide('buy')
+                       ->whereIn('status', ['pending', 'open'])
+                       ->get();
 
-        return Transform::toArray($result);
+        return $result;
     }
 
-
+    /**
+     * @return int
+     */
     public function getNumOpenBuyOrders(): int
     {
-        $result = DB::table('orders')->select(DB::raw('count(*) total'))->where('side', 'buy')->where('status',
-            'open')->orWhere('status',
-            'pending')->first();
+        $result = Order::selectRaw('count(*) total')
+                       ->where('side', 'buy')
+                       ->whereIn('status', ['open', 'pending'])
+                       ->first();
 
         return isset($result->total) ? $result->total : 0;
     }
@@ -447,7 +532,11 @@ class OrderService
      */
     public function buyPriceExists(float $price): bool
     {
-        $result = DB::select("SELECT * FROM orders WHERE side = 'buy' AND (status = 'pending' OR status = 'open') AND amount = $price");
+        $result = Order::whereSide('buy')
+                       ->whereIn('status', ['pending', 'open'])
+                       ->whereAmount($price)
+                       ->get();
+
         foreach ($result as $row) {
             if ($row->amount) {
                 return true;
@@ -457,9 +546,6 @@ class OrderService
         return false;
     }
 
-    /**
-     *
-     */
     public function listRowsFromDatabase()
     {
         $currentPendingOrders = $this->fetchAllOrders();
@@ -474,7 +560,9 @@ class OrderService
      */
     public function fixRejectedSells()
     {
-        $result = DB::select("SELECT * FROM orders WHERE status = 'rejected' AND side='sell' AND parent_id > 0");
+        $result = Order::whereStatus('rejected')
+                       ->whereSide('sell')
+                       ->where('parent_id', '>', 0);
 
         foreach ($result as $row) {
             DB::table('orders')->where('id', $row->parent_id)->update(['status' => 'open']);
@@ -485,9 +573,7 @@ class OrderService
     /**
      * Orders can also be inserted by hand
      *
-     * @param array $orders
-     *
-     * @return mixed|void
+     * @param array|null $orders
      */
     public function fixUnknownOrdersFromGdax(array $orders = null)
     {
@@ -496,8 +582,13 @@ class OrderService
                 $order_id = $order->getId();
                 $row = $this->fetchOrderByOrderId($order_id);
                 if (!$row) {
-                    $this->insertOrder($order->getSide(), $order->getId(), $order->getSize(), $order->getPrice(),
-                        'Manual');
+                    $this->insertOrder(
+                        $order->getProdctId(),
+                        $order->getSide(),
+                        $order->getId(),
+                        $order->getSize(),
+                        $order->getPrice(),
+                        'manual');
                 } else {
                     if ($row->status != 'done') {
                         $this->updateOrderStatus($row->id, $order->getStatus());
@@ -519,11 +610,14 @@ class OrderService
         }
         $date .= ' 00:00:00';
 
-        $result = DB::select("SELECT b.created_at buydate,b.side as buyside,b.size buysize,b.amount buyamount,s.created_at selldate,s.side sellside,s.size sellsize,s.amount sellamount, (s.amount - b.amount) * s.size as profit FROM orders s, " .
+        $result = DB::select('SELECT b.created_at buydate,b.side as buyside,b.size buysize,b.amount buyamount,' .
+                             's.created_at selldate,s.side sellside,s.size sellsize,s.amount sellamount,' .
+                             '(s.amount - b.amount) * s.size as profit FROM orders s, ' .
                              "(SELECT * FROM orders WHERE side='buy' AND `status`='done') b " .
-                             " WHERE s.side='sell' AND s.status='done' AND b.id = s.parent_id AND b.created_at >= '$date'");
+                             " WHERE s.side='sell' AND s.status='done' AND b.id = s.parent_id " .
+                             "AND b.created_at >= '$date'");
 
-        return Transform::toArray($result);
+        return $result;
     }
 
 }
