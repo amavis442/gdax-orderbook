@@ -15,7 +15,7 @@ interface Exchange
      *
      * @param string $cryptoCoin
      */
-    public function setCoin(string $cryptoCoin);
+    public function useCoin(string $cryptoCoin);
 
 
     public function getClient(): \GDAX\Clients\AuthenticatedClient;
@@ -130,7 +130,7 @@ interface Exchange
     /**
      * Get the accounts (balance etc)
      */
-    public function getAccounts();
+    public function getAccounts(): array;
 
     public function getAccount(string $currency): \GDAX\Types\Response\Authenticated\Account;
 

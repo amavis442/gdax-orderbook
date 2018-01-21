@@ -40,13 +40,13 @@ class GDaxExchange implements Exchange
             $this->client->setBaseURL(\GDAX\Utilities\GDAXConstants::GDAX_API_SANDBOX_URL);
         }
 
-        $this->setCoin((string)config('trading.coin'));
+        $this->useCoin((string)config('trading.coin'));
     }
 
     /**
      * @param string $cryptoCoin
      */
-    public function setCoin(string $cryptoCoin)
+    public function useCoin(string $cryptoCoin)
     {
         $this->cryptoCoin = $cryptoCoin;
     }
@@ -210,7 +210,7 @@ class GDaxExchange implements Exchange
                 $order->setSide(\GDAX\Utilities\GDAXConstants::ORDER_SIDE_BUY);
                 break;
             case 'sell':
-                $order->setSide(\GDAX\Utilities\GDAXConstants::ORDER_SIDE_BUY);
+                $order->setSide(\GDAX\Utilities\GDAXConstants::ORDER_SIDE_SELL);
                 break;
             default:
                 throw new Exception("Only buy or sell are accepted values for the order.");
@@ -331,7 +331,7 @@ class GDaxExchange implements Exchange
     /**
      * Get acount data like balance (can be handy to check if there is enough funds left)
      */
-    public function getAccounts()
+    public function getAccounts(): array
     {
         $accounts = $this->client->getAccounts();
 
@@ -346,10 +346,16 @@ class GDaxExchange implements Exchange
                 $this->account['EUR'] = $account;
             }
 
+            if ($currency == 'ETH') {
+                $this->account['ETH'] = $account;
+            }
+
             if ($currency == 'BTC') {
                 $this->account['BTC'] = $account;
             }
         }
+
+        return $this->account;
     }
 
     public function getAccount(string $currency): \GDAX\Types\Response\Authenticated\Account

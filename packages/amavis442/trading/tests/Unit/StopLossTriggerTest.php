@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace Amavis442\Trading\Tests\Unit;
 
+use Illuminate\Support\Collection;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
 use Amavis442\Trading\Models\Position;
-use Amavis442\Trading\Models\Setting;
-use Amavis442\Trading\Triggers\Stoploss;
+use Amavis442\Trading\Indicators\Stoploss;
 
 
-final class StopLosTriggerTest extends TestCase
+final class StopLosIndictorTest extends TestCase
 {
     public function testStopLossTriggerPriceGoesUpAndDownAboveTreshold()
     {
@@ -31,23 +29,28 @@ final class StopLosTriggerTest extends TestCase
         
         // stoploss = currentprice - position->trailingstop
 
+        $config = new Collection();
+        $config->put('currentprice',$currentPrice);
+        $config->put('position',$position);
+
         // Price is new so HOLD
-        $result = $st->signal($currentPrice, $position);
+        $result = $st->check($config);
         $this->assertTrue($result === 0);
         
         // Price goes up a litle it, stop is now 12009 - 30 = 11981
-        $currentPrice = 12009.00;
-        $result = $st->signal($currentPrice, $position);
+        $config->put('currentprice',12009.00);
+        $result = $st->check($config);
         $this->assertTrue($result === 0);
 
         // Price goes up a litle it
-        $currentPrice = 12030.00; //trailing stop is now 12000
-        $result = $st->signal($currentPrice, $position);
+        //trailing stop is now 12000
+        $config->put('currentprice',12030.00);
+        $result = $st->check($config);
         $this->assertTrue($result === 0);
         
         // Price is under last stoploss of 12000 so sell
-        $currentPrice = 11989.00;
-        $result = $st->signal($currentPrice, $position);
+        $config->put('currentprice',11989.00);
+        $result = $st->check($config);
         $this->assertTrue($result === -1);
     }
 }

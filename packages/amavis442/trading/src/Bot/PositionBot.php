@@ -2,44 +2,41 @@
 
 namespace Amavis442\Trading\Bot;
 
-use Amavis442\Trading\Database\Seeder\PositionTableSeeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Amavis442\Trading\Contracts\Bot;
 use Amavis442\Trading\Contracts\Exchange;
 use Amavis442\Trading\Models\Position;
-use Amavis442\Trading\Models\Setting;
 use Amavis442\Trading\Models\Order;
 
 class PositionBot implements Bot
 {
 
     protected $exchange;
-    protected $stoplossRule;
+    protected $stoplossIndicator;
 
     public function __construct(Exchange $exchange)
     {
         $this->exchange = $exchange;
     }
 
-    public function setStopLossService($stoplossRule)
+    public function setStopLossIndicator($stoplossIndicator)
     {
-        $this->stoplossRule = $stoplossRule;
+        $this->stoplossIndicator = $stoplossIndicator;
     }
 
     protected function updatePositions()
     {
-        $positions = Position::whereIn('status',['open','trailing'])->get();
+        $positions = Position::whereIn('status', ['open', 'trailing'])->get();
         dump($positions);
-        foreach ($positions as $position)
-        {
+        foreach ($positions as $position) {
             $exchangeOrder = Order::whereSide('sell')->whereStatus('done')->wherePositionId($position->id)->first();
             if ($exchangeOrder) {
                 $position->status = 'closed';
-                $position->close =  $exchangeOrder->amount;
+                $position->close = $exchangeOrder->amount;
                 $position->save();
             }
         }
-
     }
 
 
@@ -55,22 +52,32 @@ class PositionBot implements Bot
             Log::info('--- watchPositions ---');
 
             foreach ($positions as $position) {
+                $config = new Collection(['currenprice' => $currentPrice, 'position' => $position]);
 
-                $sellMe = $this->stoplossRule->signal($currentPrice, $position);
+                $sellMe = $this->stoplossIndicator->check($config);
                 $placeOrder = true;
 
                 // Are we only watching or do we really wonna place a sell order (stoploss and at what price)
                 if ($sellMe && !$position->watch) {
-                    $existingSellOrder = Order::wherePositionId($position->id)->whereSide('sell')->whereIn('status', ['open', 'pending'])->first();
+                    $existingSellOrder = Order::wherePositionId($position->id)
+                                              ->whereSide('sell')
+                                              ->whereIn('status', ['open', 'pending'])
+                                              ->first();
 
                     if ($existingSellOrder) {
                         $placeOrder = false;
                         Log::info('Position ' . $position->id . ' has an open sell order. ');
                     }
 
-                    if ( $placeOrder) {
-                        $sellPrice = number_format($currentPrice + 0.01,2,'.',''); // Spread of 0.01. If the spread is higher the sell will be rejected
-                        $this->sellPosition($sellPrice, $position,'limit');
+                    if ($placeOrder) {
+                        $sellPrice = number_format(
+                            $currentPrice + 0.01,
+                            2,
+                            '.',
+                            ''
+                        ); // Spread of 0.01. If the spread is higher the sell will be rejected
+
+                        $this->sellPosition($sellPrice, $position, 'limit');
                     }
                 }
             }
@@ -103,13 +110,13 @@ class PositionBot implements Bot
 
             if ($status == 'open' || $status == 'pending') {
                 Order::create([
-                                  'pair'        => $order->getProductId(),
-                                  'side'        => 'sell',
-                                  'order_id'    => $order->getId(),
-                                  'size'        => $size,
-                                  'amount'      => $sellPrice,
-                                  'position_id' => $position->id
-                              ]);
+                    'pair'        => $order->getProductId(),
+                    'side'        => 'sell',
+                    'order_id'    => $order->getId(),
+                    'size'        => $size,
+                    'amount'      => $sellPrice,
+                    'position_id' => $position->id,
+                ]);
 
                 Log::info('Place sell order ' . $order->getId() . ' for position ' . $position->id);
 
@@ -120,16 +127,17 @@ class PositionBot implements Bot
         // For testing/simulating
         if (!$realSell) {
             Order::create([
-                              'pair'        => $position->pair,
-                              'side'        => 'sell',
-                              'order_id'    => 'simulate',
-                              'size'        => $size,
-                              'amount'      => $sellPrice,
-                              'position_id' => $position->id,
-                              'status'      => 'simulate'
-                          ]);
+                'pair'        => $position->pair,
+                'side'        => 'sell',
+                'order_id'    => 'simulate',
+                'size'        => $size,
+                'amount'      => $sellPrice,
+                'position_id' => $position->id,
+                'status'      => 'simulate',
+            ]);
 
             Log::info('Place sell order [simulate] for position ' . $position->id);
+
             return true;
         }
 
@@ -138,10 +146,10 @@ class PositionBot implements Bot
 
     public function setTrailing(Position $position): bool
     {
-       $position->status = 'trailing';
-       $position->save();
+        $position->status = 'trailing';
+        $position->save();
 
-       return true;
+        return true;
     }
 
     public function getCurrentPrice()

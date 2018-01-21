@@ -25,13 +25,13 @@ class Position
     public function __construct($pair, $side, $size, $price, $status)
     {
         $this->position = new Collection([
-                                             'pair'       => $pair,
-                                             'side'       => $side,
-                                             'size'       => $size,
-                                             'price'      => $price,
-                                             'status'     => $status,
-                                             'created_at' => \Carbon\Carbon::now('Europe/Amsterdam'),
-                                         ]);
+            'pair'       => $pair,
+            'side'       => $side,
+            'size'       => $size,
+            'price'      => $price,
+            'status'     => $status,
+            'created_at' => \Carbon\Carbon::now('Europe/Amsterdam'),
+        ]);
     }
 
     public function getPosition()

@@ -1,18 +1,13 @@
 <?php
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 namespace Amavis442\Trading\Commands;
 
-
-use Amavis442\Trading\Bot\OrderBot;
+use Amavis442\Trading\Models\Setting;
 use Illuminate\Console\Command;
 use Amavis442\Trading\Contracts\Exchange;
-use Amavis442\Trading\Strategies\Stoploss;
+use Amavis442\Trading\Indicators\Stoploss;
 use Amavis442\Trading\Bot\PositionBot;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Description of RunBotCommand
@@ -52,12 +47,18 @@ class Position extends Command
 
     public function handle()
     {
-        $bot = new PositionBot($this->exchange);
+        $settings = new Setting();
 
-        $bot->setStopLossService(new Stoploss());
+        $bot = new PositionBot($this->exchange);
+        $bot->setStopLossIndicator(new Stoploss());
 
         while (1) {
-            $bot->run($this->option('watch'));
+            $botactive = ($settings->botactive == 1 ? true : false);
+            if (!$botactive) {
+                Log::warning("Bot is not active at the moment");
+            } else {
+                $bot->run($this->option('watch'));
+            }
             sleep(2);
         }
     }

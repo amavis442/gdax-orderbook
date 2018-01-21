@@ -5,6 +5,7 @@ namespace Amavis442\Trading\Services;
 
 use Illuminate\Support\Collection;
 use Amavis442\Trading\Models\Position;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class OrderService
@@ -32,32 +33,37 @@ class PositionService
     }
 
     /**
-     * 
+     *
      */
-    public function open(string $order_id, float $size, float $amount): int
+    public function open(string $pair, string $order_id, float $size, float $price): Position
     {
-        $position = Position::create(['order_id'  => $order_id,
-                                    'size'        => $size,
-                                    'amount'      => $amount,
-                                    'open'        => $amount,
-                                    'position'    => 'open',
-                                    ]);
-        
-   
-        return $position->id;
+        $position = Position::create([
+            'pair'     => $pair,
+            'order_id' => $order_id,
+            'size'     => $size,
+            'amount'   => $price,
+            'open'     => $price,
+            'status' => 'open',
+        ]);
+
+
+        return $position;
     }
 
     public function pending(int $id)
     {
-        DB::table('positions')->where('id', $id)->update(['position' => 'pending']);
+        DB::table('positions')->where('id', $id)->update(['status' => 'pending']);
     }
 
-    public function close(int $id, float $amount)
+    public function close(int $id, float $size, float $price): Position
     {
         $position = Position::findOrFail($id);
-        $position->close = $amount;
-        $position->position = 'closed';
+        $position->close = $price;
+        $position->size = $size;
+        $position->status = 'closed';
         $position->save();
+
+        return $position;
     }
 
     /**
@@ -104,28 +110,28 @@ class PositionService
      */
     public function getNumOpen(): int
     {
-        $result = DB::table('positions')->select(DB::raw('count(*) total'))->where('position', 'open')->first();
+        $result = Position::selectRaw('count(*) total')->where('status', 'open')->first();
 
         return isset($result->total) ? $result->total : 0;
     }
 
-   
+
     /**
      * Get the open sell orders
      *
      * @return array
      */
-    public function getOpen(): array
+    public function getOpen($pair = 'BTC-EUR'): Collection
     {
-        $result = DB::select("SELECT * FROM positions WHERE position = 'open'");
+        $result = Position::wherePair($pair)->whereStatus('open')->get();
 
-        return Transform::toArray($result);
+        return $result;
     }
 
-    public function getClosed(): array
+    public function getClosed($pair = 'BTC-EUR'): Collection
     {
-        $result = DB::select("SELECT * FROM positions WHERE position = 'closed'");
+        $result = Position::wherePair($pair)->whereStatus('closed')->get();
 
-        return Transform::toArray($result);
+        return $result;
     }
 }

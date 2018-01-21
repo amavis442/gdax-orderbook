@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace Amavis442\Trading\Strategies;
 
-use Amavis442\Trading\Contracts\StrategyInterface;
+use Amavis442\Trading\Contracts\Strategy;
 use Amavis442\Trading\Util\PositionConstants;
 use Amavis442\Trading\Util\Indicators;
 
@@ -28,7 +28,7 @@ use Amavis442\Trading\Util\Indicators;
  * @package Amavis442\Trading\Strategies
  *
  */
-class Percent33 implements StrategyInterface
+class Percent33 implements Strategy
 {
 
     /** @var \Amavis442\Trading\Util\Indicators */
@@ -151,17 +151,17 @@ class Percent33 implements StrategyInterface
             echo "..Underbought going LONG (buy)\n";
         }
 
-        $adx         = $indicators->adx($recentData);
-        $_sma6       = trader_sma($recentData['close'], 6);
-        $sma6        = array_pop($_sma6);
-        $prior_sma6  = array_pop($_sma6);
-        $_sma40      = trader_sma($recentData['close'], 40);
-        $sma40       = array_pop($_sma40);
+        $adx = $indicators->adx($recentData);
+        $_sma6 = trader_sma($recentData['close'], 6);
+        $sma6 = array_pop($_sma6);
+        $prior_sma6 = array_pop($_sma6);
+        $_sma40 = trader_sma($recentData['close'], 40);
+        $sma40 = array_pop($_sma40);
         $prior_sma40 = array_pop($_sma40);
 
         /** have the lines crossed? */
         $down_cross = (($prior_sma6 <= $sma40 && $sma6 > $sma40) ? 1 : 0);
-        $up_cross   = (($prior_sma40 <= $sma6 && $sma40 > $sma6) ? 1 : 0);
+        $up_cross = (($prior_sma40 <= $sma6 && $sma40 > $sma6) ? 1 : 0);
 
         if ($adx == 1 && $down_cross) {
             echo "..adx down_cross -> buy";

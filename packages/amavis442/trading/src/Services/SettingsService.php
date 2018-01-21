@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Amavis442\Trading\Services;
 
-use Illuminate\Database\Capsule\Manager as DB;
+use Illuminate\Support\Facades\DB;
 
 class SettingsService {
 

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: patrickteunissen
- * Date: 09-01-18
- * Time: 10:41
- */
 
 namespace Amavis442\Trading\Bot;
 
@@ -29,7 +23,6 @@ class BuyBot implements Bot
      * @var \Amavis442\Trading\Contracts\Strategy;
      */
     protected $settingsService;
-
 
 
     protected function placeBuyOrder($size, $price): bool

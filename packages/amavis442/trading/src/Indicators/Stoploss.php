@@ -1,14 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Amavis442\Trading\Strategies;
+namespace Amavis442\Trading\Indicators;
 
 use Amavis442\Trading\Contracts\Indicator;
-use Amavis442\Trading\Contracts\Strategy;
-
 use Amavis442\Trading\Models\Position;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Collection;
 
 /**
  * Description of TrailingSell
@@ -16,11 +15,17 @@ use Illuminate\Support\Facades\Log;
  * @see https://www.wikihow.com/Use-a-Trailing-Stop-Loss
  * @author patrickteunissen
  */
-class Stoploss implements Strategy
+class Stoploss implements Indicator
 {
 
-    public function check(float $currentprice, Position $position): int
+    public function check(Collection $config): int
     {
+
+        $currentprice = (float)$config->get('currentprice');
+        $position = $config->get('position');
+
+
+
         $cacheKey = 'gdax.stoploss.' . $position->id;
         $oldStoploss = Cache::get($cacheKey, 0.0);
 

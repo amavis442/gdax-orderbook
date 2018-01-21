@@ -2,13 +2,12 @@
 
 namespace Amavis442\Trading;
 
+use Amavis442\Trading\Commands\BuySellStrategy;
 use Illuminate\Support\ServiceProvider;
 
 use Amavis442\Trading\Commands\Ticker;
 use Amavis442\Trading\Commands\Position;
 use Amavis442\Trading\Commands\Order;
-
-
 
 /**
  * Class TraderServiceProvider
@@ -29,26 +28,18 @@ class TraderServiceProvider extends ServiceProvider
     {
         $this->publishes([
             __DIR__ . '/config/config.php' => config_path('trading.php'),
-            ], 'config');
+        ], 'config');
 
         $this->loadMigrationsFrom(__DIR__ . '/database/migrations/');
 
         $this->loadRoutesFrom(__DIR__ . '/routes.php');
-
-        /*
-
-          $this->loadViewsFrom(__DIR__.'/resources/views', 'courier');
-
-          $this->publishes([
-          __DIR__.'/path/to/assets' => public_path('vendor/courier'),
-          ], 'public');
-         */
 
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Ticker::class,
                 Position::class,
                 Order::class,
+                BuySellStrategy::class,
             ]);
         }
     }
@@ -83,6 +74,7 @@ class TraderServiceProvider extends ServiceProvider
         $this->app->singleton('Amavis442\Trading\Bot\PositionBot', function ($app) {
             $bot = new \Amavis442\Trading\Bot\PositionBot($app->make('Amavis442\Trading\Contracts\Exchange'));
             $bot->setStopLossService($app->make('Amavis442\Trading\Triggers\Stoploss'));
+
             return $bot;
         });
 
