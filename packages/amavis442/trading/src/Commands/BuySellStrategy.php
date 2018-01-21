@@ -67,34 +67,30 @@ class BuySellStrategy extends Command
                 $exchangeOrder = $this->exchange->getOrder($order->order_id);
                 $status = $exchangeOrder->getStatus();
 
-                if ($status) {
-                    // A recently placed buy order had been filled so we add it as an open position
-                    if ($order->status == 'done') {
-                        // Check if the sell order has a position and if so, close the position
-                        $position_id = $order->position_id;
-                        if ($position_id > 0) {
-                            try {
-                                $position = $this->positionService->close(
-                                    $position_id,
+                if ($status == 'done') {
+                    $position_id = $order->position_id;
+                    if ($position_id > 0) {
+                        try {
+                            $position = $this->positionService->close(
+                                $position_id,
+                                $exchangeOrder->getSize(),
+                                $exchangeOrder->getPrice()
+                            );
+
+                            event(new PositionEvent(
+                                    $exchangeOrder->getProductId(),
+                                    $exchangeOrder->getSide(),
                                     $exchangeOrder->getSize(),
-                                    $exchangeOrder->getPrice()
-                                );
+                                    $exchangeOrder->getPrice(),
+                                    $position->status
+                                )
+                            );
 
-                                event(new PositionEvent(
-                                        $exchangeOrder->getProductId(),
-                                        $exchangeOrder->getSide(),
-                                        $exchangeOrder->getSize(),
-                                        $exchangeOrder->getPrice(),
-                                        $position->status
-                                    )
-                                );
-
-                            } catch (\Exception $e) {
-                                Log::error($e->getTraceAsString());
-                            }
+                        } catch (\Exception $e) {
+                            Log::error($e->getTraceAsString());
                         }
                     }
-                    $order->status = $exchangeOrder->getStatus();
+                    $order->status = $status;
                 } else {
                     $order->status = $exchangeOrder->getMessage();
                 }
@@ -296,7 +292,7 @@ class BuySellStrategy extends Command
 
                 if ($openPositions->count() > 0) {
                     foreach ($openPositions as $openPosition) {
-                        $this->makePosition($pair, $cryptocoin,$strategy, $config, $openPosition);
+                        $this->makePosition($pair, $cryptocoin, $strategy, $config, $openPosition);
                     }
                 } else {
                     $this->makePosition($pair, $cryptocoin, $strategy, $config);
