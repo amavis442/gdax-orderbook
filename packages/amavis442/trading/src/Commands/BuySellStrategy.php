@@ -274,13 +274,13 @@ class BuySellStrategy extends Command
                 // Make sure the buy price is under the sell price
                 if (!is_null($position) && (float)$position->open < (float)$config->get('currentprice')) {
                     $placeOrder = false;
-                    $this->warn(\Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s') . ' Currentprice is above sell price');
+                    //$this->warn(\Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s') . ' Currentprice is above sell price');
                 }
 
                 if ($placeOrder) {
                     $this->placeOrder($pair, $cryptocoin, $result, $position);
                 } else {
-                    $this->info('Not placing order');
+                    //$this->info('Not placing order');
                 }
             }
 

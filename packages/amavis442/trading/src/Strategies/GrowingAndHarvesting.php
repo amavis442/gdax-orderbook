@@ -56,7 +56,7 @@ class GrowingAndHarvesting
             return $result->put('result', 'ok');
         } else {
             if ($coin > 0.0) {
-                $price = $currentprice + 0.01;
+                $price = $currentprice;
                 if (!is_null($position) && !is_null($position->size)) {
                     $size = $position->size;
                 } else {
