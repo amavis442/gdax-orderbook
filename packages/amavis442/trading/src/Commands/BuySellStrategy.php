@@ -250,7 +250,7 @@ class BuySellStrategy extends Command
             //
 
             if ($slots <= 0 || !$funds) {
-                $this->warn('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
+                //$this->warn('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
             } else {
 
                 $openPosition = $this->positionService->getOpen($pair);
