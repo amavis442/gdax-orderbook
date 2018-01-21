@@ -188,6 +188,34 @@ class BuySellStrategy extends Command
         }
     }
 
+    protected function makePosition(
+        string $pair,
+        string $cryptocoin,
+        $strategy,
+        Collection $config, Position $position = null)
+    {
+        $result = $strategy->advise($config, $position);
+        $placeOrder = false;
+
+        if ($cryptocoin == 'BTC' && $result->get('size') >= 0.0001) {
+            $placeOrder = true;
+        } else {
+            if ($result->get('size') >= 0.01) {
+                $placeOrder = true;
+            }
+        }
+
+        if (!is_null($position) && (float)$position->open < (float)$config->get('currentprice')) {
+            Log::info('Currentprice is higher then sellprice (open ' . $position->open . '/ current ' . (float)$config->get('currentprice') . ')');
+            $placeOrder = false;
+        }
+
+        if ($placeOrder) {
+            $this->placeOrder($pair, $cryptocoin, $result, $position);
+        }
+    }
+
+
     public function handle()
     {
         $strategy = new GrowingAndHarvesting();
@@ -209,8 +237,11 @@ class BuySellStrategy extends Command
             $openOrders = $this->orderService->getNumOpenOrders($pair);
             $openExchangeOrders = $this->exchange->getOpenOrders();
 
-            $used_slots = count($openExchangeOrders) + $openOrders;
-
+            if ($openExchangeOrders) {
+                $used_slots = count($openExchangeOrders);
+            } else {
+                $used_slots = $openOrders;
+            }
             $slots = $settings->max_orders - $used_slots;
 
 
@@ -241,7 +272,6 @@ class BuySellStrategy extends Command
                 }
             }
 
-
             $config->put('currentprice', $this->exchange->getCurrentPrice());
 
             $funds = true;
@@ -255,32 +285,14 @@ class BuySellStrategy extends Command
                 Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
             } else {
 
-                $openPosition = $this->positionService->getOpen($pair);
+                $openPositions = $this->positionService->getOpen($pair);
 
-                if ($openPosition) {
-                    $position = $openPosition->first();
-                } else {
-                    $position = null;
-                }
-
-                $result = $strategy->advise($config, $position);
-                $placeOrder = false;
-
-                if ($cryptocoin == 'BTC' && $result->get('size') >= 0.0001) {
-                    $placeOrder = true;
-                } else {
-                    if ($result->get('size') >= 0.01) {
-                        $placeOrder = true;
+                if ($openPositions->count() > 0) {
+                    foreach ($openPositions as $openPosition) {
+                        $this->makePosition($pair, $cryptocoin,$strategy, $config, $openPosition);
                     }
-                }
-
-                if (!is_null($position) && (float)$position->open < (float)$config->get('currentprice')) {
-                    Log::info('Currentprice is higher then sellprice (open ' . $position->open . '/ current ' . (float)$config->get('currentprice') . ')');
-                    $placeOrder = false;
-                }
-
-                if ($placeOrder) {
-                    $this->placeOrder($pair, $cryptocoin, $result, $position);
+                } else {
+                    $this->makePosition($pair, $cryptocoin, $strategy, $config);
                 }
             }
 
