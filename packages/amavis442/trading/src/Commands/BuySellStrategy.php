@@ -196,9 +196,6 @@ class BuySellStrategy extends Command
         Position $position = null
     ) {
         $result = $strategy->advise($config, $position);
-        if ($result->get('result') != "ok") {
-            return;
-        }
 
         $placeOrder = false;
         if ($cryptocoin == 'BTC' && $result->get('size') >= 0.0001) {
