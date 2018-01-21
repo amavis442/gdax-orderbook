@@ -206,8 +206,12 @@ class BuySellStrategy extends Command
         }
 
         if (!is_null($position) && (float)$position->open < (float)$config->get('currentprice')) {
-            Log::info('Currentprice is higher then sellprice (open ' . $position->open . '/ current ' . (float)$config->get('currentprice') . ')');
-            $placeOrder = false;
+            Log::info('Currentprice is higher then sellprice (open ' . $position->open . '/ current ' . (float)$config->get('currentprice') .
+                      ') gonna place a buyorder 10 cents below sellprice');
+
+            $config->put('currentprice', $position->open - 0.10);
+            $result = $strategy->advise($config, $position);
+            $placeOrder = true;
         }
 
         if ($placeOrder) {
