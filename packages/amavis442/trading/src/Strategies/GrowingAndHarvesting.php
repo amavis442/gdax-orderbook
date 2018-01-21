@@ -25,21 +25,32 @@ class GrowingAndHarvesting
         $fund = (float)$config->get('fund', 0.0);
         $currentprice = $config->get('currentprice', 10000000.00);
 
-        if ($fund > 0.0) { // Buy and use all of the fund
+        $minimalSizeReached = false;
+        if ($fund > 0.01) { // Buy and use all of the fund
             $price = $currentprice - 0.01;
             $s = $fund / $price;
+            if ($s >= 0.001) {
+                $minimalSizeReached = true;
+            }
 
             $s = (string)$s;
 
             $size = substr($s, 0, strpos($s, '.') + 9); // should be more then 0.0001 for BTC and 0.01 for ETH and LTC
+            if ($minimalSizeReached) {
+                $result->put('side', 'buy');
+                $result->put('size', $size);
+                $result->put('price', number_format($price, 2, '.', ''));
 
-            $result->put('side', 'buy');
-            $result->put('size', $size);
-            $result->put('price', number_format($price, 2, '.', ''));
+                return $result->put('result', 'ok');
+            } else {
+                $result->put('side', 'hold');
+                $result->put('size', 0);
+                $result->put('price', 0);
 
-            return $result->put('result', 'ok');
+                return $result->put('result', 'fail');
+            }
         } else {
-            if ($coin > 0.0) {
+            if ($coin > 0.0001) {
                 $price = $currentprice;
                 if (!is_null($position) && !is_null($position->size)) {
                     $size = $position->size;

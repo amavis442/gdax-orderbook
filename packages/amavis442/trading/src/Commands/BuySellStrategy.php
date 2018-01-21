@@ -192,11 +192,15 @@ class BuySellStrategy extends Command
         string $pair,
         string $cryptocoin,
         $strategy,
-        Collection $config, Position $position = null)
-    {
+        Collection $config,
+        Position $position = null
+    ) {
         $result = $strategy->advise($config, $position);
-        $placeOrder = false;
+        if ($result->get('result') != "ok") {
+            return;
+        }
 
+        $placeOrder = false;
         if ($cryptocoin == 'BTC' && $result->get('size') >= 0.0001) {
             $placeOrder = true;
         } else {
@@ -209,7 +213,7 @@ class BuySellStrategy extends Command
             Log::info('Currentprice is higher then sellprice (open ' . $position->open . '/ current ' . (float)$config->get('currentprice') .
                       ') gonna place a buyorder 10 cents below sellprice');
 
-            $config->put('currentprice', $position->open - 0.10);
+            $config->put('currentprice', (float)$position->open - 0.10);
             $result = $strategy->advise($config, $position);
             $placeOrder = true;
         }
@@ -268,11 +272,13 @@ class BuySellStrategy extends Command
 
             $funds = $this->exchange->getAccounts();
             foreach ($funds as $fund) {
+                $available = $fund->getAvailable();
+
                 if ($fund->getCurrency() == $fundAccount) {
-                    $config->put('fund', (float)number_format($fund->getAvailable(), 2, '.', ''));
+                    $config->put('fund', (float)number_format($available, 8, '.', ''));
                 }
                 if ($fund->getCurrency() == $cryptocoin) {
-                    $config->put('coin', (float)number_format($fund->getAvailable(), 8, '.', ''));
+                    $config->put('coin', (float)number_format($available, 8, '.', ''));
                 }
             }
 
