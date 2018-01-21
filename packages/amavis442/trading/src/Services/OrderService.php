@@ -85,6 +85,7 @@ class OrderService
      * @return int
      */
     public function insertOrder(
+        string $pair,
         string $side,
         string $order_id,
         float $size,
@@ -95,6 +96,7 @@ class OrderService
         string $strategy = 'TrendsLines'
     ): int {
         $id = DB::table('orders')->insertGetId([
+            'pair'        => $pair,
             'side'        => $side,
             'order_id'    => $order_id,
             'size'        => $size,
@@ -165,7 +167,7 @@ class OrderService
     }
 
 
-    public function insert(\GDAX\Types\Response\Authenticated\Order $order, $strategy = '')
+    public function insert(\GDAX\Types\Response\Authenticated\Order $order, $strategy = '', $position_id = 0)
     {
         if ($order->getId() && ($order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_PENDING ||
                                 $order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_OPEN)
@@ -176,7 +178,7 @@ class OrderService
                 'order_id'    => $order->getId(),
                 'size'        => $order->getSize(),
                 'amount'      => $order->getPrice(),
-                'position_id' => 0,
+                'position_id' => $position_id,
                 'status'      => 'pending',
                 'strategy'    => $strategy,
                 'parent_id'   => 0,
@@ -184,7 +186,7 @@ class OrderService
             ]);
         } else {
             $reason = $order->getMessage() . $order->getRejectReason() . ' ';
-            $this->insertOrder('sell', 'rejected', $order->getSize(), $order->getPrice(), $reason);
+            $this->insertOrder($order->getProductId(),'sell', 'rejected', $order->getSize(), $order->getPrice(), $reason);
             $id = -1;
         }
 

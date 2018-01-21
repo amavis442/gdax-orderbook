@@ -147,7 +147,7 @@ class BuySellStrategy extends Command
         }
     }
 
-    protected function placeOrder(string $pair, string $cryptocoin, Collection $result)
+    protected function placeOrder(string $pair, string $cryptocoin, Collection $result, Position $position = null)
     {
         if (!$this->option('simulate', false)) {
             $this->info(
@@ -164,7 +164,11 @@ class BuySellStrategy extends Command
             );
 
             if ($placedOrder->getId() != null) {
-                $this->orderService->insert($placedOrder, 'GrowingAndHarvesting');
+                $position_id = 0;
+                if (!is_null($position)) {
+                    $position_id = $position->id;
+                }
+                $this->orderService->insert($placedOrder, 'GrowingAndHarvesting', $position_id);
             } else {
                 Log::info('Order not placed because: ' . $placedOrder->getMessage());
                 $this->warn('Order not placed because: ' . $placedOrder->getMessage());
@@ -192,7 +196,7 @@ class BuySellStrategy extends Command
         $this->exchange->useCoin($cryptocoin);
 
 
-        while(1) {
+        while (1) {
             $this->updateSellOrdersAndOpenPosition();
 
             $openOrders = $this->orderService->getNumOpenOrders('BTC-EUR');
@@ -270,11 +274,11 @@ class BuySellStrategy extends Command
                 // Make sure the buy price is under the sell price
                 if (!is_null($position) && (float)$position->open < (float)$config->get('currentprice')) {
                     $placeOrder = false;
-                    $this->warn(\Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s').' Currentprice is above sell price');
+                    $this->warn(\Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s') . ' Currentprice is above sell price');
                 }
 
                 if ($placeOrder) {
-                    $this->placeOrder($pair, $cryptocoin, $result);
+                    $this->placeOrder($pair, $cryptocoin, $result, $position);
                 } else {
                     $this->info('Not placing order');
                 }
