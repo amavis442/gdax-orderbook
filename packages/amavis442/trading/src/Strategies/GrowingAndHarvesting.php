@@ -30,7 +30,7 @@ class GrowingAndHarvesting
             $price = $currentprice - (float)config('trading.stradle');
 
             if ($currentprice > $position->open) {
-                $price = $currentprice - 0.1;
+                $price = $position->open - 0.1;
             }
 
             $s = $fund / $price;
