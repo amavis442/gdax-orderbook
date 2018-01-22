@@ -271,6 +271,8 @@ class BuySellStrategy extends Command
                 $noExceptions = false;
             }
 
+            $currentprice = 0;
+
             if ($noExceptions) {
                 foreach ($funds as $fund) {
                     $available = $fund->getAvailable();
@@ -283,7 +285,9 @@ class BuySellStrategy extends Command
                     }
                 }
 
-                $config->put('currentprice', $this->exchange->getCurrentPrice());
+                $currentprice = $this->exchange->getCurrentPrice();
+
+                $config->put('currentprice', $currentprice);
             }
 
 
@@ -294,7 +298,7 @@ class BuySellStrategy extends Command
                 $funds = false;
             }
 
-            if ($noExceptions) {
+            if ($noExceptions && $currentprice > (float)config('trading.lowerlimit') && $currentprice < (float)config('trading.upperlimit')) {
                 if ($slots <= 0 || !$funds) {
                     Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
                 } else {
