@@ -51,6 +51,15 @@
                                         </div>
                                     </div>
 
+                                    <div class="form-group">
+                                        <label class="sr-only" for="bottom">Bottom</label>
+                                        <div class="input-group">
+                                            <div class="input-group-addon">&euro;</div>
+                                            <input type="text" class="form-control" id="bottom" name="bottom"
+                                                   placeholder="15000" value="{{ $setting->bottom }}">
+                                            <div class="input-group-addon">.00</div>
+                                        </div>
+                                    </div>
 
                                     <div class="form-group">
                                         <label class="sr-only" for="top">Top</label>
@@ -64,15 +73,7 @@
                                     </div>
 
 
-                                    <div class="form-group">
-                                        <label class="sr-only" for="bottom">Bottom</label>
-                                        <div class="input-group">
-                                            <div class="input-group-addon">&euro;</div>
-                                            <input type="text" class="form-control" id="bottom" name="bottom"
-                                                   placeholder="15000" value="{{ $setting->bottom }}">
-                                            <div class="input-group-addon">.00</div>
-                                        </div>
-                                    </div>
+
 
 
                                     <button type="submit" class="btn btn-default">Save</button>
