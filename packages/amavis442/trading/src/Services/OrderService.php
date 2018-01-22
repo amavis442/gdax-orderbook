@@ -223,7 +223,10 @@ class OrderService
                 'rejected',
                 $order->getSize(),
                 $order->getPrice(),
-                $reason
+                $reason,
+                0,
+                0,
+                $strategy
             );
             $id = -1;
         }
