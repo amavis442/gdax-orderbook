@@ -14,7 +14,6 @@ use Amavis442\Trading\Events\Position as PositionEvent;
 use Amavis442\Trading\Models\Order;
 use Amavis442\Trading\Models\Position;
 
-
 /**
  * Description of RunBotCommand
  *
@@ -65,9 +64,9 @@ class BuySellStrategy extends Command
             foreach ($orders as $order) {
                 /** @var \GDAX\Types\Response\Authenticated\Order $exchangeOrder */
                 $exchangeOrder = $this->exchange->getOrder($order->order_id);
-                $status = $exchangeOrder->getStatus();
+                $order = $this->orderService->updateStatus($order, $exchangeOrder);
 
-                if ($status == 'done') {
+                if ($order->status == 'done') {
                     $position_id = $order->position_id;
                     if ($position_id > 0) {
                         try {
@@ -90,14 +89,7 @@ class BuySellStrategy extends Command
                             Log::error($e->getTraceAsString());
                         }
                     }
-                    $order->status = $status;
-                } else {
-                    if ($status != null) {
-                        $order->status = $status;
-                    }
-                    $order->status = $exchangeOrder->getMessage();
                 }
-                $order->save();
             }
         }
     }
@@ -111,34 +103,28 @@ class BuySellStrategy extends Command
 
         if ($orders->count()) {
             foreach ($orders as $order) {
+                /** @var \GDAX\Types\Response\Authenticated\Order $exchangeOrder */
                 $exchangeOrder = $this->exchange->getOrder($order->order_id);
-                $status = $exchangeOrder->getStatus();
+                $order = $this->orderService->updateStatus($order, $exchangeOrder);
 
-                if ($status) {
-                    // A recently placed buy order had been filled so we add it as an open position
-                    if ($status == 'done') {
-                        $position = $this->positionService->open(
+                if ($order->status == 'done') {
+                    $position = $this->positionService->open(
+                        $exchangeOrder->getProductId(),
+                        $exchangeOrder->getId(),
+                        $exchangeOrder->getSize(),
+                        $exchangeOrder->getPrice()
+                    );
+                    $order->position_id = $position->id;
+
+                    event(new PositionEvent(
                             $exchangeOrder->getProductId(),
-                            $exchangeOrder->getId(),
+                            $exchangeOrder->getSide(),
                             $exchangeOrder->getSize(),
-                            $exchangeOrder->getPrice()
-                        );
-                        $order->position_id = $position->id;
-
-                        event(new PositionEvent(
-                                $exchangeOrder->getProductId(),
-                                $exchangeOrder->getSide(),
-                                $exchangeOrder->getSize(),
-                                $exchangeOrder->getPrice(),
-                                $position->status
-                            )
-                        );
-                    }
-                    $order->status = $exchangeOrder->getStatus();
-                } else {
-                    $order->status = $exchangeOrder->getMessage();
+                            $exchangeOrder->getPrice(),
+                            $position->status
+                        )
+                    );
                 }
-                $order->save();
             }
         }
     }
@@ -211,7 +197,7 @@ class BuySellStrategy extends Command
 
         if (!is_null($position) && (float)$position->open < (float)$config->get('currentprice')) {
             Log::info('Currentprice is higher then sellprice (open ' . $position->open . '/ current ' . (float)$config->get('currentprice') .
-                      ') gonna place a buyorder 10 cents below sellprice');
+                ') gonna place a buyorder 10 cents below sellprice');
 
             $config->put('currentprice', (float)$position->open - 0.10);
             $result = $strategy->advise($config, $position);
@@ -238,7 +224,6 @@ class BuySellStrategy extends Command
         $this->exchange->useCoin($cryptocoin);
 
 
-
         while (1) {
             $noExceptions = true;
 
@@ -248,7 +233,7 @@ class BuySellStrategy extends Command
             $openOrders = $this->orderService->getNumOpenOrders($pair);
             try {
                 $openExchangeOrders = $this->exchange->getOpenOrders();
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 Log::alert($e->getTraceAsString());
                 $noExceptions = false;
             }
@@ -280,7 +265,7 @@ class BuySellStrategy extends Command
 
             try {
                 $funds = $this->exchange->getAccounts();
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 Log::alert($e->getTraceAsString());
                 $noExceptions = false;
             }

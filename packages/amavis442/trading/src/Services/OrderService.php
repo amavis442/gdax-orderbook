@@ -231,6 +231,19 @@ class OrderService
         return $id;
     }
 
+    public  function updateStatus(Order $order, \GDAX\Types\Response\Authenticated\Order $exchangeOrder)
+    {
+        $status = $exchangeOrder->getStatus();
+        if ($status != null) {
+            $order->status = $status;
+        } else {
+            $order->status = $exchangeOrder->getMessage();
+        }
+        $order->save();
+
+        return $order;
+    }
+
     /**
      * Get rid of the failures.
      */
@@ -488,9 +501,10 @@ class OrderService
      */
     public function getOpenSellOrders(): Collection
     {
-        $result = Order::whereSide('sell')
-                       ->whereIn('status', ['pending', 'open'])
-                       ->get();
+        $result = Order::whereSide('sell')->where(function ($q) {
+            $q->whereIn('status', ['open', 'pending']);
+            $q->orWhereNull('status');
+        })->get();
 
         return $result;
     }
@@ -502,9 +516,10 @@ class OrderService
      */
     public function getOpenBuyOrders(): Collection
     {
-        $result = Order::whereSide('buy')
-                       ->whereIn('status', ['pending', 'open'])
-                       ->get();
+        $result = Order::whereSide('buy')->where(function ($q) {
+            $q->whereIn('status', ['open', 'pending']);
+            $q->orWhereNull('status');
+        })->get();
 
         return $result;
     }
