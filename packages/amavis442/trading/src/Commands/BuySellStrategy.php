@@ -208,10 +208,10 @@ class BuySellStrategy extends Command
             $this->updateOrdersAndPositions(self::ORDER_SELL, self::POSITION_OPEN);
             $this->updateOrdersAndPositions(self::ORDER_BUY, self::POSITION_CLOSE);
 
-            $config->put('size', $settings->size);
+            $config->put('size', (float)$settings->size);
             $config->put('stradle', 0.03);
-            $config->put('lowerlimit', $settings->bottom);
-            $config->put('upperlimit', $settings->top);
+            $config->put('lowerlimit', (float)$settings->bottom);
+            $config->put('upperlimit', (float)$settings->top);
 
             dump($config);
 
