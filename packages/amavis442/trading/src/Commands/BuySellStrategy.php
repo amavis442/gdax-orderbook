@@ -213,8 +213,6 @@ class BuySellStrategy extends Command
             $config->put('lowerlimit', (float)$settings->bottom);
             $config->put('upperlimit', (float)$settings->top);
 
-            dump($config);
-
             if ($settings->botactive) {
 
                 $openOrders = $this->orderService->getNumOpenOrders($pair);
