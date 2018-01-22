@@ -41,7 +41,7 @@
 
 
                                     <div class="form-group">
-                                        <label class="sr-only" for="trailingstop">Trailingstop</label>
+                                        <label for="trailingstop">Trailingstop</label>
                                         <div class="input-group">
                                             <div class="input-group-addon">&euro;</div>
                                             <input type="text" class="form-control" id="trailingstop"
@@ -52,7 +52,7 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label class="sr-only" for="bottom">Bottom</label>
+                                        <label for="bottom">Bottom</label>
                                         <div class="input-group">
                                             <div class="input-group-addon">&euro;</div>
                                             <input type="text" class="form-control" id="bottom" name="bottom"
@@ -62,10 +62,10 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label class="sr-only" for="top">Top</label>
+                                        <label for="toppie">Top</label>
                                         <div class="input-group">
                                             <div class="input-group-addon">&euro;</div>
-                                            <input type="text" class="form-control" id="top" name="top"
+                                            <input type="text" class="form-control" id="toppie" name="top"
                                                    placeholder="10000"
                                                    value="{{ $setting->top }}">
                                             <div class="input-group-addon">.00</div>
