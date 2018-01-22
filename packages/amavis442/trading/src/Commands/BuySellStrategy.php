@@ -301,7 +301,7 @@ class BuySellStrategy extends Command
             } else {
                 Log::info('Bot not active');
             }
-            sleep(10);
+            sleep(5);
         }
     }
 }
