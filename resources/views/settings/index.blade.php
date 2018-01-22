@@ -13,7 +13,7 @@
 
                             @if (session('msg'))
                             <div class="alert alert-info" >
-                                {{ session('msg') }}
+                                {{ session('msg') }} {{ \Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s') }}
                             </div>
                             @endif
                             <div class="row">
