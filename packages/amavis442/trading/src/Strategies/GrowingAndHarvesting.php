@@ -27,7 +27,12 @@ class GrowingAndHarvesting
 
         $minimalSizeReached = false;
         if ($fund > 0.01) { // Buy and use all of the fund
-            $price = $currentprice - 0.01;
+            $price = $currentprice - (float)config('trading.stradle');
+
+            if ($currentprice > $position->open) {
+                $price = $currentprice - 0.1;
+            }
+
             $s = $fund / $price;
             if ($s >= 0.001) {
                 $minimalSizeReached = true;
@@ -50,6 +55,8 @@ class GrowingAndHarvesting
                 return $result->put('result', 'fail');
             }
         } else {
+
+            // Needs an indicator to see if the trend goes up or not
             if ($coin > 0.0001 && $currentprice > (float)config('trading.lowerlimit') && $currentprice < (float)config('trading.upperlimit')) {
                 $price = $currentprice;
                 if (!is_null($position) && !is_null($position->size)) {
