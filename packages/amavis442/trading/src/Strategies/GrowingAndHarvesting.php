@@ -64,7 +64,7 @@ class GrowingAndHarvesting
                 return $result->put('result', 'ok');
             }
         }
-
+        $result->put('result', 'hold');
         return $result;
     }
 
