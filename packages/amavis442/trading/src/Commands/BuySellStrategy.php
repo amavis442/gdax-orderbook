@@ -186,6 +186,9 @@ class BuySellStrategy extends Command
         Position $position = null
     ) {
         $result = $strategy->advise($config, $position);
+        if ($result->get('result') == 'fail') {
+            return;
+        }
 
         $placeOrder = false;
         if ($cryptocoin == 'BTC' && $result->get('size') >= 0.0001) {
@@ -289,7 +292,7 @@ class BuySellStrategy extends Command
                 $funds = false;
             }
 
-            if ($noExceptions && $currentprice > (float)config('trading.lowerlimit') && $currentprice < (float)config('trading.upperlimit')) {
+            if ($noExceptions) {
                 if ($slots <= 0 || !$funds) {
                     Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
                 } else {
