@@ -140,11 +140,6 @@ class BuySellStrategy extends Command
                 $position_id = 0;
             }
 
-            if ($result->get('result') != "ok") {
-                Log::debug("No advise data available");
-                return;
-            }
-
             $this->info(
                 'Placing order for crypto: ' . $cryptocoin . ',side: ' .
                 $result->get('side') . ',size: ' . $result->get('size') .
@@ -186,7 +181,8 @@ class BuySellStrategy extends Command
         Position $position = null
     ) {
         $result = $strategy->advise($config, $position);
-        if ($result->get('result') == 'fail') {
+        if ($result->get('result') == 'fail' || $result->get('result') == 'hold') {
+            Log::debug("No advise data available");
             return;
         }
 
