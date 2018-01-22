@@ -92,6 +92,9 @@ class BuySellStrategy extends Command
                     }
                     $order->status = $status;
                 } else {
+                    if ($status != null) {
+                        $order->status = $status;
+                    }
                     $order->status = $exchangeOrder->getMessage();
                 }
                 $order->save();
