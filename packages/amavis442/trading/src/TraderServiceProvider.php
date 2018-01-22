@@ -73,7 +73,7 @@ class TraderServiceProvider extends ServiceProvider
         // The bots
         $this->app->singleton('Amavis442\Trading\Bot\PositionBot', function ($app) {
             $bot = new \Amavis442\Trading\Bot\PositionBot($app->make('Amavis442\Trading\Contracts\Exchange'));
-            $bot->setStopLossService($app->make('Amavis442\Trading\Indicators\Stoploss'));
+            $bot->setStopLossIndicator($app->make('Amavis442\Trading\Indicators\Stoploss'));
 
             return $bot;
         });
