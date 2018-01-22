@@ -59,83 +59,6 @@ class BuySellStrategy extends Command
         parent::__construct();
     }
 
-    protected function updateBuyOrderStatusAndClosePosition()
-    {
-        $orders = Order::where(function ($q) {
-            $q->whereIn('status', ['open', 'pending', 'manual']);
-            $q->orWhereNull('status');
-        })->whereSide('buy')->get();
-
-        if ($orders->count()) {
-            foreach ($orders as $order) {
-                /** @var \GDAX\Types\Response\Authenticated\Order $exchangeOrder */
-                $exchangeOrder = $this->exchange->getOrder($order->order_id);
-                $order = $this->orderService->updateStatus($order, $exchangeOrder);
-
-                if ($order->status == 'done') {
-                    $position_id = $order->position_id;
-                    if ($position_id > 0) {
-                        try {
-                            $position = $this->positionService->close(
-                                $position_id,
-                                $exchangeOrder->getSize(),
-                                $exchangeOrder->getPrice()
-                            );
-
-                            event(new PositionEvent(
-                                    $exchangeOrder->getProductId(),
-                                    $exchangeOrder->getSide(),
-                                    $exchangeOrder->getSize(),
-                                    $exchangeOrder->getPrice(),
-                                    $position->status
-                                )
-                            );
-
-                        } catch (\Exception $e) {
-                            Log::error($e->getTraceAsString());
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    protected function updateSellOrdersAndOpenPosition()
-    {
-        $orders = \Amavis442\Trading\Models\Order::where(function ($q) {
-            $q->whereIn('status', ['open', 'pending', 'manual']);
-            $q->orWhereNull('status');
-        })->whereSide('sell')->get();
-
-        if ($orders->count()) {
-            foreach ($orders as $order) {
-                /** @var \GDAX\Types\Response\Authenticated\Order $exchangeOrder */
-                $exchangeOrder = $this->exchange->getOrder($order->order_id);
-                $order = $this->orderService->updateStatus($order, $exchangeOrder);
-
-                if ($order->status == 'done') {
-                    $position = $this->positionService->open(
-                        $exchangeOrder->getProductId(),
-                        $exchangeOrder->getId(),
-                        $exchangeOrder->getSize(),
-                        $exchangeOrder->getPrice()
-                    );
-                    $order->position_id = $position->id;
-                    $order->save();
-
-                    event(new PositionEvent(
-                            $exchangeOrder->getProductId(),
-                            $exchangeOrder->getSide(),
-                            $exchangeOrder->getSize(),
-                            $exchangeOrder->getPrice(),
-                            $position->status
-                        )
-                    );
-                }
-            }
-        }
-    }
-
     protected function updateOrdersAndPositions($side = self::ORDER_BUY, $positionState = self::POSITION_OPEN)
     {
         $orders = Order::where(function ($q) {
@@ -272,7 +195,6 @@ class BuySellStrategy extends Command
         $fundAccount = $this->argument('fund');
         $pair = $cryptocoin . '-' . $fundAccount;
 
-        $settings = (new Setting())->first();
         $config = new Collection();
 
         $this->exchange->useCoin($cryptocoin);
@@ -281,93 +203,107 @@ class BuySellStrategy extends Command
         while (1) {
             $noExceptions = true;
 
+            $settings = Setting::first();
+
             $this->updateOrdersAndPositions(self::ORDER_SELL, self::POSITION_OPEN);
             $this->updateOrdersAndPositions(self::ORDER_BUY, self::POSITION_CLOSE);
 
-            $openOrders = $this->orderService->getNumOpenOrders($pair);
-            try {
-                $openExchangeOrders = $this->exchange->getOpenOrders();
-            } catch (\Exception $e) {
-                Log::alert($e->getTraceAsString());
-                $noExceptions = false;
-            }
+            $config->put('size', $settings->size);
+            $config->put('stradle', 0.03);
+            $config->put('lowerlimit', $settings->bottom);
+            $config->put('upperlimit', $settings->top);
 
-            if ($openExchangeOrders) {
-                $used_slots = count($openExchangeOrders);
-            } else {
-                $used_slots = $openOrders;
-            }
-            $slots = $settings->max_orders - $used_slots;
+            dump($config);
 
+            if ($settings->botactive) {
 
-            $config->put('size', 0.0);
-            $config->put('fund', 0.0);
-            $config->put('coin', 0.0);
-            $config->put('currentprice', 100000000);
-
-            switch ($cryptocoin) {
-                case 'BTC':
-                    $config->put('size', 0.001);
-                    break;
-                case 'ETH':
-                    $config->put('size', 0.01);
-                    break;
-                case 'LTC':
-                    $config->put('size', 0.01);
-                    break;
-            }
-
-            try {
-                $funds = $this->exchange->getAccounts();
-            } catch (\Exception $e) {
-                Log::alert($e->getTraceAsString());
-                $noExceptions = false;
-            }
-
-            $currentprice = 0;
-
-            if ($noExceptions) {
-                foreach ($funds as $fund) {
-                    $available = $fund->getAvailable();
-
-                    if ($fund->getCurrency() == $fundAccount) {
-                        $config->put('fund', (float)number_format($available, 8, '.', ''));
-                    }
-                    if ($fund->getCurrency() == $cryptocoin) {
-                        $config->put('coin', (float)number_format($available, 8, '.', ''));
-                    }
+                $openOrders = $this->orderService->getNumOpenOrders($pair);
+                try {
+                    $openExchangeOrders = $this->exchange->getOpenOrders();
+                } catch (\Exception $e) {
+                    Log::alert($e->getTraceAsString());
+                    $noExceptions = false;
                 }
 
-                $currentprice = $this->exchange->getCurrentPrice();
-
-                $config->put('currentprice', $currentprice);
-            }
-
-
-            $funds = true;
-            if ($config->get('fund', 0.0) == 0.00 && $config->get('coin', 0.0) == 0.0) {
-                $this->warn("no funds for coin: {$cryptocoin} and fund: {$fundAccount}");
-                Log::warning("no funds for coin: {$cryptocoin} and fund: {$fundAccount}");
-                $funds = false;
-            }
-
-            if ($noExceptions) {
-                if ($slots <= 0 || !$funds) {
-                    Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
+                if ($openExchangeOrders) {
+                    $used_slots = count($openExchangeOrders);
                 } else {
+                    $used_slots = $openOrders;
+                }
+                $slots = $settings->max_orders - $used_slots;
 
-                    $openPositions = $this->positionService->getOpen($pair);
+                $config->put('fund', 0.0);
+                $config->put('coin', 0.0);
+                $config->put('currentprice', 100000000);
 
-                    if ($openPositions->count() > 0) {
-                        foreach ($openPositions as $openPosition) {
-                            $this->makePosition($pair, $cryptocoin, $strategy, $config, $openPosition);
+                /*
+                switch ($cryptocoin) {
+                    case 'BTC':
+                        $config->put('size', 0.001);
+                        break;
+                    case 'ETH':
+                        $config->put('size', 0.01);
+                        break;
+                    case 'LTC':
+                        $config->put('size', 0.01);
+                        break;
+                }
+                */
+
+                try {
+                    $funds = $this->exchange->getAccounts();
+                } catch (\Exception $e) {
+                    Log::alert($e->getTraceAsString());
+                    $noExceptions = false;
+                }
+
+                $currentprice = 0;
+
+                if ($noExceptions) {
+                    foreach ($funds as $fund) {
+                        $available = $fund->getAvailable();
+
+                        if ($fund->getCurrency() == $fundAccount) {
+                            $config->put('fund', (float)number_format($available, 8, '.', ''));
                         }
+                        if ($fund->getCurrency() == $cryptocoin) {
+                            $config->put('coin', (float)number_format($available, 8, '.', ''));
+                        }
+                    }
+
+                    $currentprice = $this->exchange->getCurrentPrice();
+
+                    $config->put('currentprice', $currentprice);
+                }
+
+
+                $funds = true;
+                if ($config->get('fund', 0.0) == 0.00 && $config->get('coin', 0.0) == 0.0) {
+                    $this->warn("no funds for coin: {$cryptocoin} and fund: {$fundAccount}");
+                    Log::warning("no funds for coin: {$cryptocoin} and fund: {$fundAccount}");
+                    $funds = false;
+                }
+
+                if ($noExceptions) {
+                    if ($slots <= 0 || !$funds) {
+                        Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
                     } else {
-                        $this->makePosition($pair, $cryptocoin, $strategy, $config);
+
+                        $openPositions = $this->positionService->getOpen($pair);
+
+                        if ($openPositions->count() > 0) {
+                            foreach ($openPositions as $openPosition) {
+                                $this->makePosition($pair, $cryptocoin, $strategy, $config, $openPosition);
+                            }
+                        } else {
+                            $this->makePosition($pair, $cryptocoin, $strategy, $config);
+                        }
                     }
                 }
+            } else {
+                Log::info('Bot not active');
             }
-            sleep(2);
+            sleep(10);
         }
     }
 }
