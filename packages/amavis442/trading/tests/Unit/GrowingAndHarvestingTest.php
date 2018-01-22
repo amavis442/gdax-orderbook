@@ -12,50 +12,7 @@ use Amavis442\Trading\Models\Position;
 
 final class GrowingAndHarvestingTest extends TestCase
 {
-    /*
-    should be in the bot
-    public function testSlotsFull()
-    {
-        $config = new Collection([
-            'max_allowed_orders' => 1,
-            'placed_open_orders' => 1,
-            'coin' => 0.000000,
-            'eur' => 10.00,
-            'currentprice' => 10400.00,
-            'size' => 0.001
-        ]);
-
-        $position = new Position();
-
-        $strat = new GrowingAndHarvesting();
-
-        $result = $strat->advise($config, $position);
-
-        $this->assertEquals('slots full',$result->get('result'));
-    }
-
-    public function test1SlotOpenButNoFunds()
-    {
-        $config = new Collection([
-            'max_allowed_orders' => 1,
-            'placed_open_orders' => 0,
-            'coin' => 0.00000000,
-            'eur' => 0.00,
-            'currentprice' => 10400.00,
-            'size' => 0.001
-        ]);
-
-        $position = new Position();
-
-        $strat = new GrowingAndHarvesting();
-
-        $result = $strat->advise($config, $position);
-
-        $this->assertEquals('no funds', $result->get('result'));
-    }
-    */
-
-    public function test1SlotOpenNoOpenPositionBuyBtc()
+     public function test1SlotOpenNoOpenPositionBuyBtc()
     {
         $config = new Collection([
             'coin' => 0.005000,
@@ -75,7 +32,7 @@ final class GrowingAndHarvestingTest extends TestCase
         $buyprice = $price - $spread;
         $funds = 30.00;
         $size = (string)($funds / $buyprice);
-        $check = substr($size,0, strpos($size,'.') + 8);
+        $check = substr($size,0, strpos($size,'.') + 9);
 
         $this->assertEquals('buy', $result->get('side'));
         $this->assertEquals($check, $result->get('size'));
@@ -99,7 +56,7 @@ final class GrowingAndHarvestingTest extends TestCase
 
         $this->assertEquals('sell', $result->get('side'));
         $this->assertEquals(0.001, $result->get('size'));
-        $this->assertEquals(10400.01, $result->get('price'));
+        $this->assertEquals(10400.00, $result->get('price'));
     }
 
     public function testNoSlotOpenAnd1PositionOrderCancelledSellBtc()
@@ -123,7 +80,7 @@ final class GrowingAndHarvestingTest extends TestCase
 
         $this->assertEquals('sell', $result->get('side'));
         $this->assertEquals($position->size, $result->get('size'));
-        $this->assertEquals(10450.01, $result->get('price'));
+        $this->assertEquals(10450.00, $result->get('price'));
     }
 }
 
