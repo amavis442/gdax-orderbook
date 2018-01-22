@@ -9,6 +9,6 @@ return [
     'ltc_spread' => 0.05,
     'btc_spread' => 0.0001,
     'eth_spread' => 0.01,
-    'lowerlimit' => 90100,
-    'upperlimit' => 10300
+    'lowerlimit' => env('LOWERLIMIT', 90100),
+    'upperlimit' => env('UPPERLIMIT', 10300)
 ];
