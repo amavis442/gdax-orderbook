@@ -50,7 +50,7 @@ class GrowingAndHarvesting
                 return $result->put('result', 'fail');
             }
         } else {
-            if ($coin > 0.0001) {
+            if ($coin > 0.0001 && $currentprice > (float)config('trading.lowerlimit') && $currentprice < (float)config('trading.upperlimit')) {
                 $price = $currentprice;
                 if (!is_null($position) && !is_null($position->size)) {
                     $size = $position->size;

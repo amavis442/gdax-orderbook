@@ -8,5 +8,7 @@ return [
     'coin'       => env('CRYPTOCOIN', 'BTC-EUR'),
     'ltc_spread' => 0.05,
     'btc_spread' => 0.0001,
-    'eth_spread' => 0.01
+    'eth_spread' => 0.01,
+    'lowerlimit' => 90100,
+    'upperlimit' => 10300
 ];
