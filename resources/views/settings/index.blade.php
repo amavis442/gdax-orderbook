@@ -11,6 +11,11 @@
                             {{ csrf_field() }}
                             {{ method_field('PUT') }}
 
+                            @if (session('msg'))
+                            <div class="alert alert-info" >
+                                {{ session('msg') }}
+                            </div>
+                            @endif
                             <div class="row">
                                 <div class="col-lg-6">
                                     <label class="radio-inline">
