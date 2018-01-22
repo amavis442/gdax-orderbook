@@ -28,13 +28,13 @@
                                 <div class="col-lg-6">
                                     <div class="form-group">
                                         <label for="max_orders">Max orders</label>
-                                        <input type="email" class="form-control" id="max_orders" name="max_orders"
+                                        <input type="text" class="form-control" id="max_orders" name="max_orders"
                                                placeholder="1" value="{{ $setting->max_orders }}">
                                     </div>
 
                                     <div class="form-group">
                                         <label for="size">Order size</label>
-                                        <input type="email" class="form-control" id="size" name="size"
+                                        <input type="text" class="form-control" id="size" name="size"
                                                placeholder="0.001"
                                                value="{{ $setting->size }}">
                                     </div>
