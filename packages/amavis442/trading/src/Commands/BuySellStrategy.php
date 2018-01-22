@@ -115,6 +115,7 @@ class BuySellStrategy extends Command
                         $exchangeOrder->getPrice()
                     );
                     $order->position_id = $position->id;
+                    $order->save();
 
                     event(new PositionEvent(
                             $exchangeOrder->getProductId(),
