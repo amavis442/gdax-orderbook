@@ -150,6 +150,10 @@ class BuySellStrategy extends Command
                 $position_id = 0;
             }
 
+            if ($result->get('result') != "ok") {
+                Log::debug("No advise data available");
+                return;
+            }
 
             $this->info(
                 'Placing order for crypto: ' . $cryptocoin . ',side: ' .
@@ -231,12 +235,20 @@ class BuySellStrategy extends Command
         $this->exchange->useCoin($cryptocoin);
 
 
+
         while (1) {
+            $noExceptions = true;
+
             $this->updateSellOrdersAndOpenPosition();
             $this->updateBuyOrderStatusAndClosePosition();
 
             $openOrders = $this->orderService->getNumOpenOrders($pair);
-            $openExchangeOrders = $this->exchange->getOpenOrders();
+            try {
+                $openExchangeOrders = $this->exchange->getOpenOrders();
+            } catch(\Exception $e) {
+                Log::alert($e->getTraceAsString());
+                $noExceptions = false;
+            }
 
             if ($openExchangeOrders) {
                 $used_slots = count($openExchangeOrders);
@@ -263,19 +275,28 @@ class BuySellStrategy extends Command
                     break;
             }
 
-            $funds = $this->exchange->getAccounts();
-            foreach ($funds as $fund) {
-                $available = $fund->getAvailable();
-
-                if ($fund->getCurrency() == $fundAccount) {
-                    $config->put('fund', (float)number_format($available, 8, '.', ''));
-                }
-                if ($fund->getCurrency() == $cryptocoin) {
-                    $config->put('coin', (float)number_format($available, 8, '.', ''));
-                }
+            try {
+                $funds = $this->exchange->getAccounts();
+            } catch(\Exception $e) {
+                Log::alert($e->getTraceAsString());
+                $noExceptions = false;
             }
 
-            $config->put('currentprice', $this->exchange->getCurrentPrice());
+            if ($noExceptions) {
+                foreach ($funds as $fund) {
+                    $available = $fund->getAvailable();
+
+                    if ($fund->getCurrency() == $fundAccount) {
+                        $config->put('fund', (float)number_format($available, 8, '.', ''));
+                    }
+                    if ($fund->getCurrency() == $cryptocoin) {
+                        $config->put('coin', (float)number_format($available, 8, '.', ''));
+                    }
+                }
+
+                $config->put('currentprice', $this->exchange->getCurrentPrice());
+            }
+
 
             $funds = true;
             if ($config->get('fund', 0.0) == 0.00 && $config->get('coin', 0.0) == 0.0) {
@@ -284,21 +305,22 @@ class BuySellStrategy extends Command
                 $funds = false;
             }
 
-            if ($slots <= 0 || !$funds) {
-                Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
-            } else {
-
-                $openPositions = $this->positionService->getOpen($pair);
-
-                if ($openPositions->count() > 0) {
-                    foreach ($openPositions as $openPosition) {
-                        $this->makePosition($pair, $cryptocoin, $strategy, $config, $openPosition);
-                    }
+            if ($noExceptions) {
+                if ($slots <= 0 || !$funds) {
+                    Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
                 } else {
-                    $this->makePosition($pair, $cryptocoin, $strategy, $config);
+
+                    $openPositions = $this->positionService->getOpen($pair);
+
+                    if ($openPositions->count() > 0) {
+                        foreach ($openPositions as $openPosition) {
+                            $this->makePosition($pair, $cryptocoin, $strategy, $config, $openPosition);
+                        }
+                    } else {
+                        $this->makePosition($pair, $cryptocoin, $strategy, $config);
+                    }
                 }
             }
-
             sleep(2);
         }
     }
