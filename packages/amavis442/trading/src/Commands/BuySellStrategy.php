@@ -21,6 +21,12 @@ use Amavis442\Trading\Models\Position;
  */
 class BuySellStrategy extends Command
 {
+
+    const POSITION_OPEN = 1;
+    const POSITION_CLOSE = 2;
+    const ORDER_BUY = 'buy';
+    const ORDER_SELL = 'sell';
+
     /**
      * The name and signature of the console command.
      *
@@ -130,6 +136,63 @@ class BuySellStrategy extends Command
         }
     }
 
+    protected function updateOrdersAndPositions($side = self::ORDER_BUY, $positionState = self::POSITION_OPEN)
+    {
+        $orders = Order::where(function ($q) {
+            $q->whereIn('status', ['open', 'pending', 'manual']);
+            $q->orWhereNull('status');
+        })->whereSide($side)->get();
+
+        if ($orders->count()) {
+            foreach ($orders as $order) {
+
+                try {
+                    /** @var \GDAX\Types\Response\Authenticated\Order $exchangeOrder */
+                    $exchangeOrder = $this->exchange->getOrder($order->order_id);
+                } catch (\Exception $e) {
+                    Log::warning($e->getTraceAsString());
+                }
+
+                $order = $this->orderService->updateStatus($order, $exchangeOrder);
+
+                if ($order->status == 'done') {
+                    if ($positionState == self::POSITION_OPEN) {
+                        $position = $this->positionService->open(
+                            $exchangeOrder->getProductId(),
+                            $exchangeOrder->getId(),
+                            $exchangeOrder->getSize(),
+                            $exchangeOrder->getPrice()
+                        );
+                        $order->position_id = $position->id;
+                        $order->save();
+                    }
+
+                    if ($positionState == self::POSITION_CLOSE) {
+                        $position_id = $order->position_id;
+                        if ($position_id > 0) {
+                            $position = $this->positionService->close(
+                                $position_id,
+                                $exchangeOrder->getSize(),
+                                $exchangeOrder->getPrice()
+                            );
+                        }
+                    }
+
+                    if ($positionState == self::POSITION_OPEN || $positionState == self::POSITION_CLOSE) {
+                        event(new PositionEvent(
+                                $exchangeOrder->getProductId(),
+                                $exchangeOrder->getSide(),
+                                $exchangeOrder->getSize(),
+                                $exchangeOrder->getPrice(),
+                                $position->status
+                            )
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     protected function placeOrder(string $pair, string $cryptocoin, Collection $result, Position $position = null)
     {
         if (!$this->option('simulate', false)) {
@@ -166,7 +229,7 @@ class BuySellStrategy extends Command
             }
         } else {
             $this->comment(
-                'Simulate: Placing order for crypto: ' . $cryptocoin . ',side: ' .
+                'Simulate: Placing order for crypto: ' . substr($pair,0,3) . ',side: ' .
                 $result->get('side') . ', size: ' . $result->get('size') .
                 ' at price: ' . $result->get('price')
             );
@@ -218,8 +281,8 @@ class BuySellStrategy extends Command
         while (1) {
             $noExceptions = true;
 
-            $this->updateSellOrdersAndOpenPosition();
-            $this->updateBuyOrderStatusAndClosePosition();
+            $this->updateOrdersAndPositions(self::ORDER_SELL, self::POSITION_OPEN);
+            $this->updateOrdersAndPositions(self::ORDER_BUY, self::POSITION_CLOSE);
 
             $openOrders = $this->orderService->getNumOpenOrders($pair);
             try {
