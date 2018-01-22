@@ -15,7 +15,9 @@ class OrderController extends Controller
      */
     public function index(Request $request, $page = 1)
     {
-        $orders = Order::select('*')->orderBy('created_at', 'desc')->paginate(); // Filled orders.
+        $orders = Order::select('*')
+                       ->orderBy('created_at', 'desc')
+                       ->paginate();
 
         return $orders;
     }

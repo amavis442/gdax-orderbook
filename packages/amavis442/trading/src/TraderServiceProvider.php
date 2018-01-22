@@ -65,15 +65,15 @@ class TraderServiceProvider extends ServiceProvider
         });
 
 
-        $this->app->singleton('Amavis442\Trading\Strategies\Stoploss', function ($app) {
-            return new \Amavis442\Trading\Strategies\Stoploss();
+        $this->app->singleton('Amavis442\Trading\Indicators\Stoploss', function ($app) {
+            return new \Amavis442\Trading\Indicators\Stoploss();
         });
 
 
         // The bots
         $this->app->singleton('Amavis442\Trading\Bot\PositionBot', function ($app) {
             $bot = new \Amavis442\Trading\Bot\PositionBot($app->make('Amavis442\Trading\Contracts\Exchange'));
-            $bot->setStopLossService($app->make('Amavis442\Trading\Triggers\Stoploss'));
+            $bot->setStopLossService($app->make('Amavis442\Trading\Indicators\Stoploss'));
 
             return $bot;
         });
@@ -83,7 +83,7 @@ class TraderServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton('Amavis442\Trading\Bot\TickerBot', function ($app) {
-            return new \Amavis442\Trading\Bot\TickerBot($app->make('Amavis442\Trading\Contracts\Exchang'));
+            return new \Amavis442\Trading\Bot\TickerBot($app->make('Amavis442\Trading\Contracts\Exchange'));
         });
 
         /* WIP

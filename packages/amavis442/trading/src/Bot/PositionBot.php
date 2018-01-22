@@ -28,9 +28,12 @@ class PositionBot implements Bot
     protected function updatePositions()
     {
         $positions = Position::whereIn('status', ['open', 'trailing'])->get();
-        dump($positions);
+
         foreach ($positions as $position) {
-            $exchangeOrder = Order::whereSide('sell')->whereStatus('done')->wherePositionId($position->id)->first();
+            $exchangeOrder = Order::whereSide('sell')
+                                  ->whereStatus('done')
+                                  ->wherePositionId($position->id)
+                                  ->first();
             if ($exchangeOrder) {
                 $position->status = 'closed';
                 $position->close = $exchangeOrder->amount;

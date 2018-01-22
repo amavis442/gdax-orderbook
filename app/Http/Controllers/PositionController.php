@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Amavis442\Trading\Bot\PositionBot;
 use Amavis442\Trading\Models\Position;
 use Amavis442\Trading\Models\Setting;
-use Amavis442\Trading\Triggers\Stoploss;
+use Amavis442\Trading\Indicators\Stoploss;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -20,7 +20,9 @@ class PositionController extends Controller
      */
     public function index(Request $request, $page = 1)
     {
-        $orders = Position::select('*')->where('status','!=','closed')->orderBy('created_at', 'desc')->paginate(); // positions.
+        $orders = Position::select('*')
+                          ->where('status', '!=', 'closed')
+                          ->orderBy('created_at', 'desc')->paginate(); // positions.
 
         return $orders;
     }
@@ -72,6 +74,7 @@ class PositionController extends Controller
             $result = $positionBot->sellPosition($position);
         } catch (Exception $e) {
             Log::error($e->getTraceAsString());
+
             return $e->getMessage();
         }
         if ($result) {
@@ -94,6 +97,7 @@ class PositionController extends Controller
             $result = $positionBot->setTrailing($position);
         } catch (Exception $e) {
             Log::error($e->getTraceAsString());
+
             return $e->getMessage();
         }
         if ($result) {
@@ -109,6 +113,7 @@ class PositionController extends Controller
             $currentPrice = $positionBot->getCurrentPrice();
         } catch (\Exception $e) {
             Log::error($e->getTraceAsString());
+
             return $e->getMessage();
         }
         $setting = new Setting();
@@ -118,7 +123,7 @@ class PositionController extends Controller
         try {
             $positions = $positions->map(function ($position, $key) use ($setting, $currentPrice, $stoploss) {
                 $position->currentprice = $currentPrice;
-                $position->trailingstoptrigger = $stoploss->signal($currentPrice, $position, $setting);
+                $position->trailingstoptrigger = $stoploss->check($currentPrice, $position, $setting);
                 $cacheKey = 'gdax.stoploss.' . $position->id;
                 $trailingstopprice = Cache::get($cacheKey, 0.0);
                 $position->trailingstopprice = $trailingstopprice;
@@ -127,6 +132,7 @@ class PositionController extends Controller
             });
         } catch (\Exception $e) {
             Log::error($e->getTraceAsString());
+
             return $e->getMessage();
         }
 
