@@ -7,7 +7,7 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">Settings</div>
                     <div class="panel-body">
-                        <form action="{{ route('settings.update', $settings) }}" action="post">
+                        <form action="{{ route('settings.update', $setting) }}" action="post">
                             {{ csrf_field() }}
                             {{ method_field('PUT') }}
 
