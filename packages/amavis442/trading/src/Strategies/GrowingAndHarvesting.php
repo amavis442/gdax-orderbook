@@ -43,15 +43,15 @@ class GrowingAndHarvesting implements Strategy
                 $currentprice > $lowerlimit &&
                 $currentprice < $upperlimit
             ) {
-                $timestamp = \Carbon\Carbon::now('Europe/Amsterdam')
+                /* $timestamp = \Carbon\Carbon::now('Europe/Amsterdam')
                                            ->subMinute(5)
-                                           ->format('Y-m-d H:i:s');
+                                           ->format('Y-m-d H:i:s'); */
 
                 $order = \Amavis442\Trading\Models\Order::whereStatus('done')
                                                         ->whereSide('sell')
                                                         ->wherePair($pair)
                                                         ->orderBy('id', 'desc')
-                                                        ->where('created_at', '>', $timestamp)
+                                                        //->where('created_at', '>', $timestamp)
                                                         ->first();
                 $minimalSizeReached = false;
                 if ($fund > 0.01) { // Buy and use all of the fund
