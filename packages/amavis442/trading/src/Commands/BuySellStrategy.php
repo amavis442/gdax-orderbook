@@ -58,6 +58,98 @@ class BuySellStrategy extends Command
         return new GrowingAndHarvesting();
     }
 
+
+    protected function process($pair)
+    {
+        $noExceptions = true;
+
+        $settings = Setting::first();
+
+        $this->updateOrdersAndPositions(
+            \Amavis442\Trading\Contracts\Order::ORDER_SELL,
+            \Amavis442\Trading\Contracts\Position::POSITION_OPEN
+        );
+
+        $this->updateOrdersAndPositions(
+            \Amavis442\Trading\Contracts\Order::ORDER_BUY,
+            \Amavis442\Trading\Contracts\Position::POSITION_CLOSE
+        );
+
+        Cache::put('bot::settings', $settings->toJson(), 1);
+        Cache::put('bot::pair', $pair, 1);
+        Cache::put('bot::stradle', 0.03, 1);
+
+
+        if ($settings->botactive) {
+            $openOrders = $this->orderService->getNumOpenOrders($pair);
+            try {
+                $openExchangeOrders = $this->exchange->getOpenOrders();
+            } catch (\Exception $e) {
+                Log::alert($e->getTraceAsString());
+                $noExceptions = false;
+            }
+
+            if ($openExchangeOrders) {
+                $used_slots = count($openExchangeOrders);
+            } else {
+                $used_slots = $openOrders;
+            }
+            $slots = $settings->max_orders - $used_slots;
+
+            try {
+                $funds = $this->exchange->getAccounts();
+            } catch (\Exception $e) {
+                Log::alert($e->getTraceAsString());
+                $noExceptions = false;
+            }
+
+            if ($noExceptions) {
+                foreach ($funds as $fund) {
+                    $available = $fund->getAvailable();
+                    if ($fund->getCurrency() == $fundAccount) {
+                        Cache::put('config::fund', (float)number_format($available, 8, '.', ''), 1);
+                    }
+                    if ($fund->getCurrency() == $cryptoCoin) {
+                        Cache::put('config::coin', (float)number_format($available, 8, '.', ''), 1);
+                    }
+                }
+                $currentprice = $this->exchange->getCurrentPrice();
+
+                Cache::put('gdax::' . $pair . '::currentprice', $currentprice, 2);
+            }
+
+            $funds = true;
+            if (Cache::get('config::fund', 0.0) == 0.00 && Cache::get('config::coin', 0.0) == 0.0) {
+                $this->warn("no funds for coin: {$cryptoCoin} and fund: {$fundAccount}");
+                Log::warning("no funds for coin: {$cryptoCoin} and fund: {$fundAccount}");
+                $funds = false;
+            }
+
+            if ($noExceptions) {
+                if ($slots <= 0 || !$funds) {
+                    Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
+                } else {
+                    $openPositions = $this->positionService->getOpen($pair);
+                    if ($openPositions->count() > 0) {
+                        foreach ($openPositions as $openPosition) {
+                            $this->strategyAdvise($strategy, $openPosition);
+                        }
+                    } else {
+                        $this->strategyAdvise($strategy);
+                    }
+                }
+            }
+        } else {
+            Log::info('Bot not active');
+        }
+    }
+
+
+
+
+
+
+
     public function handle()
     {
         $strategy = $this->getStrategy();
@@ -74,6 +166,43 @@ class BuySellStrategy extends Command
         if ($this->option('simulate')) {
             $this->config->put('simulate', true);
         }
+
+
+        $loop = \React\EventLoop\Factory::create();
+        $connector = new \Ratchet\Client\Connector($loop);
+
+        $connector('wss://ws-feed.gdax.com')
+            ->then(function (\Ratchet\Client\WebSocket $conn) use ($pair) {
+                $channel['type'] = 'subscribe';
+                $channel['product_ids'] = [$pair];
+                $channel['channels'] = ['ticker','level2'];
+                $ch = json_encode($channel);
+                dump($ch);
+                $conn->send($ch);
+
+                $conn->on('message', function (\Ratchet\RFC6455\Messaging\MessageInterface $msg) use ($conn) {
+
+                    $data = json_decode($msg, 1);
+                    dump($data);
+
+
+
+
+                });
+
+                $conn->on('close', function ($code = null, $reason = null) {
+                    /** log errors here */
+                    dump("Connection closed ({$code} - {$reason})");
+                });
+            },
+                function(\Exception $e) use ($loop) {
+                    /** hard error */
+                    echo "Could not connect: {$e->getMessage()}\n";
+                    $loop->stop();
+                });
+        $loop->run();
+        return;
+
 
         while (1) {
             $noExceptions = true;
