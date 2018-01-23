@@ -10,6 +10,7 @@ use Amavis442\Trading\Services\OrderService;
 use Amavis442\Trading\Services\PositionService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 trait GrandBot
 {
@@ -114,7 +115,6 @@ trait GrandBot
                 Log::info('Order not placed because: ' . $placedOrder->getMessage());
             }
         } else {
-
             Log::info('Simulate: would have placed an order ' . $strategyResult->toJson());
         }
     }
@@ -125,12 +125,11 @@ trait GrandBot
     ) {
 
         $strategyResult = $strategy->advise($position);
-        dd($strategyResult);
         if (
             $strategyResult->get('result') == 'fail' ||
             $strategyResult->get('result') == 'hold'
         ) {
-            Log::debug("No advise data available");
+            Log::debug("No advise data available. ". $strategyResult->toJson());
             return;
         }
 

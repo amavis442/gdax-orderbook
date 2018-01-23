@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Cache;
 
 final class GrowingAndHarvestingTest extends TestCase
 {
-     public function test1SlotOpenNoOpenPositionBuyBtc()
+     public function test1SlotOpenNoOpenPositionWithFundBuyBtc()
     {
         $settings = new Setting();
         $settings->bottom = 0.0;
@@ -45,7 +45,7 @@ final class GrowingAndHarvestingTest extends TestCase
         $this->assertEquals(10449.99, $result->get('price'));
     }
 
-    public function test1SlotOpenNoPositionSellBtc()
+    public function test1SlotOpenNoPositionAndNoCurrencyFundsSoSellCryptoBtc()
     {
         $settings = new Setting();
         $settings->bottom = 0.0;
@@ -69,7 +69,7 @@ final class GrowingAndHarvestingTest extends TestCase
 
         $this->assertEquals('sell', $result->get('side'));
         $this->assertEquals(0.001, $result->get('size'));
-        $this->assertEquals(10400.00, $result->get('price'));
+        $this->assertEquals(10400.01, $result->get('price'));
     }
 
     public function testNoSlotOpenAnd1PositionOrderCancelledSellBtc()
@@ -100,7 +100,7 @@ final class GrowingAndHarvestingTest extends TestCase
 
         $this->assertEquals('sell', $result->get('side'));
         $this->assertEquals($position->size, $result->get('size'));
-        $this->assertEquals(10450.00, $result->get('price'));
+        $this->assertEquals(10450.01, $result->get('price'));
     }
 }
 

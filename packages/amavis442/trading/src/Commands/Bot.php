@@ -19,7 +19,7 @@ use Amavis442\Trading\Models\Ticker;
  *
  * @author patrick
  */
-class BuySellStrategy extends Command
+class Bot extends Command
 {
     use GrandBot;
 
@@ -28,7 +28,7 @@ class BuySellStrategy extends Command
      *
      * @var string
      */
-    protected $signature = 'trading:run:buysellstrategy {pair : what pair to use valid values are BTC-EUR, LTC-EUR, ETH-EUR } {--simulate : simulate for testing}';
+    protected $signature = 'trading:run:bot {pair : what pair to use valid values are BTC-EUR, LTC-EUR, ETH-EUR } {--simulate : simulate for testing}';
 
     /**
      * The console command description.
@@ -80,12 +80,12 @@ class BuySellStrategy extends Command
 
         $this->updateOrdersAndPositions(
             \Amavis442\Trading\Contracts\Order::ORDER_SELL,
-            \Amavis442\Trading\Contracts\Position::POSITION_OPEN
+            \Amavis442\Trading\Contracts\Position::POSITION_CLOSE
         );
 
         $this->updateOrdersAndPositions(
             \Amavis442\Trading\Contracts\Order::ORDER_BUY,
-            \Amavis442\Trading\Contracts\Position::POSITION_CLOSE
+            \Amavis442\Trading\Contracts\Position::POSITION_OPEN
         );
 
         $currentPrice = Cache::get('gdax::' . $pair . '::currentprice');

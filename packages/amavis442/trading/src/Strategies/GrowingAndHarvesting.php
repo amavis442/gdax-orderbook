@@ -34,12 +34,10 @@ class GrowingAndHarvesting implements Strategy
 
         if (!is_null($currentprice)) {
             $minimalSizeReached = false;
-            if ($fund > 0.01 && !is_null($position)) { // Buy and use all of the fund
+            if ($fund > 0.01) { // Buy and use all of the fund
                 $price = $currentprice - (float)$stradle;
 
-                if ($currentprice > $position->open) {
-                    $price = $position->open - 0.1;
-                }
+
 
                 $s = $fund / $price;
                 if ($s >= 0.001 && $pair == 'BTC-EUR') {
@@ -72,8 +70,15 @@ class GrowingAndHarvesting implements Strategy
                 $upperlimit = (float)$config->top;
 
                 // Needs an indicator to see if the trend goes up or not
-                if ($fund <= 0.01 && $coin > 0.0001 && $currentprice > $lowerlimit && $currentprice < $upperlimit) {
-                    $price = $currentprice;
+                if ($fund <= 0.01 &&
+                    $coin >= 0.0001 &&
+                    !is_null($position) &&
+                    $position->open < $currentprice &&
+                    $currentprice > $lowerlimit &&
+                    $currentprice < $upperlimit) {
+
+
+                    $price = $currentprice + (float)$stradle;
                     if (!is_null($position) && !is_null($position->size)) {
                         $size = $position->size;
                     } else {

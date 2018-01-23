@@ -36,8 +36,21 @@ use Illuminate\Support\Facades\Cache;
 class Ticker1m extends Model
 {
     protected $table    = 'ticker_1m';
-    protected $fillable = ['product_id', 'timeid', 'open', 'high', 'low', 'close', 'volume'];
 
+    protected $fillable = [
+        'sequence',
+        'pair',
+        'timeid',
+        'price',
+        'open',
+        'high',
+        'low',
+        'close',
+        'volume',
+        'volume_30d',
+        'best_bid',
+        'best_ask',
+    ];
 
     /**
      * Transform data for the trader functions
@@ -110,7 +123,7 @@ class Ticker1m extends Model
         }
 
         $rows = Ticker1m::selectRaw('*, unix_timestamp(created_at) as buckettime')
-                        ->where('pair', $pair)
+                        ->wherePair($pair)
                         ->orderby('timeid', 'DESC')
                         ->limit($limit)
                         ->get();

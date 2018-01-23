@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Amavis442\Trading\Commands\Ticker;
 use Amavis442\Trading\Commands\Position;
 use Amavis442\Trading\Commands\Order;
+use Amavis442\Trading\Commands\Bot;
 
 /**
  * Class TraderServiceProvider
@@ -36,10 +37,11 @@ class TraderServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                Ticker::class,
-                Position::class,
-                Order::class,
-                BuySellStrategy::class,
+                //Ticker::class,
+                //Position::class,
+                //Order::class,
+                Bot::class,
+                //BuySellStrategy::class,
             ]);
         }
     }
