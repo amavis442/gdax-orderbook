@@ -34,3 +34,5 @@ Route::post('/sellposition','PositionController@sellPosition')->middleware('auth
 Route::post('/trailingposition','PositionController@trailingPosition')->middleware('auth');
 
 Route::resource('settings', 'SettingController')->middleware('auth');
+
+Route::resource('users', 'UserController')->middleware('auth');

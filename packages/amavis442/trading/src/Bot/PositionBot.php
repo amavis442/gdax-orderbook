@@ -18,6 +18,7 @@ class PositionBot implements Bot
     public function __construct(Exchange $exchange)
     {
         $this->exchange = $exchange;
+        $this->exchange->useCoin('BTC');
     }
 
     public function setStopLossIndicator($stoplossIndicator)
@@ -157,11 +158,16 @@ class PositionBot implements Bot
 
     public function getCurrentPrice()
     {
-        return $this->exchange->getCurrentPrice();
+        try {
+            return $this->exchange->getCurrentPrice();
+        } catch(\Exception $e) {
+            Log::warning($e->getTraceAsString());
+        }
     }
 
     public function run()
     {
+        $settings = Setting::first();
         $this->updatePositions();
 
         // Get Account
@@ -169,7 +175,7 @@ class PositionBot implements Bot
 
         Log::info("=== RUN [" . \Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s') . "] ===");
 
-        $botactive = ($config->botactive == 1 ? true : false);
+        $botactive = ($settings->botactive == 1 ? true : false);
         if (!$botactive) {
             Log::warning("Bot is not active at the moment");
         } else {
