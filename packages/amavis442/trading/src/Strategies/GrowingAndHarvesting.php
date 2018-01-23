@@ -39,13 +39,10 @@ class GrowingAndHarvesting implements Strategy
 
 
         if (!is_null($currentprice)) {
-
             if (
                 $currentprice > $lowerlimit &&
                 $currentprice < $upperlimit
             ) {
-
-
                 $minimalSizeReached = false;
                 if ($fund > 0.01) { // Buy and use all of the fund
                     $price = $currentprice - (float)$buystradle;
@@ -117,6 +114,40 @@ class GrowingAndHarvesting implements Strategy
                     $result->put('price', number_format($price, 2, '.', ''));
 
                     return $result->put('result', 'ok');
+                }
+
+                $order = \Amavis442\Trading\Models\Order::whereStatus('done')
+                                                        ->whereSide('sell')
+                                                        ->wherePair($pair)
+                                                        ->orderBy('id','desc')
+                                                        ->first();
+                // When price goes down a lot and the last sell is way above currentprice and we have funds buy.
+                if ($fund >= 0.01 &&
+                    ($order->amount - 80) > $currentprice
+                ) {
+                    $minimalSizeReached = false;
+                    $price = $currentprice-0.01;
+                    $s = $fund / $price;
+
+                    if ($s >= 0.001 && $pair == 'BTC-EUR') {
+                        $minimalSizeReached = true;
+                    }
+
+                    if ($s >= 0.01 && ($pair == 'ETH-EUR' || $pair == 'LTC-EUR')) {
+                        $minimalSizeReached = true;
+                    }
+
+                    $s = (string)$s;
+                    $size = substr($s, 0,
+                        strpos($s, '.') + 9); // should be more then 0.0001 for BTC and 0.01 for ETH and LTC
+
+                    if ($minimalSizeReached) {
+                        $result->put('side', 'buy');
+                        $result->put('size', $size);
+                        $result->put('price', number_format($price, 2, '.', ''));
+
+                        return $result->put('result', 'ok');
+                    }
                 }
             }
         }
