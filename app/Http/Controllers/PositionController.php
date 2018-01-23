@@ -21,8 +21,8 @@ class PositionController extends Controller
     public function index(Request $request, $page = 1)
     {
         $orders = Position::select('*')
-                          ->where('status', '!=', 'closed')
-                          ->orderBy('created_at', 'desc')->paginate(); // positions.
+            ->where('status', '!=', 'closed')
+            ->orderBy('created_at', 'desc')->paginate(); // positions.
 
         return $orders;
     }
@@ -109,22 +109,28 @@ class PositionController extends Controller
 
     public function getTrailing(Request $request, PositionBot $positionBot, Stoploss $stoploss)
     {
-        try {
-            $currentPrice = $positionBot->getCurrentPrice();
-        } catch (\Exception $e) {
-            Log::error($e->getTraceAsString());
 
-            return $e->getMessage();
-        }
         $setting = new Setting();
 
         $positions = Position::whereStatus('trailing')->get();
 
         try {
-            $positions = $positions->map(function ($position, $key) use ($setting, $currentPrice, $stoploss) {
+            $positions = $positions->map(function ($position, $key) use ($positionBot, $setting, $stoploss) {
+                try {
+                    $currentPrice = Cache::get(
+                        'gdax::' . $position->pair . '::currentprice',
+                        $positionBot->getCurrentPrice()
+                    );
+                    Cache::put('gdax::' . $position->pair . '::currentprice', $currentPrice, 10);
+                } catch (\Exception $e) {
+                    Log::error($e->getTraceAsString());
+
+                    return $e->getMessage();
+                }
+
                 $position->currentprice = $currentPrice;
                 $position->trailingstoptrigger = $stoploss->check($currentPrice, $position, $setting);
-                $cacheKey = 'gdax.stoploss.' . $position->id;
+                $cacheKey = 'gdax::stoploss::' . $position->id;
                 $trailingstopprice = Cache::get($cacheKey, 0.0);
                 $position->trailingstopprice = $trailingstopprice;
 

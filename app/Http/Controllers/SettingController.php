@@ -9,7 +9,7 @@ class SettingController extends Controller
 {
     public function index()
     {
-        $setting = Setting::first();
+        $setting = Setting::firstOrFail();
 
         return view('settings.index',compact('setting'));
     }

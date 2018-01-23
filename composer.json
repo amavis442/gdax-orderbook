@@ -58,7 +58,7 @@
             "@php artisan package:discover"
         ],
         "lint": "phpcs -p --standard=psr2 packages/amavis442/trading/src",
-        "phpunit": "phpunit",
+        "phpunit": "phpunit  -v --coverage-text --colors --stderr",
         "phpunit-integration": "phpunit --testsuite Integration",
         "phpunit-unit": "phpunit --testsuite Unit --testsuit TraderUnit",
         "phpunit-coverage": "phpunit --coverage-clover=coverage.clover",

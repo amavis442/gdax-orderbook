@@ -18,7 +18,7 @@ class PositionBot implements Bot
     public function __construct(Exchange $exchange)
     {
         $this->exchange = $exchange;
-        $this->exchange->useCoin('BTC');
+        $this->exchange->usePair('BTC-EUR');
     }
 
     public function setStopLossIndicator($stoplossIndicator)

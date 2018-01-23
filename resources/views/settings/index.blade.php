@@ -52,7 +52,6 @@
                                             <input type="text" class="form-control" id="trailingstop"
                                                    name="trailingstop"
                                                    placeholder="trailingstop" value="{{ $setting->trailingstop }}">
-                                            <div class="input-group-addon">.00</div>
                                         </div>
                                     </div>
 
@@ -62,7 +61,7 @@
                                             <div class="input-group-addon">&euro;</div>
                                             <input type="text" class="form-control" id="bottom" name="bottom"
                                                    placeholder="15000" value="{{ $setting->bottom }}">
-                                            <div class="input-group-addon">.00</div>
+
                                         </div>
                                     </div>
 
@@ -73,14 +72,8 @@
                                             <input type="text" class="form-control" id="toppie" name="top"
                                                    placeholder="10000"
                                                    value="{{ $setting->top }}">
-                                            <div class="input-group-addon">.00</div>
                                         </div>
                                     </div>
-
-
-
-
-
                                     <button type="submit" class="btn btn-default">Save</button>
                                 </div>
                             </div>

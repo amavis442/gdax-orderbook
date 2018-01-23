@@ -15,7 +15,7 @@ interface Exchange
      *
      * @param string $cryptoCoin
      */
-    public function useCoin(string $cryptoCoin);
+    public function usePair(string $pair);
 
 
     public function getClient(): \GDAX\Clients\AuthenticatedClient;

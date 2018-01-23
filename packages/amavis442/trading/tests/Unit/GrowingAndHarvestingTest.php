@@ -7,25 +7,31 @@ use Amavis442\Trading\Strategies\GrowingAndHarvesting;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
 use Amavis442\Trading\Models\Position;
-
-
+use Amavis442\Trading\Models\Setting;
+use Illuminate\Support\Facades\Cache;
 
 final class GrowingAndHarvestingTest extends TestCase
 {
      public function test1SlotOpenNoOpenPositionBuyBtc()
     {
-        $config = new Collection([
-            'coin' => 0.005000,
-            'fund' => 30.00,
-            'currentprice' => 10450.00,
-            'size' => 0.001
-        ]);
+        $settings = new Setting();
+        $settings->bottom = 0.0;
+        $settings->top = 20000.0;
+        $settings->size = 0.001;
+
+        Cache::put('bot::settings', $settings->toJson(), 1);
+        Cache::put('bot::pair', 'BTC-EUR', 1);
+        Cache::put('bot::stradle', 0.01, 1);
+        Cache::put('config::fund', 30.00, 1);
+        Cache::put('config::coin', 0.005000, 1);
+        Cache::put('gdax::BTC-EUR::currentprice', 10450.00, 2);
 
         $position = new Position();
+        $position->open = 10460.00;
 
         $strat = new GrowingAndHarvesting();
 
-        $result = $strat->advise($config, $position);
+        $result = $strat->advise($position);
 
         $price = 10450.00;
         $spread = 0.01;
@@ -41,18 +47,25 @@ final class GrowingAndHarvestingTest extends TestCase
 
     public function test1SlotOpenNoPositionSellBtc()
     {
-        $config = new Collection([
-            'coin' => 0.005000,
-            'fund' => 0.00,
-            'currentprice' => 10400.00,
-            'size' => 0.001
-        ]);
+        $settings = new Setting();
+        $settings->bottom = 0.0;
+        $settings->top = 20000.0;
+        $settings->size = 0.001;
+
+        Cache::put('bot::settings', $settings->toJson(), 1);
+        Cache::put('bot::pair', 'BTC-EUR', 1);
+        Cache::put('bot::stradle', 0.01, 1);
+        Cache::put('config::fund', 0.00, 1);
+        Cache::put('config::coin', 0.005000, 1);
+        Cache::put('gdax::BTC-EUR::currentprice', 10400.00, 2);
+
+
 
         $position = new Position();
 
         $strat = new GrowingAndHarvesting();
 
-        $result = $strat->advise($config, $position);
+        $result = $strat->advise($position);
 
         $this->assertEquals('sell', $result->get('side'));
         $this->assertEquals(0.001, $result->get('size'));
@@ -61,12 +74,19 @@ final class GrowingAndHarvestingTest extends TestCase
 
     public function testNoSlotOpenAnd1PositionOrderCancelledSellBtc()
     {
-        $config = new Collection([
-            'coin' => 0.005000,
-            'eur' => 0.00,
-            'currentprice' => 10450.00,
-            'size' => 0.001
-        ]);
+
+        $settings = new Setting();
+        $settings->bottom = 0.0;
+        $settings->top = 20000.0;
+        $settings->size = 0.001;
+
+        Cache::put('bot::settings', $settings->toJson(), 1);
+        Cache::put('bot::pair', 'BTC-EUR', 1);
+        Cache::put('bot::stradle', 0.01, 1);
+        Cache::put('config::fund', 0.00, 1);
+        Cache::put('config::coin', 0.005000, 1);
+        Cache::put('gdax::BTC-EUR::currentprice', 10450.00, 2);
+
 
         $position = new Position();
         $position->id = 1;
@@ -76,7 +96,7 @@ final class GrowingAndHarvestingTest extends TestCase
         $position->status = 'open';
 
         $strat = new GrowingAndHarvesting();
-        $result = $strat->advise($config, $position);
+        $result = $strat->advise($position);
 
         $this->assertEquals('sell', $result->get('side'));
         $this->assertEquals($position->size, $result->get('size'));

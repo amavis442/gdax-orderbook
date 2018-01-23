@@ -2,6 +2,7 @@
 
 namespace Amavis442\Trading\Commands;
 
+use Amavis442\Trading\Bot\Traits\GrandBot;
 use Amavis442\Trading\Services\OrderService;
 use Amavis442\Trading\Services\PositionService;
 use Amavis442\Trading\Strategies\GrowingAndHarvesting;
@@ -10,9 +11,7 @@ use Amavis442\Trading\Contracts\Exchange;
 use Amavis442\Trading\Models\Setting;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Amavis442\Trading\Events\Position as PositionEvent;
-use Amavis442\Trading\Models\Order;
-use Amavis442\Trading\Models\Position;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Description of RunBotCommand
@@ -21,18 +20,14 @@ use Amavis442\Trading\Models\Position;
  */
 class BuySellStrategy extends Command
 {
-
-    const POSITION_OPEN = 1;
-    const POSITION_CLOSE = 2;
-    const ORDER_BUY = 'buy';
-    const ORDER_SELL = 'sell';
+    use GrandBot;
 
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'trading:run:buysellstrategy {cryptocoin=BTC : what currency to use } {fund=EUR : where the money has to go and come from } {--simulate : simulate for testing}';
+    protected $signature = 'trading:run:buysellstrategy {pair : what pair to use valid values are BTC-EUR, LTC-EUR, ETH-EUR } {--simulate : simulate for testing}';
 
     /**
      * The console command description.
@@ -40,10 +35,6 @@ class BuySellStrategy extends Command
      * @var string
      */
     protected $description = 'Buys and sells position depending on the given strategy.';
-
-    protected $exchange;
-    protected $orderService;
-    protected $positionService;
 
     /**
      * Create a new command instance.
@@ -56,165 +47,55 @@ class BuySellStrategy extends Command
         $this->orderService = $orderService;
         $this->positionService = $positionService;
 
+        $this->config = new Collection();
+
         parent::__construct();
     }
 
-    protected function updateOrdersAndPositions($side = self::ORDER_BUY, $positionState = self::POSITION_OPEN)
+
+    public function getStrategy()
     {
-        $orders = Order::where(function ($q) {
-            $q->whereIn('status', ['open', 'pending', 'manual']);
-            $q->orWhereNull('status');
-        })->whereSide($side)->get();
-
-        if ($orders->count()) {
-            foreach ($orders as $order) {
-
-                try {
-                    /** @var \GDAX\Types\Response\Authenticated\Order $exchangeOrder */
-                    $exchangeOrder = $this->exchange->getOrder($order->order_id);
-                } catch (\Exception $e) {
-                    Log::warning($e->getTraceAsString());
-                }
-
-                $order = $this->orderService->updateStatus($order, $exchangeOrder);
-
-                if ($order->status == 'done') {
-                    if ($positionState == self::POSITION_OPEN) {
-                        $position = $this->positionService->open(
-                            $exchangeOrder->getProductId(),
-                            $exchangeOrder->getId(),
-                            $exchangeOrder->getSize(),
-                            $exchangeOrder->getPrice()
-                        );
-                        $order->position_id = $position->id;
-                        $order->save();
-                    }
-
-                    if ($positionState == self::POSITION_CLOSE) {
-                        $position_id = $order->position_id;
-                        if ($position_id > 0) {
-                            $position = $this->positionService->close(
-                                $position_id,
-                                $exchangeOrder->getSize(),
-                                $exchangeOrder->getPrice()
-                            );
-                        }
-                    }
-
-                    if ($positionState == self::POSITION_OPEN || $positionState == self::POSITION_CLOSE) {
-                        event(new PositionEvent(
-                                $exchangeOrder->getProductId(),
-                                $exchangeOrder->getSide(),
-                                $exchangeOrder->getSize(),
-                                $exchangeOrder->getPrice(),
-                                $position->status
-                            )
-                        );
-                    }
-                }
-            }
-        }
+        return new GrowingAndHarvesting();
     }
-
-    protected function placeOrder(string $pair, string $cryptocoin, Collection $result, Position $position = null)
-    {
-        if (!$this->option('simulate', false)) {
-
-            if (!is_null($position) && $result->get('side') == 'buy') {
-                $position_id = $position->id;
-            } else {
-                $position_id = 0;
-            }
-
-            $this->info(
-                'Placing order for crypto: ' . $cryptocoin . ',side: ' .
-                $result->get('side') . ',size: ' . $result->get('size') .
-                ' at price: ' . $result->get('price') .
-                ' position_id: ' . $position_id
-            );
-
-            $placedOrder = $this->exchange->placeOrder(
-                $pair,
-                $result->get('side'),
-                $result->get('size'),
-                $result->get('price')
-            );
-
-            if ($placedOrder->getId() != null) {
-                $position_id = 0;
-                if (!is_null($position) && $result->get('side') == 'buy') {
-                    $position_id = $position->id;
-                }
-                $this->orderService->insert($placedOrder, 'GrowingAndHarvesting', $position_id);
-            } else {
-                Log::info('Order not placed because: ' . $placedOrder->getMessage());
-                $this->warn('Order not placed because: ' . $placedOrder->getMessage());
-            }
-        } else {
-            $this->comment(
-                'Simulate: Placing order for crypto: ' . substr($pair,0,3) . ',side: ' .
-                $result->get('side') . ', size: ' . $result->get('size') .
-                ' at price: ' . $result->get('price')
-            );
-        }
-    }
-
-    protected function makePosition(
-        string $pair,
-        string $cryptocoin,
-        $strategy,
-        Collection $config,
-        Position $position = null
-    ) {
-        $result = $strategy->advise($config, $position);
-        if ($result->get('result') == 'fail' || $result->get('result') == 'hold') {
-            Log::debug("No advise data available");
-            return;
-        }
-
-        $placeOrder = false;
-        if ($cryptocoin == 'BTC' && $result->get('size') >= 0.0001) {
-            $placeOrder = true;
-        } else {
-            if ($result->get('size') >= 0.01) {
-                $placeOrder = true;
-            }
-        }
-
-        if ($placeOrder) {
-            $this->placeOrder($pair, $cryptocoin, $result, $position);
-        }
-    }
-
 
     public function handle()
     {
-        $strategy = new GrowingAndHarvesting();
+        $strategy = $this->getStrategy();
 
-        $cryptocoin = $this->argument('cryptocoin');
-        $fundAccount = $this->argument('fund');
-        $pair = $cryptocoin . '-' . $fundAccount;
+        $pair = $this->argument('pair');
+        if (!in_array($pair, ['BTC-EUR', 'LTC-EUR', 'ETH-EUR'])) {
+            throw new \Exception('No valid pair given');
+        }
 
-        $config = new Collection();
+        list($cryptoCoin, $fundAccount) = explode('-', $pair);
 
-        $this->exchange->useCoin($cryptocoin);
+        $this->exchange->usePair($pair);
 
+        if ($this->option('simulate')) {
+            $this->config->put('simulate', true);
+        }
 
         while (1) {
             $noExceptions = true;
 
             $settings = Setting::first();
 
-            $this->updateOrdersAndPositions(self::ORDER_SELL, self::POSITION_OPEN);
-            $this->updateOrdersAndPositions(self::ORDER_BUY, self::POSITION_CLOSE);
+            $this->updateOrdersAndPositions(
+                \Amavis442\Trading\Contracts\Order::ORDER_SELL,
+                \Amavis442\Trading\Contracts\Position::POSITION_OPEN
+            );
 
-            $config->put('size', (float)$settings->size);
-            $config->put('stradle', 0.03);
-            $config->put('lowerlimit', (float)$settings->bottom);
-            $config->put('upperlimit', (float)$settings->top);
+            $this->updateOrdersAndPositions(
+                \Amavis442\Trading\Contracts\Order::ORDER_BUY,
+                \Amavis442\Trading\Contracts\Position::POSITION_CLOSE
+            );
+
+            Cache::put('bot::settings', $settings->toJson(), 1);
+            Cache::put('bot::pair', $pair, 1);
+            Cache::put('bot::stradle', 0.03, 1);
+
 
             if ($settings->botactive) {
-
                 $openOrders = $this->orderService->getNumOpenOrders($pair);
                 try {
                     $openExchangeOrders = $this->exchange->getOpenOrders();
@@ -230,24 +111,6 @@ class BuySellStrategy extends Command
                 }
                 $slots = $settings->max_orders - $used_slots;
 
-                $config->put('fund', 0.0);
-                $config->put('coin', 0.0);
-                $config->put('currentprice', 100000000);
-
-                /*
-                switch ($cryptocoin) {
-                    case 'BTC':
-                        $config->put('size', 0.001);
-                        break;
-                    case 'ETH':
-                        $config->put('size', 0.01);
-                        break;
-                    case 'LTC':
-                        $config->put('size', 0.01);
-                        break;
-                }
-                */
-
                 try {
                     $funds = $this->exchange->getAccounts();
                 } catch (\Exception $e) {
@@ -255,30 +118,25 @@ class BuySellStrategy extends Command
                     $noExceptions = false;
                 }
 
-                $currentprice = 0;
-
                 if ($noExceptions) {
                     foreach ($funds as $fund) {
                         $available = $fund->getAvailable();
-
                         if ($fund->getCurrency() == $fundAccount) {
-                            $config->put('fund', (float)number_format($available, 8, '.', ''));
+                            Cache::put('config::fund', (float)number_format($available, 8, '.', ''), 1);
                         }
-                        if ($fund->getCurrency() == $cryptocoin) {
-                            $config->put('coin', (float)number_format($available, 8, '.', ''));
+                        if ($fund->getCurrency() == $cryptoCoin) {
+                            Cache::put('config::coin', (float)number_format($available, 8, '.', ''), 1);
                         }
                     }
-
                     $currentprice = $this->exchange->getCurrentPrice();
 
-                    $config->put('currentprice', $currentprice);
+                    Cache::put('gdax::' . $pair . '::currentprice', $currentprice, 2);
                 }
 
-
                 $funds = true;
-                if ($config->get('fund', 0.0) == 0.00 && $config->get('coin', 0.0) == 0.0) {
-                    $this->warn("no funds for coin: {$cryptocoin} and fund: {$fundAccount}");
-                    Log::warning("no funds for coin: {$cryptocoin} and fund: {$fundAccount}");
+                if (Cache::get('config::fund', 0.0) == 0.00 && Cache::get('config::coin', 0.0) == 0.0) {
+                    $this->warn("no funds for coin: {$cryptoCoin} and fund: {$fundAccount}");
+                    Log::warning("no funds for coin: {$cryptoCoin} and fund: {$fundAccount}");
                     $funds = false;
                 }
 
@@ -286,15 +144,13 @@ class BuySellStrategy extends Command
                     if ($slots <= 0 || !$funds) {
                         Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
                     } else {
-
                         $openPositions = $this->positionService->getOpen($pair);
-
                         if ($openPositions->count() > 0) {
                             foreach ($openPositions as $openPosition) {
-                                $this->makePosition($pair, $cryptocoin, $strategy, $config, $openPosition);
+                                $this->strategyAdvise($strategy, $openPosition);
                             }
                         } else {
-                            $this->makePosition($pair, $cryptocoin, $strategy, $config);
+                            $this->strategyAdvise($strategy);
                         }
                     }
                 }

@@ -19,7 +19,7 @@ class GDaxExchange implements Exchange
     protected $accountEUR;
     protected $accountLTC;
     protected $accountBTC;
-    protected $cryptoCoin;
+    protected $pair;
 
     /**
      *
@@ -39,16 +39,14 @@ class GDaxExchange implements Exchange
         if ($sandbox) {
             $this->client->setBaseURL(\GDAX\Utilities\GDAXConstants::GDAX_API_SANDBOX_URL);
         }
-
-        $this->useCoin((string)config('trading.coin'));
     }
 
     /**
      * @param string $cryptoCoin
      */
-    public function useCoin(string $cryptoCoin)
+    public function usePair(string $pair)
     {
-        $this->cryptoCoin = $cryptoCoin;
+        $this->pair = $pair;
     }
 
 
@@ -97,13 +95,13 @@ class GDaxExchange implements Exchange
      */
     public function getProductId(): string
     {
-        if ($this->cryptoCoin == 'LTC') {
+        if ($this->pair == 'LTC-EUR') {
             $product_id = \GDAX\Utilities\GDAXConstants::PRODUCT_ID_LTC_EUR;
         }
-        if ($this->cryptoCoin == 'BTC') {
+        if ($this->pair == 'BTC-EUR') {
             $product_id = \GDAX\Utilities\GDAXConstants::PRODUCT_ID_BTC_EUR;
         }
-        if ($this->cryptoCoin == 'ETH') {
+        if ($this->pair == 'ETH-EUR') {
             $product_id = \GDAX\Utilities\GDAXConstants::PRODUCT_ID_ETH_EUR;
         }
 
@@ -123,7 +121,6 @@ class GDaxExchange implements Exchange
         return $response;
     }
 
-
     /**
      * @param string $order_id
      *
@@ -139,7 +136,6 @@ class GDaxExchange implements Exchange
 
         return $response;
     }
-
 
     /**
      * @return array
