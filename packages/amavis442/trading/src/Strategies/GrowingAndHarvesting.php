@@ -30,7 +30,9 @@ class GrowingAndHarvesting implements Strategy
         $fund = Cache::get('config::fund', 0.0);
         $currentprice = Cache::get('gdax::' . $pair . '::currentprice', null);
         $config = json_decode(Cache::get('bot::settings'));
-        $stradle = Cache::get('bot::stradle', 0.03);
+        $sellstradle = Cache::get('bot::sellstradle', 0.03);
+        $buystradle = Cache::get('bot::buystradle', 0.03);
+
 
         $lowerlimit = (float)$config->bottom;
         $upperlimit = (float)$config->top;
@@ -46,7 +48,7 @@ class GrowingAndHarvesting implements Strategy
 
                 $minimalSizeReached = false;
                 if ($fund > 0.01) { // Buy and use all of the fund
-                    $price = $currentprice - (float)$stradle;
+                    $price = $currentprice - (float)$buystradle;
 
                     $s = $fund / $price;
                     if ($s >= 0.001 && $pair == 'BTC-EUR') {
@@ -84,7 +86,7 @@ class GrowingAndHarvesting implements Strategy
                     ) {
 
 
-                        $price = $currentprice + (float)$stradle;
+                        $price = $currentprice + (float)$sellstradle;
                         if (!is_null($position) && !is_null($position->size)) {
                             $size = $position->size;
                         } else {

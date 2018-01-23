@@ -95,8 +95,9 @@ class Bot extends Command
 
         Cache::put('bot::settings', $settings->toJson(), 1);
         Cache::put('bot::pair', $pair, 1);
-        Cache::put('bot::stradle', 0.03, 1);
 
+        Cache::put('bot::sellstradle', config('trading.sellstradle',0.03), 1);
+        Cache::put('bot::buystradle', config('trading.buystradle',0.03), 1);
 
         if ($settings->botactive) {
             $openOrders = $this->orderService->getNumOpenOrders($pair);
