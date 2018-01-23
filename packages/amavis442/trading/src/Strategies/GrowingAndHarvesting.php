@@ -97,6 +97,25 @@ class GrowingAndHarvesting implements Strategy
                         return $result->put('result', 'ok');
                     }
                 }
+            } else {
+                // When price goes up a lot. You can sell it if currentprice = open + 100
+                if ($fund <= 0.01 &&
+                    $coin >= 0.0001 &&
+                    !is_null($position) &&
+                    ($position->open + 100) < $currentprice
+                ) {
+                    $price = $currentprice;
+                    if (!is_null($position) && !is_null($position->size)) {
+                        $size = $position->size;
+                    } else {
+                        $size = $config->size;
+                    }
+                    $result->put('side', 'sell');
+                    $result->put('size', $size);
+                    $result->put('price', number_format($price, 2, '.', ''));
+
+                    return $result->put('result', 'ok');
+                }
             }
         }
         $result->put('result', 'hold');
