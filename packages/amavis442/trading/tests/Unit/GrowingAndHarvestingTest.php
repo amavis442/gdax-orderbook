@@ -21,7 +21,8 @@ final class GrowingAndHarvestingTest extends TestCase
 
         Cache::put('bot::settings', $settings->toJson(), 1);
         Cache::put('bot::pair', 'BTC-EUR', 1);
-        Cache::put('bot::stradle', 0.01, 1);
+        Cache::put('bot::buystradle', 0.01, 1);
+        Cache::put('bot::sellstradle', 0.01, 1);
         Cache::put('config::fund', 30.00, 1);
         Cache::put('config::coin', 0.005000, 1);
         Cache::put('gdax::BTC-EUR::currentprice', 10450.00, 2);
@@ -54,7 +55,8 @@ final class GrowingAndHarvestingTest extends TestCase
 
         Cache::put('bot::settings', $settings->toJson(), 1);
         Cache::put('bot::pair', 'BTC-EUR', 1);
-        Cache::put('bot::stradle', 0.01, 1);
+        Cache::put('bot::buystradle', 0.01, 1);
+        Cache::put('bot::sellstradle', 0.01, 1);
         Cache::put('config::fund', 0.00, 1);
         Cache::put('config::coin', 0.005000, 1);
         Cache::put('gdax::BTC-EUR::currentprice', 10400.00, 2);
@@ -82,7 +84,8 @@ final class GrowingAndHarvestingTest extends TestCase
 
         Cache::put('bot::settings', $settings->toJson(), 1);
         Cache::put('bot::pair', 'BTC-EUR', 1);
-        Cache::put('bot::stradle', 0.01, 1);
+        Cache::put('bot::buystradle', 0.01, 1);
+        Cache::put('bot::sellstradle', 0.01, 1);
         Cache::put('config::fund', 0.00, 1);
         Cache::put('config::coin', 0.005000, 1);
         Cache::put('gdax::BTC-EUR::currentprice', 10450.00, 2);
