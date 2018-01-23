@@ -38,8 +38,10 @@ class GrowingAndHarvesting implements Strategy
 
         if (!is_null($currentprice)) {
 
-            if ($currentprice > $lowerlimit &&
-                $currentprice < $upperlimit) {
+            if (
+                $currentprice > $lowerlimit &&
+                $currentprice < $upperlimit
+            ) {
 
 
                 $minimalSizeReached = false;
