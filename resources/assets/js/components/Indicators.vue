@@ -4,14 +4,15 @@
             <thead>
             <tr>
                 <th>Indicator</th>
-                <th>signal</th>
+                <th>Timestamp</th>
+                <th>Signal</th>
             </tr>
             </thead>
             <tbody>
             <tr v-for='indicator in indicators'>
                 <td> {{ indicator.name }}</td>
+                <td>{{ indicator.timestamp }}</td>
                 <td>
-                    {{ indicator.timestamp }}
                     <span>
                     {{ indicator.signal }}
                     </span>
