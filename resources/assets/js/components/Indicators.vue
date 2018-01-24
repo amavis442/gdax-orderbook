@@ -11,7 +11,8 @@
             <tr v-for='indicator in indicators'>
                 <td> {{ indicator.name }}</td>
                 <td>
-                    <span class="{{ indicator.styleclass }}">
+                    {{ indicator.timestamp }}
+                    <span>
                     {{ indicator.signal }}
                     </span>
                 </td>
@@ -29,7 +30,7 @@
         data() {
             return {
                 indicators: [
-                    {name: '' , signal: 0, styleclass: ''}
+                    {name: '' , signal: 0, timestamp: ''}
                 ],
                 timer: ''
             }

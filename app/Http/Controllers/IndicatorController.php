@@ -28,16 +28,18 @@ class IndicatorController extends Controller
 
     public function toText($name, $r)
     {
+        $timestamp = \Carbon\Carbon::now('Europe/Amsterdam')->format('Y-m-d H:i:s');
+
         $result = [];
         switch ($r) {
             case Indicator::BUY:
-                $result = ['name' => $name, 'signal'=>'buy','styleclass'=>'alert alert-info'];
+                $result = ['name' => $name, 'signal'=>'buy','timestamp'=>$timestamp];
                 break;
             case Indicator::HOLD:
-                $result = ['name' => $name, 'signal'=>'hold','styleclass'=>'alert alert-info'];
+                $result = ['name' => $name, 'signal'=>'hold','timestamp'=>$timestamp];
                 break;
             case Indicator::SELL:
-                $result = ['name' => $name, 'signal'=>'hold','styleclass'=>'alert alert-danger'];
+                $result = ['name' => $name, 'signal'=>'hold','timestamp'=>$timestamp];
                 break;
         }
 
@@ -49,6 +51,8 @@ class IndicatorController extends Controller
         $t = new Ticker();
         $data = $t->getRecentData($pair,168);
         $config = new Collection(['data' => $data, 'period' => 14]);
+
+
 
         $i = new AverageDirectionalMovementIndexIndicator();
         $r = $i->check($config);
