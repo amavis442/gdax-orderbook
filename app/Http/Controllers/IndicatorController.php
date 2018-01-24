@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use http\Env\Request;
 use Illuminate\Support\Collection;
 use Amavis442\Trading\Models\Ticker;
 use Amavis442\Trading\Contracts\Indicator;
@@ -64,9 +65,10 @@ class IndicatorController extends Controller
         return $result;
     }
 
-    public function getIndicators()
+    public function getIndicators(Request $request)
     {
-        $pair = 'ETH-EUR';
+        $pair = $request->get('pair');
+
         $t = new Ticker();
         $recentData = $t->getRecentData($pair, 168);
         $config = new Collection(['data' => $recentData, 'period' => 14]);

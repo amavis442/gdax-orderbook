@@ -1,5 +1,10 @@
 <template>
     <div>
+        <div class="page-header">
+            <h2>{{ pair }}</h2>
+        </div>
+
+
         <div v-if="errors.length > 0 ">
             <div class="alert alert-danger" role="alert">
                 <ul v-for="error in errors">
@@ -7,6 +12,17 @@
                 </ul>
             </div>
         </div>
+
+        <ul class="nav nav-tabs">
+            <li role="presentation" v-bind:class="{ active: isActiveBCTEUR }"
+                v-on:click="togglePair(1)"><a href="#">BTC-EUR</a></li>
+            <li role="presentation" v-bind:class="{ active: isActiveETHEUR }"
+                v-on:click="togglePair(2)"><a href="#">ETH-EUR</a></li>
+            <li role="presentation" v-bind:class="{ active: isActiveLTCEUR }"
+                v-on:click="togglePair(3)"><a href="#">LTC-EUR</a></li>
+        </ul>
+
+
 
         <table class="table table-striped">
             <thead>
@@ -51,21 +67,49 @@
                 ],
                 timer: '',
                 errors: [],
-                message: ''
+                message: '',
+                pair: 'ETH-EUR',
+                isActiveBCTEUR: false,
+                isActiveETHEUR: true,
+                isActiveLTCEUR: false
             }
         },
         created: function () {
-            this.timer = setInterval( this.fetchIndicators, 5000)
+            this.timer = setInterval( this.fetchIndicators('ETH-EUR'), 5000)
         },
         methods: {
-            fetchIndicators: function () {
-                axios.get('/getindicators')
+            fetchIndicators: function (pair) {
+                axios.get('/getindicators/?pair=' + pair)
                     .then(response => {
                         this.indicators = response.data;
                     })
                     .catch(e => {
                         this.errors.push(e)
                     })
+            },
+            togglePair: function (togglePair) {
+                this.isActiveBCTEUR = false;
+                this.isActiveETHEUR = false;
+                this.isActiveLTCEUR = false;
+
+                switch (togglePair) {
+                    case 1:
+                        this.fetchIndicators('BTC-EUR');
+                        this.isActiveBCTEUR = true;
+                        break;
+                    case 2:
+                        this.fetchIndicators('ETH-EUR');
+                        this.isActiveETHEUR = true;
+                        break;
+                    case 3:
+                        this.fetchIndicators('LTC-EUR');
+                        this.isActiveLTCEUR = true;
+                        break;
+                    default:
+                        this.fetchIndicators('ETH-EUR');
+                        this.isActiveETHEUR = true;
+                        break;
+                }
             },
             cancelAutoUpdate: function () {
                 clearInterval(this.timer)
