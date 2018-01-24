@@ -1,9 +1,10 @@
 <?php
 
-namespace Amavis442\Trading\Triggers;
+namespace Amavis442\Trading\Indicators;
 
 use Amavis442\Trading\Contracts\Indicator;
 use Illuminate\Support\Collection;
+use Amavis442\Trading\Exceptions\NotEnoughDataPointsException;
 
 /**
  * Class EMA
@@ -17,7 +18,7 @@ class EMA implements Indicator
         $data = (array)$config->get('data', []);
         $period = (int)$config->get('period', 20);
 
-        $ema  = trader_ema($data, $period);
+        $ema  = trader_ema($data->pluck('close'), $period);
 
         throw_unless($ema, NotEnoughDataPointsException::class, "Not enough datapoints");
 

@@ -2,12 +2,8 @@
 
 namespace Amavis442\Trading;
 
-use Amavis442\Trading\Commands\BuySellStrategy;
+use Amavis442\Trading\Commands\IndicatorTest;
 use Illuminate\Support\ServiceProvider;
-
-use Amavis442\Trading\Commands\Ticker;
-use Amavis442\Trading\Commands\Position;
-use Amavis442\Trading\Commands\Order;
 use Amavis442\Trading\Commands\Bot;
 
 /**
@@ -37,11 +33,8 @@ class TraderServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                //Ticker::class,
-                //Position::class,
-                //Order::class,
                 Bot::class,
-                //BuySellStrategy::class,
+                IndicatorTest::class,
             ]);
         }
     }
@@ -87,12 +80,5 @@ class TraderServiceProvider extends ServiceProvider
         $this->app->singleton('Amavis442\Trading\Bot\TickerBot', function ($app) {
             return new \Amavis442\Trading\Bot\TickerBot($app->make('Amavis442\Trading\Contracts\Exchange'));
         });
-
-        /* WIP
-        $this->app->singleton('Amavis442\Trading\Bot\BuyBot', function ($app) {
-            return new \Amavis442\Trading\Bot\BuyBot($app->make('Amavis442\Trading\Contracts\Exchange'));
-        });
-        */
     }
-
 }
