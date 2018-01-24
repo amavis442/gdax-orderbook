@@ -83,7 +83,7 @@
 
                 axios.get('/getindicators?pair='+ this.pair)
                     .then(response => {
-                        this.indicators = response.data;
+                        this.indicators = response.data[this.pair];
                     })
                     .catch(e => {
                         this.errors.push(e)

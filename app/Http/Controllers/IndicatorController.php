@@ -76,33 +76,33 @@ class IndicatorController extends Controller
 
         $i = new AverageDirectionalMovementIndexIndicator();
         $r = $i->check($config);
-        $data[] = $this->toText('AverageDirectionalMovementIndexIndicator', $r);
+        $data[$pair][] = $this->toText('AverageDirectionalMovementIndexIndicator', $r);
 
         $i = new OnBalanceVolumeIndicator();
         $r = $i->check($config);
-        $data[] = $this->toText('OnBalanceVolumeIndicator', $r);
+        $data[$pair][] = $this->toText('OnBalanceVolumeIndicator', $r);
 
         $i = new CommodityChannelIndexIndicator();
         $r = $i->check($config);
-        $data[] = $this->toText('CommodityChannelIndexIndicator', $r);
+        $data[$pair][] = $this->toText('CommodityChannelIndexIndicator', $r);
 
 
         $i = new HilbertTransformInstantaneousTrendlineIndicator();
         $r = $i->check($config);
-        $data[] = $this->toText('HilbertTransformInstantaneousTrendlineIndicator', $r);
+        $data[$pair][] = $this->toText('HilbertTransformInstantaneousTrendlineIndicator', $r);
 
         $i = new HilbertTransformTrendVersusCycleModeIndicator();
         $r = $i->check($config);
-        $data[] = $this->toText('HilbertTransformTrendVersusCycleModeIndicator', $r);
+        $data[$pair][] = $this->toText('HilbertTransformTrendVersusCycleModeIndicator', $r);
 
         $i = new MoneyFlowIndexIndicator();
         $r = $i->check($config);
-        $data[] = $this->toText('MoneyFlowIndexIndicator', $r);
+        $data[$pair][] = $this->toText('MoneyFlowIndexIndicator', $r);
 
 
         $i = new MovingAverageCrossoverDivergenceIndicator();
         $r = $i->check($config);
-        $data[] = $this->toText('MovingAverageCrossoverDivergenceIndicator', $r);
+        $data[$pair][] = $this->toText('MovingAverageCrossoverDivergenceIndicator', $r);
 
         return $data;
     }
