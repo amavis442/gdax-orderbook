@@ -55,7 +55,7 @@
             }
         },
         created: function () {
-            this.timer = setInterval( this.fetchIndicators(), 2000)
+            this.timer = setInterval( this.fetchIndicators, 5000)
         },
         methods: {
             fetchIndicators: function () {
