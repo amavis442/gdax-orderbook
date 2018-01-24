@@ -46,7 +46,7 @@
             }
         },
         created: function () {
-            this.timer = setInterval(this.fetchIndicators(), 2000)
+            this.timer = setInterval(this.fetchIndicators(), 10000)
         },
         methods: {
             fetchIndicators: function () {
