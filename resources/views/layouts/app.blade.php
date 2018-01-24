@@ -55,6 +55,9 @@
                                         <a href=" {{ route('wallets.index') }}">Wallets</a>
                                     </li>
                                     <li>
+                                        <a href=" {{ route('indicators.index') }}">Indicators</a>
+                                    </li>
+                                    <li>
                                         <a href=" {{ route('users.index') }}">Users</a>
                                     </li>
                                     <li>

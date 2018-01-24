@@ -11,7 +11,7 @@
             <tr v-for='indicator in indicators'>
                 <td> {{ indicator.name }}</td>
                 <td>
-                    <span class="indicator.styleclass">
+                    <span class="{{ indicator.styleclass }}">
                     {{ indicator.signal }}
                     </span>
                 </td>
