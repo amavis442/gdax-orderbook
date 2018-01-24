@@ -79,7 +79,7 @@
         },
         methods: {
             fetchIndicators: function () {
-                axios.get('/getindicators/?pair=' + this.pair)
+                axios.get('/getindicators',{ pair: this.pair })
                     .then(response => {
                         this.indicators = response.data;
                     })
