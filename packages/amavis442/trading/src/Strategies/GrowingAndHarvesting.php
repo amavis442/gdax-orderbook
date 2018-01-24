@@ -37,25 +37,41 @@ class GrowingAndHarvesting implements Strategy
         $lowerlimit = (float)$config->tradebottomlimit;
         $upperlimit = (float)$config->tradetoplimit;
 
+        $timestamp = \Carbon\Carbon::now('Europe/Amsterdam')
+            ->subMinute(10)
+            ->format('Y-m-d H:i:s');
+
 
         if (!is_null($currentprice)) {
             if (
                 $currentprice > $lowerlimit &&
                 $currentprice < $upperlimit
             ) {
-                /* $timestamp = \Carbon\Carbon::now('Europe/Amsterdam')
-                                           ->subMinute(5)
-                                           ->format('Y-m-d H:i:s'); */
 
-                $order = \Amavis442\Trading\Models\Order::whereStatus('done')
-                                                        ->whereSide('sell')
-                                                        ->wherePair($pair)
-                                                        ->orderBy('id', 'desc')
-                                                        //->where('created_at', '>', $timestamp)
-                                                        ->first();
                 $minimalSizeReached = false;
                 if ($fund > 0.01) { // Buy and use all of the fund
-                    $price = $currentprice - (float)$buystradle;
+
+                    $order = \Amavis442\Trading\Models\Order::whereStatus('done')
+                        ->whereSide('sell')
+                        ->wherePair($pair)
+                        ->orderBy('id', 'desc')
+                        ->where('created_at', '>', $timestamp)
+                        ->first();
+
+
+                    /**
+                     * BUY
+                     */
+                    // Rule: if we have a recent sell order then only buy when price is 1 euro below last sell price.
+                    if ($order) {
+                        if ($currentprice < ($order->amount - 1.0)) {
+                            $price = $currentprice - (float)$buystradle;
+                        } else {
+                            return $result->put('result', 'hold');
+                        }
+                    } else {
+                        $price = $currentprice - (float)$buystradle;
+                    }
 
                     $s = $fund / $price;
                     if ($s >= 0.001 && $pair == 'BTC-EUR') {
@@ -69,12 +85,6 @@ class GrowingAndHarvesting implements Strategy
                     $s = (string)$s;
                     $size = substr($s, 0,
                         strpos($s, '.') + 9); // should be more then 0.0001 for BTC and 0.01 for ETH and LTC
-
-                    if ($order) {
-                        if ($order->amount < $price) {
-                            $minimalSizeReached = false;
-                        }
-                    }
 
                     if ($minimalSizeReached) {
                         $result->put('side', 'buy');
@@ -91,6 +101,9 @@ class GrowingAndHarvesting implements Strategy
                         return $result->put('result', 'fail');
                     }
                 } else {
+                    /**
+                     * SELL
+                     */
                     // Needs an indicator to see if the trend goes up or not
                     if ($fund <= 0.01 &&
                         $coin >= 0.0001 &&
@@ -98,8 +111,25 @@ class GrowingAndHarvesting implements Strategy
                         $position->open < $currentprice
                     ) {
 
+                        $order = \Amavis442\Trading\Models\Order::whereStatus('done')
+                            ->whereSide('buy')
+                            ->wherePair($pair)
+                            ->orderBy('id', 'desc')
+                            ->where('created_at', '>', $timestamp)
+                            ->first();
 
-                        $price = $currentprice + (float)$sellstradle;
+                        // Rule: If we have a recent buy order then only sell when price is at least 1 euro higher
+                        if ($order) {
+                            if ($currentprice > ($order->amount + 1.0)) {
+                                $price = $currentprice + (float)$sellstradle;
+                            } else {
+                                return $result->put('result', 'hold');
+                            }
+                        } else {
+                            $price = $currentprice + (float)$sellstradle;
+                        }
+
+
                         if (!is_null($position) && !is_null($position->size)) {
                             $size = $position->size;
                         } else {
