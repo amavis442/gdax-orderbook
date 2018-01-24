@@ -79,6 +79,8 @@
         },
         methods: {
             fetchIndicators: function () {
+                this.errors = [];
+
                 axios.get('/getindicators?pair='+ this.pair)
                     .then(response => {
                         this.indicators = response.data;
