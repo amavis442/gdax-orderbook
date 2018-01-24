@@ -238,7 +238,7 @@ class Bot extends Command
             },
                 function (\Exception $e) use ($loop) {
                     Log::warning("Could not connect: " . $e->getMessage());
-                    $loop->stop();
+                    //$loop->stop();
                 }
             );
         $loop->run();
