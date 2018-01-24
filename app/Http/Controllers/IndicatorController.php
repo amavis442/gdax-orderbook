@@ -1,11 +1,9 @@
 <?php
 
-namespace Amavis442\Trading\Commands;
+namespace App\Http\Controllers;
 
-use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Amavis442\Trading\Models\Ticker;
-
 use Amavis442\Trading\Contracts\Indicator;
 use Amavis442\Trading\Indicators\AverageDirectionalMovementIndexIndicator;
 use Amavis442\Trading\Indicators\OnBalanceVolumeIndicator;
@@ -16,84 +14,72 @@ use Amavis442\Trading\Indicators\MoneyFlowIndexIndicator;
 use Amavis442\Trading\Indicators\MovingAverageCrossoverDivergenceIndicator;
 
 /**
- * Description of RunBotCommand
+ * Class IndicatorController
  *
- * @author patrick
+ * @package App\Http\Controllers
  */
-class IndicatorTest extends Command
+class IndicatorController extends Controller
 {
 
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'trading:indicator';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Buys and sells position depending on the given strategy.';
-
-    public function toText($r)
+    public function index()
     {
-        switch ($r) {
-            case Indicator::BUY:
-                return 'buy';
-                break;
-            case Indicator::HOLD:
-                return 'hold';
-                break;
-            case Indicator::SELL:
-                return 'sell';
-                break;
-        }
+        return view('indicators.index');
     }
 
-    public function handle()
+    public function toText($name, $r)
     {
+        $result = [];
+        switch ($r) {
+            case Indicator::BUY:
+                $result = ['name' => $name, 'signal'=>'buy','styleclass'=>'alert alert-info'];
+                break;
+            case Indicator::HOLD:
+                $result = ['name' => $name, 'signal'=>'hold','styleclass'=>'alert alert-info'];
+                break;
+            case Indicator::SELL:
+                $result = ['name' => $name, 'signal'=>'hold','styleclass'=>'alert alert-danger'];
+                break;
+        }
+
+        return $result;
+    }
+
+    public function getIndicators() {
         $pair = 'ETH-EUR';
         $t = new Ticker();
         $data = $t->getRecentData($pair,168);
-
         $config = new Collection(['data' => $data, 'period' => 14]);
-
-
-        $headers = ['Name', 'signal'];
-        $data = [];
 
         $i = new AverageDirectionalMovementIndexIndicator();
         $r = $i->check($config);
-        $data[] = ['AverageDirectionalMovementIndexIndicator',$this->toText($r)];
+        $data[] = $this->toText('AverageDirectionalMovementIndexIndicator',$r);
 
         $i = new OnBalanceVolumeIndicator();
         $r = $i->check($config);
-        $data[] = ['OnBalanceVolumeIndicator',$this->toText($r)];
+        $data[] = $this->toText('OnBalanceVolumeIndicator',$r);
 
         $i = new CommodityChannelIndexIndicator();
         $r = $i->check($config);
-        $data[] = ['CommodityChannelIndexIndicator',$this->toText($r)];
+        $data[] = $this->toText('CommodityChannelIndexIndicator', $r);
 
 
         $i = new HilbertTransformInstantaneousTrendlineIndicator();
         $r = $i->check($config);
-        $data[] = ['HilbertTransformInstantaneousTrendlineIndicator',$this->toText($r)];
+        $data[] = $this->toText('HilbertTransformInstantaneousTrendlineIndicator', $r);
 
         $i = new HilbertTransformTrendVersusCycleModeIndicator();
         $r = $i->check($config);
-        $data[] = ['HilbertTransformTrendVersusCycleModeIndicator',$this->toText($r)];
+        $data[] = $this->toText('HilbertTransformTrendVersusCycleModeIndicator',$r);
 
         $i = new MoneyFlowIndexIndicator();
         $r = $i->check($config);
-        $data[] = ['MoneyFlowIndexIndicator',$this->toText($r)];
+        $data[] = $this->toText('MoneyFlowIndexIndicator', $r);
 
 
         $i = new MovingAverageCrossoverDivergenceIndicator();
         $r = $i->check($config);
-        $data[] = ['MovingAverageCrossoverDivergenceIndicator',$this->toText($r)];
+        $data[] = $this->toText('MovingAverageCrossoverDivergenceIndicator', $r);
 
-        $this->table($headers, $data);
+        return $data;
     }
 }

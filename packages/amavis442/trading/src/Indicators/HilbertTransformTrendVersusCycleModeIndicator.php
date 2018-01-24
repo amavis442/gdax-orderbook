@@ -4,6 +4,7 @@ namespace Amavis442\Trading\Indicators;
 
 use Amavis442\Trading\Contracts\Indicator;
 use Illuminate\Support\Collection;
+use Amavis442\Trading\Exceptions\NotEnoughDataPointsException;
 
 /**
  * Class HilbertTransformTrendVersusCycleModeIndicator
@@ -19,7 +20,7 @@ class HilbertTransformTrendVersusCycleModeIndicator implements Indicator
 
     public function check(Collection $config): int
     {
-        $data = (array)$config->get('data', []);
+        $data = $config->get('data', []);
         $numperiods = (bool)$config->get('numperiods', false);
 
 

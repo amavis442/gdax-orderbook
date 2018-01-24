@@ -17,6 +17,8 @@ const app = new Vue({
         'positions': require('./components/Positions.vue'),
         'orders': require('./components/Orders.vue'),
         'trailingpositions': require('./components/TrailingPositions.vue'),
-        'botsettings': require('./components/BotSettings.vue')
+        'botsettings': require('./components/BotSettings.vue'),
+        'indicators': require('./components/Indicators.vue')
+
     }
 });

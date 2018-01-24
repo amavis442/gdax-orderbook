@@ -15,10 +15,10 @@ class EMA implements Indicator
 
     public function check(Collection $config): int
     {
-        $data = (array)$config->get('data', []);
+        $data = $config->get('data', []);
         $period = (int)$config->get('period', 20);
 
-        $ema  = trader_ema($data->pluck('close'), $period);
+        $ema  = trader_ema($data['close'], $period);
 
         throw_unless($ema, NotEnoughDataPointsException::class, "Not enough datapoints");
 

@@ -39,3 +39,6 @@ Route::resource('users', 'UserController')->middleware('auth');
 
 Route::post('/updatesetting', 'SettingController@updateSetting')->middleware('auth');
 Route::get('/getsetting', 'SettingController@getSetting')->middleware('auth');
+
+Route::get('/getindicators', 'IndicatorController@getIndicators')->middleware('auth');
+Route::get('/indicators', 'IndicatorController@index')->middleware('auth')->name('indicators.index');

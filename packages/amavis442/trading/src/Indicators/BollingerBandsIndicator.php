@@ -35,7 +35,7 @@ class BollingerBandsIndicator implements Indicator
 
     public function check(Collection $config): int
     {
-        $data = (array)$config->get('data', []);
+        $data = $config->get('data');
         $period = (int)$config->get('period', 10);
         $devup = (int)$config->get('devup', 2);
         $devdn = (int)$config->get('devdn', 2);

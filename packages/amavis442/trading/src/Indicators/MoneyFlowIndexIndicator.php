@@ -4,6 +4,7 @@ namespace Amavis442\Trading\Indicators;
 
 use Amavis442\Trading\Contracts\Indicator;
 use Illuminate\Support\Collection;
+use Amavis442\Trading\Exceptions\NotEnoughDataPointsException;
 
 /**
  * Class MoneyFlowIndexIndicator
@@ -22,15 +23,15 @@ class MoneyFlowIndexIndicator implements Indicator
     public function check(Collection $config): int//public function run(Collection $data, int $period = 14): int
     {
 
-        $data = (array)$config->get('data', []);
+        $data = $config->get('data', []);
         $period = (int)$config->get('period', 14);
 
 
         $mfi = trader_mfi(
-            $data->get('high'),
-            $data->get('low'),
-            $data->get('close'),
-            $data->get('volume'),
+            $data['high'],
+            $data['low'],
+            $data['close'],
+            $data['volume'],
             $period
         );
 

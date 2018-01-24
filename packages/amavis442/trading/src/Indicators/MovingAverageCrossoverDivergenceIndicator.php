@@ -3,6 +3,8 @@
 namespace Amavis442\Trading\Indicators;
 
 use Amavis442\Trading\Contracts\Indicator;
+use Illuminate\Support\Collection;
+use Amavis442\Trading\Exceptions\NotEnoughDataPointsException;
 
 /**
  *
@@ -19,14 +21,16 @@ use Amavis442\Trading\Contracts\Indicator;
  * One way to use MACD is to wait for the fast line to “cross over” or “cross under” the slow line and
  * enter the trade accordingly because it signals a new trend.
  */
-class MovingAverageCrossoverDivergenceIndicator implements IndicatorInterface
+class MovingAverageCrossoverDivergenceIndicator implements Indicator
 {
 
     public function check(Collection $config): int//public function __invoke(array $data, int $period1 = 12, int $period2 = 26, int $period3 = 9): int
     {
-        $data = (array)$config->get('data', []);
+        $data = $config->get('data', []);
         $period = (int)$config->get('period', 14);
-
+        $period1 = (int)$config->get('period', 12);
+        $period2 = (int)$config->get('period', 26);
+        $period3 = (int)$config->get('period', 9);
 
         /* 
          * Create the MACD signal and pass in the three parameters: fast period, slow period, and the signal.
@@ -42,7 +46,7 @@ class MovingAverageCrossoverDivergenceIndicator implements IndicatorInterface
             $period3
             );
 
-        throw_unless($atr, NotEnoughDataPointsException::class, "Not enough datapoints");
+        throw_unless($macd, NotEnoughDataPointsException::class, "Not enough datapoints");
 
         
         $macd_raw = $macd[0];

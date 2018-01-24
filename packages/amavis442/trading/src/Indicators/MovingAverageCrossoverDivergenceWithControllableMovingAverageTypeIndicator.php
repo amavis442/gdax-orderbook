@@ -4,6 +4,7 @@ namespace Amavis442\Trading\Indicators;
 
 use Amavis442\Trading\Contracts\Indicator;
 use Illuminate\Support\Collection;
+use Amavis442\Trading\Exceptions\NotEnoughDataPointsException;
 
 /**
  * Class MovingAverageCrossoverDivergenceWithControllableMovingAverageTypeIndicator
@@ -17,7 +18,7 @@ class MovingAverageCrossoverDivergenceWithControllableMovingAverageTypeIndicator
 
     public function check(Collection $config): int
     {
-        $data = (array)$config->get('data', []);
+        $data = $config->get('data', []);
         $fastPeriod = (int)$config->get('fastPeriod', 12);
         $fastMAType = (int)$config->get('fastMAType', 0);
         $slowPeriod = (int)$config->get('slowPeriod', 26);

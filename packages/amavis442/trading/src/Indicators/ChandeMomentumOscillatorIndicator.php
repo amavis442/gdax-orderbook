@@ -3,6 +3,7 @@ namespace Amavis442\Trading\Indicators;
 
 use Amavis442\Trading\Contracts\Indicator;
 use Illuminate\Support\Collection;
+use Amavis442\Trading\Exceptions\NotEnoughDataPointsException;
 
 /**
  * Class ChandeMomentumOscillatorIndicator
@@ -13,7 +14,7 @@ class ChandeMomentumOscillatorIndicator implements Indicator
 
     public function check(Collection $config): int
     {
-        $data = (array)$config->get('data', []);
+        $data = $config->get('data', []);
         $period = (int)$config->get('period', 14);
 
         $cmo = trader_cmo($data['close'], $period);

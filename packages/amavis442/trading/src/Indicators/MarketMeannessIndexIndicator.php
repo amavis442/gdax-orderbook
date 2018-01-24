@@ -4,6 +4,7 @@ namespace Amavis442\Trading\Indicators;
 
 use Amavis442\Trading\Contracts\Indicator;
 use Illuminate\Support\Collection;
+use Amavis442\Trading\Exceptions\NotEnoughDataPointsException;
 
 /**
  * Class MarketMeannessIndexIndicator
@@ -24,7 +25,7 @@ class MarketMeannessIndexIndicator implements Indicator
 
     public function check(Collection $config): int
     {
-        $data = (array)$config->get('data', []);
+        $data = $config->get('data', []);
         $period = (int)$config->get('period', 200);
 
 

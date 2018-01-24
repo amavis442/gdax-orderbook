@@ -4,6 +4,7 @@ namespace Amavis442\Trading\Indicators;
 
 use Amavis442\Trading\Contracts\Indicator;
 use Illuminate\Support\Collection;
+use Amavis442\Trading\Exceptions\NotEnoughDataPointsException;
 
 /**
  * Class AverageTrueRangeIndicator
@@ -25,21 +26,25 @@ class AverageTrueRangeIndicator implements Indicator
 
     public function check(Collection $config): int
     {
-        $data = (array)$config->get('data', []);
+        $data = $config->get('data');
         $period = (int)$config->get('period', 14);
 
-        if ($period > count($data['close'])) {
-            $period = round(count($data['close']) / 2);
+        $close  = $data['close'];
+        $high = $data['high'];
+        $low = $data['low'];
+
+        if ($period > count($close)) {
+            $period = round(count($close) / 2);
         }
 
-        $data2      = $data;
-        $current    = array_pop($data2['close']); // we assume this is current
-        $prev_close = array_pop($data2['close']); // prior close
+        $data2      = $close;
+        $current    = array_pop($data2); // we assume this is current
+        $prev_close = array_pop($data2); // prior close
 
         $atr = trader_atr(
-            $data['high'], 
-            $data['low'], 
-            $data['close'],
+            $high,
+            $low,
+            $close,
             $period
         );
 
