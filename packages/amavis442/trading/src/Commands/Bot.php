@@ -188,62 +188,68 @@ class Bot extends Command
         $loop = \React\EventLoop\Factory::create();
         $connector = new \Ratchet\Client\Connector($loop);
 
-        $connector('wss://ws-feed.gdax.com')
-            ->then(function (\Ratchet\Client\WebSocket $conn) use ($pair) {
-                $channel['type'] = 'subscribe';
-                $channel['product_ids'] = [$pair];
-                $channel['channels'] = ['ticker', 'level2'];
+        while(1) {
+            $connector('wss://ws-feed.gdax.com')
+                ->then(function (\Ratchet\Client\WebSocket $conn) use ($pair) {
+                    $channel['type'] = 'subscribe';
+                    $channel['product_ids'] = [$pair];
+                    $channel['channels'] = ['ticker', 'level2'];
 
-                $ch = json_encode($channel);
-                $conn->send($ch);
+                    $ch = json_encode($channel);
+                    $conn->send($ch);
 
-                $conn->on('message', function (\Ratchet\RFC6455\Messaging\MessageInterface $msg) use ($pair, $conn) {
-                    $data = json_decode($msg, 1);
+                    $conn->on('message',
+                        function (\Ratchet\RFC6455\Messaging\MessageInterface $msg) use ($pair, $conn) {
+                            $data = json_decode($msg, 1);
 
-                    if ($data['type'] == 'ticker') {
-                        Cache::put('gdax::' . $pair . '::currentprice', $data['price'], 2);
+                            if ($data['type'] == 'ticker') {
+                                Cache::put('gdax::' . $pair . '::currentprice', $data['price'], 2);
 
-                        Ticker::create([
-                            'sequence' => $data['sequence'],
-                            'pair' => $data['product_id'],
-                            'timeid' => \Carbon\Carbon::now('Europe/Amsterdam')->format('YmdHis'),
-                            'price' => $data['price'],
-                            'open' => $data['open_24h'],
-                            'high' => $data['high_24h'],
-                            'low' => $data['low_24h'],
-                            'close' => $data['price'],
-                            'volume' => $data['volume_24h'],
-                            'volume_30d' => $data['volume_30d'],
-                            'best_bid' => $data['best_bid'],
-                            'best_ask' => $data['best_ask'],
-                        ]);
+                                Ticker::create([
+                                    'sequence'   => $data['sequence'],
+                                    'pair'       => $data['product_id'],
+                                    'timeid'     => \Carbon\Carbon::now('Europe/Amsterdam')->format('YmdHis'),
+                                    'price'      => $data['price'],
+                                    'open'       => $data['open_24h'],
+                                    'high'       => $data['high_24h'],
+                                    'low'        => $data['low_24h'],
+                                    'close'      => $data['price'],
+                                    'volume'     => $data['volume_24h'],
+                                    'volume_30d' => $data['volume_30d'],
+                                    'best_bid'   => $data['best_bid'],
+                                    'best_ask'   => $data['best_ask'],
+                                ]);
 
-                        $this->process();
+                                $this->process();
+                            }
+
+                            if ($data['type'] == 'l2update') {
+
+                                //dd($data);
+                            }
+
+                            if ($data['type'] == 'snapshot') {
+                                //$this->book = ['sells' => $data['asks'], 'buy' => $data['bids']];
+                            }
+
+                        });
+
+                    $conn->on('close', function ($code = null, $reason = null) {
+                        /** log errors here */
+                        Log::warning("Connection closed ({$code} - {$reason})");
+
+                    });
+
+                },
+                    function (\Exception $e) use ($loop) {
+                        Log::warning("Could not connect: " . $e->getMessage());
+                        $loop->stop();
                     }
+                );
 
-                    if ($data['type'] == 'l2update') {
+            $loop->run();
 
-                        //dd($data);
-                    }
-
-                    if ($data['type'] == 'snapshot') {
-                        //$this->book = ['sells' => $data['asks'], 'buy' => $data['bids']];
-                    }
-
-                });
-
-                $conn->on('close', function ($code = null, $reason = null) {
-                    /** log errors here */
-                    Log::warning("Connection closed ({$code} - {$reason})");
-                });
-
-            },
-                function (\Exception $e) use ($loop) {
-                    Log::warning("Could not connect: " . $e->getMessage());
-                    $loop->stop();
-                }
-            );
-
-        $loop->run();
+            sleep(5);
+        }
     }
 }
