@@ -37,9 +37,8 @@
             }
         },
         created: function () {
-            this.timer = setInterval(this.fetchIndicators('/getindicators'),1000)
+            this.timer = setInterval(this.fetchIndicators('/getindicators'), 1000)
         },
-
         mounted() {
             this.fetchIndicators('/getindicators');
         },

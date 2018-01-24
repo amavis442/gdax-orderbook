@@ -33,34 +33,34 @@ class IndicatorController extends Controller
         $result = [];
         switch ($r) {
             case Indicator::BUY:
-                $result = ['name' => $name, 'signal'=>'buy','timestamp'=>$timestamp];
+                $result = ['name' => $name, 'signal' => 'buy', 'timestamp' => $timestamp];
                 break;
             case Indicator::HOLD:
-                $result = ['name' => $name, 'signal'=>'hold','timestamp'=>$timestamp];
+                $result = ['name' => $name, 'signal' => 'hold', 'timestamp' => $timestamp];
                 break;
             case Indicator::SELL:
-                $result = ['name' => $name, 'signal'=>'hold','timestamp'=>$timestamp];
+                $result = ['name' => $name, 'signal' => 'hold', 'timestamp' => $timestamp];
                 break;
         }
 
         return $result;
     }
 
-    public function getIndicators() {
+    public function getIndicators()
+    {
         $pair = 'ETH-EUR';
         $t = new Ticker();
-        $data = $t->getRecentData($pair,168);
-        $config = new Collection(['data' => $data, 'period' => 14]);
-
+        $recentData = $t->getRecentData($pair, 168);
+        $config = new Collection(['data' => $recentData, 'period' => 14]);
 
 
         $i = new AverageDirectionalMovementIndexIndicator();
         $r = $i->check($config);
-        $data[] = $this->toText('AverageDirectionalMovementIndexIndicator',$r);
+        $data[] = $this->toText('AverageDirectionalMovementIndexIndicator', $r);
 
         $i = new OnBalanceVolumeIndicator();
         $r = $i->check($config);
-        $data[] = $this->toText('OnBalanceVolumeIndicator',$r);
+        $data[] = $this->toText('OnBalanceVolumeIndicator', $r);
 
         $i = new CommodityChannelIndexIndicator();
         $r = $i->check($config);
@@ -73,7 +73,7 @@ class IndicatorController extends Controller
 
         $i = new HilbertTransformTrendVersusCycleModeIndicator();
         $r = $i->check($config);
-        $data[] = $this->toText('HilbertTransformTrendVersusCycleModeIndicator',$r);
+        $data[] = $this->toText('HilbertTransformTrendVersusCycleModeIndicator', $r);
 
         $i = new MoneyFlowIndexIndicator();
         $r = $i->check($config);
