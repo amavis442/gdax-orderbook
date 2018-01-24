@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use http\Env\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Amavis442\Trading\Models\Ticker;
 use Amavis442\Trading\Contracts\Indicator;
