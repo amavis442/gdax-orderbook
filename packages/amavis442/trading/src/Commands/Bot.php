@@ -192,8 +192,8 @@ class Bot extends Command
             $connector('wss://ws-feed.gdax.com')
                 ->then(function (\Ratchet\Client\WebSocket $conn) use ($pair) {
                     $channel['type'] = 'subscribe';
-                    $channel['product_ids'] = [$pair];
-                    $channel['channels'] = ['ticker', 'level2'];
+                    $channel['product_ids'] = ['BTC-EUR','ETH-EUR','LTC-EUR'];
+                    $channel['channels'] = ['ticker'];
 
                     $ch = json_encode($channel);
                     $conn->send($ch);
@@ -222,16 +222,6 @@ class Bot extends Command
 
                                 $this->process();
                             }
-
-                            if ($data['type'] == 'l2update') {
-
-                                //dd($data);
-                            }
-
-                            if ($data['type'] == 'snapshot') {
-                                //$this->book = ['sells' => $data['asks'], 'buy' => $data['bids']];
-                            }
-
                         });
 
                     $conn->on('close', function ($code = null, $reason = null) {
