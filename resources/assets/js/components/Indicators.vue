@@ -1,5 +1,13 @@
 <template>
     <div>
+        <div v-if="errors.length > 0 ">
+            <div class="alert alert-danger" role="alert">
+                <ul v-for="error in errors">
+                    <li>{{ error }}</li>
+                </ul>
+            </div>
+        </div>
+
         <table class="table table-striped">
             <thead>
             <tr>
@@ -13,7 +21,7 @@
                 <td> {{ indicator.indicatorname }}</td>
                 <td>{{ indicator.timestamp }}</td>
                 <td>
-                    <span class="alert" v-bind:class="{ 'alert-danger': indicator.issell, 'alert-success':  indicator.isbuy }">
+                    <span class="label" v-bind:class="{ 'label-danger': indicator.issell, 'label-success':  indicator.isbuy }">
                         {{ indicator.indicatorsignal }}
                     </span>
                 </td>
@@ -33,7 +41,8 @@
                 indicators: [
                     {indicatorname: '', indicatorsignal: 0, timestamp: '', issell: false, isbuy: false}
                 ],
-                timer: ''
+                timer: '',
+                errors: [],
             }
         },
         created: function () {
