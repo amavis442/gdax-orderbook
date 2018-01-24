@@ -166,6 +166,7 @@ class GrowingAndHarvesting implements Strategy
                                                         ->first();
                 // When price goes down a lot and the last sell is way above currentprice and we have funds buy.
                 if ($fund >= 0.01 &&
+                    !is_null($order) &&
                     ($order->amount - 80) > $currentprice
                 ) {
                     $minimalSizeReached = false;
