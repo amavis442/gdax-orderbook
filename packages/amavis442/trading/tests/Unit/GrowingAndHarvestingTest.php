@@ -15,14 +15,14 @@ final class GrowingAndHarvestingTest extends TestCase
      public function test1SlotOpenNoOpenPositionWithFundBuyBtc()
     {
         $settings = new Setting();
-        $settings->bottom = 0.0;
-        $settings->top = 20000.0;
-        $settings->size = 0.001;
+        $settings->tradebottomlimit = 0.0;
+        $settings->tradetoplimit = 20000.0;
+        $settings->minimal_order_size = 0.001;
+        $settings->buystradle = 0.01;
+        $settings->sellstradle = 0.01;
 
         Cache::put('bot::settings', $settings->toJson(), 1);
         Cache::put('bot::pair', 'BTC-EUR', 1);
-        Cache::put('bot::buystradle', 0.01, 1);
-        Cache::put('bot::sellstradle', 0.01, 1);
         Cache::put('config::fund', 30.00, 1);
         Cache::put('config::coin', 0.005000, 1);
         Cache::put('gdax::BTC-EUR::currentprice', 10450.00, 2);
@@ -49,14 +49,14 @@ final class GrowingAndHarvestingTest extends TestCase
     public function test1SlotOpenNoPositionAndNoCurrencyFundsSoSellCryptoBtc()
     {
         $settings = new Setting();
-        $settings->bottom = 0.0;
-        $settings->top = 20000.0;
-        $settings->size = 0.001;
+        $settings->tradebottomlimit = 0.0;
+        $settings->tradetoplimit = 20000.0;
+        $settings->minimal_order_size = 0.001;
+        $settings->buystradle = 0.01;
+        $settings->sellstradle = 0.01;
 
         Cache::put('bot::settings', $settings->toJson(), 1);
         Cache::put('bot::pair', 'BTC-EUR', 1);
-        Cache::put('bot::buystradle', 0.01, 1);
-        Cache::put('bot::sellstradle', 0.01, 1);
         Cache::put('config::fund', 0.00, 1);
         Cache::put('config::coin', 0.005000, 1);
         Cache::put('gdax::BTC-EUR::currentprice', 10400.00, 2);
@@ -78,14 +78,15 @@ final class GrowingAndHarvestingTest extends TestCase
     {
 
         $settings = new Setting();
-        $settings->bottom = 0.0;
-        $settings->top = 20000.0;
-        $settings->size = 0.001;
+        $settings->tradebottomlimit = 0.0;
+        $settings->tradetoplimit = 20000.0;
+        $settings->minimal_order_size = 0.001;
+        $settings->buystradle = 0.01;
+        $settings->sellstradle = 0.01;
+
 
         Cache::put('bot::settings', $settings->toJson(), 1);
         Cache::put('bot::pair', 'BTC-EUR', 1);
-        Cache::put('bot::buystradle', 0.01, 1);
-        Cache::put('bot::sellstradle', 0.01, 1);
         Cache::put('config::fund', 0.00, 1);
         Cache::put('config::coin', 0.005000, 1);
         Cache::put('gdax::BTC-EUR::currentprice', 10450.00, 2);
