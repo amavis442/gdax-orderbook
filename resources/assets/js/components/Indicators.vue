@@ -75,11 +75,11 @@
             }
         },
         created: function () {
-            this.timer = setInterval( this.fetchIndicators('ETH-EUR'), 5000)
+            this.timer = setInterval( this.fetchIndicators, 5000)
         },
         methods: {
-            fetchIndicators: function (pair) {
-                axios.get('/getindicators/?pair=' + pair)
+            fetchIndicators: function () {
+                axios.get('/getindicators/?pair=' + this.pair)
                     .then(response => {
                         this.indicators = response.data;
                     })
@@ -94,18 +94,22 @@
 
                 switch (togglePair) {
                     case 1:
+                        this.pair = 'BTC-EUR';
                         this.fetchIndicators('BTC-EUR');
                         this.isActiveBCTEUR = true;
                         break;
                     case 2:
+                        this.pair = 'ETH-EUR';
                         this.fetchIndicators('ETH-EUR');
                         this.isActiveETHEUR = true;
                         break;
                     case 3:
+                        this.pair = 'LTC-EUR';
                         this.fetchIndicators('LTC-EUR');
                         this.isActiveLTCEUR = true;
                         break;
                     default:
+                        this.pair = 'ETH-EUR';
                         this.fetchIndicators('ETH-EUR');
                         this.isActiveETHEUR = true;
                         break;
