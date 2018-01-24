@@ -46,7 +46,7 @@ class SettingController extends Controller
         $setting->max_orders = $request->get('max_orders',1);
         $setting->tradebottomlimit = $request->get('tradebottomlimit',10000);
         $setting->tradetoplimit = $request->get('tradetoplimit',12000);
-        $setting->order_minimal_size = $request->get('order_minimal_size',0.001);
+        $setting->minimal_order_size = $request->get('minimal_order_size',0.001);
         $setting->sellstradle = $request->get('sellstradle',0.001);
         $setting->buystradle = $request->get('buystradle',0.001);
         $setting->save();
