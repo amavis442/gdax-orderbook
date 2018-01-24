@@ -15,11 +15,14 @@ class CreateSettingsTable extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->increments('id');
+            $table->string('pair',10);
             $table->decimal('trailingstop', 4, 2)->default(10.00);
             $table->integer('max_orders')->default(1);
-            $table->decimal('bottom', 10, 2)->default('10000');
-            $table->decimal('top', 10, 2)->default('15000');;
-            $table->string('size', 10)->default('0.0001');
+            $table->decimal('tradebottomlimit', 10, 2)->default('10000');
+            $table->decimal('tradetoplimit', 10, 2)->default('15000');
+            $table->string('minimal_order_size', 10)->default('0.001');
+            $table->decimal('sellstradle', 4, 2)->default(10.00);
+            $table->decimal('buystradle', 4, 2)->default(10.00);
             $table->boolean('botactive')->default(true);
             $table->timestamps();
         });

@@ -76,7 +76,7 @@ class BuySellStrategy extends Command
 
         $noExceptions = true;
 
-        $settings = Setting::firstOrFail();
+        $settings = Setting::wherePair($pair)->firstOrFail();
 
         $this->updateOrdersAndPositions(
             \Amavis442\Trading\Contracts\Order::ORDER_SELL,

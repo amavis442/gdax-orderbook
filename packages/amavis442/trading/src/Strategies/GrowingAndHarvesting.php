@@ -30,12 +30,12 @@ class GrowingAndHarvesting implements Strategy
         $fund = Cache::get('config::fund', 0.0);
         $currentprice = Cache::get('gdax::' . $pair . '::currentprice', null);
         $config = json_decode(Cache::get('bot::settings'));
-        $sellstradle = Cache::get('bot::sellstradle', 0.03);
-        $buystradle = Cache::get('bot::buystradle', 0.03);
+        $sellstradle = (float)$config->sellstradle;
+        $buystradle = (float)$config->buystradle;
 
 
-        $lowerlimit = (float)$config->bottom;
-        $upperlimit = (float)$config->top;
+        $lowerlimit = (float)$config->tradebottomlimit;
+        $upperlimit = (float)$config->tradetoplimit;
 
 
         if (!is_null($currentprice)) {
@@ -103,7 +103,7 @@ class GrowingAndHarvesting implements Strategy
                         if (!is_null($position) && !is_null($position->size)) {
                             $size = $position->size;
                         } else {
-                            $size = $config->size;
+                            $size = $config->minimal_order_size;
                         }
                         $result->put('side', 'sell');
                         $result->put('size', $size);
@@ -120,11 +120,8 @@ class GrowingAndHarvesting implements Strategy
                     ($position->open + 100) < $currentprice
                 ) {
                     $price = $currentprice;
-                    if (!is_null($position) && !is_null($position->size)) {
-                        $size = $position->size;
-                    } else {
-                        $size = $config->size;
-                    }
+                    $size = $config->minimal_order_size;
+
                     $result->put('side', 'sell');
                     $result->put('size', $size);
                     $result->put('price', number_format($price, 2, '.', ''));

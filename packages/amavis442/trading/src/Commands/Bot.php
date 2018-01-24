@@ -76,7 +76,7 @@ class Bot extends Command
 
         $noExceptions = true;
 
-        $settings = Setting::firstOrFail();
+        $settings = Setting::wherePair($pair)->firstOrFail();
 
         $this->updateOrdersAndPositions(
             \Amavis442\Trading\Contracts\Order::ORDER_SELL,
@@ -96,8 +96,8 @@ class Bot extends Command
         Cache::put('bot::settings', $settings->toJson(), 1);
         Cache::put('bot::pair', $pair, 1);
 
-        Cache::put('bot::sellstradle', config('trading.sellstradle',0.03), 1);
-        Cache::put('bot::buystradle', config('trading.buystradle',0.03), 1);
+        Cache::put('bot::sellstradle', config('trading.sellstradle', 0.03), 1);
+        Cache::put('bot::buystradle', config('trading.buystradle', 0.03), 1);
 
         if ($settings->botactive) {
             $openOrders = $this->orderService->getNumOpenOrders($pair);
@@ -204,18 +204,18 @@ class Bot extends Command
                         Cache::put('gdax::' . $pair . '::currentprice', $data['price'], 2);
 
                         Ticker::create([
-                            'sequence'   => $data['sequence'],
-                            'pair'       => $data['product_id'],
-                            'timeid'     => \Carbon\Carbon::now('Europe/Amsterdam')->format('YmdHis'),
-                            'price'      => $data['price'],
-                            'open'       => $data['open_24h'],
-                            'high'       => $data['high_24h'],
-                            'low'        => $data['low_24h'],
-                            'close'      => $data['price'],
-                            'volume'     => $data['volume_24h'],
+                            'sequence' => $data['sequence'],
+                            'pair' => $data['product_id'],
+                            'timeid' => \Carbon\Carbon::now('Europe/Amsterdam')->format('YmdHis'),
+                            'price' => $data['price'],
+                            'open' => $data['open_24h'],
+                            'high' => $data['high_24h'],
+                            'low' => $data['low_24h'],
+                            'close' => $data['price'],
+                            'volume' => $data['volume_24h'],
                             'volume_30d' => $data['volume_30d'],
-                            'best_bid'   => $data['best_bid'],
-                            'best_ask'   => $data['best_ask'],
+                            'best_bid' => $data['best_bid'],
+                            'best_ask' => $data['best_ask'],
                         ]);
 
                         $this->process();
@@ -231,16 +231,19 @@ class Bot extends Command
                     }
 
                 });
+
                 $conn->on('close', function ($code = null, $reason = null) {
                     /** log errors here */
                     Log::warning("Connection closed ({$code} - {$reason})");
                 });
+
             },
                 function (\Exception $e) use ($loop) {
                     Log::warning("Could not connect: " . $e->getMessage());
-                    //$loop->stop();
+                    $loop->stop();
                 }
             );
+
         $loop->run();
     }
 }

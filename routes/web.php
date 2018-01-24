@@ -36,3 +36,6 @@ Route::post('/trailingposition','PositionController@trailingPosition')->middlewa
 Route::resource('settings', 'SettingController')->middleware('auth');
 
 Route::resource('users', 'UserController')->middleware('auth');
+
+Route::post('/updatesetting', 'SettingController@updateSetting')->middleware('auth');
+Route::get('/getsetting', 'SettingController@getSetting')->middleware('auth');
