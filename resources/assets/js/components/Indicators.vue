@@ -18,10 +18,11 @@
             </thead>
             <tbody>
             <tr v-for='indicator in indicators'>
-                <td> {{ indicator.indicatorname }}</td>
+                <td>{{ indicator.indicatorname }}</td>
                 <td>{{ indicator.timestamp }}</td>
                 <td>
-                    <span class="label" v-bind:class="{ 'label-danger': indicator.issell, 'label-success':  indicator.isbuy, 'label-default':  indicator.ishold }">
+                    <span class="label"
+                          v-bind:class="{ 'label-danger': indicator.issell, 'label-success':  indicator.isbuy, 'label-default':  indicator.ishold }">
                         {{ indicator.indicatorsignal }}
                     </span>
                 </td>
@@ -39,14 +40,21 @@
         data() {
             return {
                 indicators: [
-                    {indicatorname: '', indicatorsignal: 0, timestamp: '', issell: false, isbuy: false, ishold:true}
+                    {
+                        indicatorname: '',
+                        indicatorsignal: 0,
+                        timestamp: '',
+                        issell: false,
+                        isbuy: false,
+                        ishold: true
+                    }
                 ],
                 timer: '',
                 errors: [],
             }
         },
         created: function () {
-            this.timer = setInterval(this.fetchIndicators(), 10000)
+            this.timer = setInterval(this.fetchIndicators(), 2000)
         },
         methods: {
             fetchIndicators: function () {

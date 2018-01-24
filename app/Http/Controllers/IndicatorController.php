@@ -52,7 +52,7 @@ class IndicatorController extends Controller
                 break;
             case Indicator::SELL:
                 $result = ['indicatorname'   => $name,
-                           'indicatorsignal' => 'hold',
+                           'indicatorsignal' => 'sell',
                            'timestamp'       => $timestamp,
                            'issell'          => true,
                            'isbuy'           => false,
