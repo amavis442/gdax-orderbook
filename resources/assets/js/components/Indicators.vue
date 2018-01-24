@@ -37,16 +37,14 @@
             }
         },
         created: function () {
-            this.timer = setInterval(this.fetchIndicators('/getindicators'), 1000)
+            this.timer = setInterval(this.fetchIndicators(), 2000)
         },
         mounted() {
-            this.fetchIndicators('/getindicators');
+            this.fetchIndicators();
         },
         methods: {
-            fetchIndicators: function (page_url) {
-                let vm = this;
-                page_url = page_url || '/getindicators';
-                axios.get(page_url)
+            fetchIndicators: function () {
+                axios.get('/getindicators')
                     .then(response => {
                         this.indicators = response.data;
                     })
