@@ -15,7 +15,7 @@
             </thead>
             <tbody>
             <tr v-for='order in orders'>
-                <td> {{ order.created_at }}</td>
+                <td>{{ order.created_at }}</td>
                 <td>{{ order.pair }}</td>
                 <td>{{ order.side}}</td>
                 <td>{{ order.size }}</td>

@@ -33,13 +33,13 @@ class IndicatorController extends Controller
         $result = [];
         switch ($r) {
             case Indicator::BUY:
-                $result = ['indicatorname' => $name, 'indicatorsignal' => 'buy', 'timestamp' => $timestamp];
+                $result = ['indicatorname' => $name, 'indicatorsignal' => 'buy', 'timestamp' => $timestamp, 'issell'=> false,'isbuy'=>true];
                 break;
             case Indicator::HOLD:
-                $result = ['indicatorname' => $name, 'indicatorsignal' => 'hold', 'timestamp' => $timestamp];
+                $result = ['indicatorname' => $name, 'indicatorsignal' => 'hold', 'timestamp' => $timestamp, 'issell'=> false,'isbuy'=>false];
                 break;
             case Indicator::SELL:
-                $result = ['indicatorname' => $name, 'indicatorsignal' => 'hold', 'timestamp' => $timestamp];
+                $result = ['indicatorname' => $name, 'indicatorsignal' => 'hold', 'timestamp' => $timestamp, 'issell'=> true,'isbuy'=>false];
                 break;
         }
 

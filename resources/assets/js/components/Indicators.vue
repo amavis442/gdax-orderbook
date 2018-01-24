@@ -13,16 +13,8 @@
                 <td> {{ indicator.indicatorname }}</td>
                 <td>{{ indicator.timestamp }}</td>
                 <td>
-                    <span>
-                        <div v-if="indicator.indicatorsignal == 'sell'">
-                            <span class="alert alert-danger">{{ indicator.indicatorsignal }}</span>
-                        </div>
-
-                        <div v-if="indicator.indicatorsignal == 'buy'">
-                            <span class="alert alert-success">{{ indicator.indicatorsignal }}</span>
-                        </div>
-
-                    {{ indicator.indicatorsignal }}
+                    <span class="alert" v-bind:class="{ 'alert-danger': indicator.issell, 'alert-success':  indicator.isbuy }">
+                        {{ indicator.indicatorsignal }}
                     </span>
                 </td>
             </tr>
@@ -39,7 +31,7 @@
         data() {
             return {
                 indicators: [
-                    {indicatorname: '', indicatorsignal: 0, timestamp: ''}
+                    {indicatorname: '', indicatorsignal: 0, timestamp: '', issell: false, isbuy: false}
                 ],
                 timer: ''
             }
