@@ -18,7 +18,9 @@ const app = new Vue({
         'orders': require('./components/Orders.vue'),
         'trailingpositions': require('./components/TrailingPositions.vue'),
         'botsettings': require('./components/BotSettings.vue'),
-        'indicators': require('./components/Indicators.vue')
+        'indicators': require('./components/Indicators.vue'),
+        'botcurrentprices': require('./components/BotCurrentPrices.vue'),
+        'botheartbeat': require('./components/BotHeartbeat.vue')
 
     }
 });

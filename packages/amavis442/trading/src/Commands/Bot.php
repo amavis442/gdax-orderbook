@@ -194,6 +194,7 @@ class Bot extends Command
         $loop = \React\EventLoop\Factory::create();
         $connector = new \Ratchet\Client\Connector($loop);
 
+        Cache::put('bot::heartbeat', date('Y-m-d H:i:s'), 1);
 
         $connector('wss://ws-feed.gdax.com')
             ->then(function (\Ratchet\Client\WebSocket $conn) use ($pair) {
@@ -234,13 +235,15 @@ class Bot extends Command
                                 Log::critical($e->getTraceAsString());
                             }
                         }
+
+                        Cache::put('bot::heartbeat', date('Y-m-d H:i:s'), 1);
                     });
 
 
                 $conn->on('close', function ($code = null, $reason = null) use ($pair) {
                     /** log errors here */
                     Log::warning("Connection closed ({$code} - {$reason})");
-
+                    Cache::forget('bot::heartbeat');
                     Cache::forget('gdax::' . $pair . '::currentprice');
                 });
 
@@ -248,7 +251,7 @@ class Bot extends Command
                 function (\Exception $e) use ($loop, $pair) {
                     Log::critical("Could not connect: " . $e->getMessage());
                     Log::critical($e->getTraceAsString());
-
+                    Cache::forget('bot::heartbeat');
                     Cache::forget('gdax::' . $pair . '::currentprice');
 
                     $loop->stop();
@@ -256,7 +259,6 @@ class Bot extends Command
             );
 
         $loop->run();
-
 
     }
 }

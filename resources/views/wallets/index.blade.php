@@ -2,6 +2,16 @@
 
 @section('content')
     <div class="container">
+
+        <div class="well">
+            <div class="row">
+            Heartbeat bot: <botheartbeat></botheartbeat>
+            </div>
+            <div class="row">
+            currentprices: <botcurrentprice></botcurrentprice>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-md-12">
                 <div class="panel panel-default">

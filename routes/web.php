@@ -42,3 +42,7 @@ Route::get('/getsetting', 'SettingController@getSetting')->middleware('auth');
 
 Route::get('/getindicators', 'IndicatorController@getIndicators')->middleware('auth');
 Route::get('/indicators', 'IndicatorController@index')->middleware('auth')->name('indicators.index');
+
+
+Route::get('/heartbeat', '\Amavis442\Trading\Controllers\BotController@heartbeat')->middleware('auth')->name('bot.heartbeat');
+Route::get('/currentprices', '\Amavis442\Trading\Controllers\BotController@currentprices')->middleware('auth')->name('bot.currentprices');
