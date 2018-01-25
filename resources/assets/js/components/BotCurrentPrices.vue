@@ -1,6 +1,9 @@
 <template>
     <div>
-        <span v-for='price in prices'><span class="label label-default">{{ price.pair}}</span> <span class="label label-primary">{{ price.price}}</span></span>
+        <span v-for='price in prices'>
+            <span class="label label-default">{{ price.pair}}</span>
+            <span class="label label-primary">{{ price.currentprice}</span> |
+        </span>
     </div>
 </template>
 
@@ -14,7 +17,7 @@
                 prices: [
                     {
                         pair: '',
-                        price: ''
+                        currentprice: ''
                     }
                 ],
                 timer: '',

@@ -24,7 +24,7 @@ class BotController extends Controller
     {
         $currentPrices = [];
         foreach (['BTC-EUR', 'ETH-EUR', 'LTC-EUR'] as $pair) {
-            $currentPrices[] = ['pair' => $pair, 'price' => Cache::get('gdax::' . $pair . '::currentprice')];
+            $currentPrices[] = ['pair' => $pair, 'currentprice' => Cache::get('gdax::' . $pair . '::currentprice')];
         }
 
         return ['currentprices' => $currentPrices];
