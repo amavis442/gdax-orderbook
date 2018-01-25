@@ -210,7 +210,7 @@ class Bot extends Command
                         $data = json_decode($msg, 1);
 
                         if ($data['type'] == 'ticker') {
-                            Cache::put('gdax::' . $pair . '::currentprice', $data['price'], 1);
+                            Cache::put('gdax::' . $data['product_id'] . '::currentprice', $data['price'], 1);
 
                             Ticker::create([
                                 'sequence'   => $data['sequence'],
