@@ -88,75 +88,80 @@ class Bot extends Command
             \Amavis442\Trading\Contracts\Position::POSITION_OPEN
         );
 
-        $currentPrice = Cache::get('gdax::' . $pair . '::currentprice');
+        $currentPrice = Cache::get('gdax::' . $pair . '::currentprice', null);
 
-        $this->info('Orders and positions updated.');
-        $this->info('Currentprice ' . $currentPrice);
+        if (!is_null($currentPrice)) {
+            $this->info('Orders and positions updated.');
+            $this->info('Currentprice ' . $currentPrice);
 
-        Cache::put('bot::settings', $settings->toJson(), 1);
-        Cache::put('bot::pair', $pair, 1);
+            Cache::put('bot::settings', $settings->toJson(), 1);
+            Cache::put('bot::pair', $pair, 1);
 
-        Cache::put('bot::sellstradle', config('trading.sellstradle', 0.03), 1);
-        Cache::put('bot::buystradle', config('trading.buystradle', 0.03), 1);
+            Cache::put('bot::sellstradle', config('trading.sellstradle', 0.03), 1);
+            Cache::put('bot::buystradle', config('trading.buystradle', 0.03), 1);
 
-        if ($settings->botactive) {
-            $openOrders = $this->orderService->getNumOpenOrders($pair);
-            try {
-                $openExchangeOrders = $this->exchange->getOpenOrders();
-            } catch (\Exception $e) {
-                Log::alert($e->getTraceAsString());
-                $noExceptions = false;
-            }
+            if ($settings->botactive) {
+                $openOrders = $this->orderService->getNumOpenOrders($pair);
 
-            if ($openExchangeOrders) {
-                $used_slots = count($openExchangeOrders);
-            } else {
-                $used_slots = $openOrders;
-            }
-            $slots = $settings->max_orders - $used_slots;
-
-            try {
-                $funds = $this->exchange->getAccounts();
-            } catch (\Exception $e) {
-                Log::alert($e->getTraceAsString());
-                $noExceptions = false;
-            }
-
-            if ($noExceptions) {
-                foreach ($funds as $fund) {
-                    $available = $fund->getAvailable();
-                    if ($fund->getCurrency() == $fundAccount) {
-                        Cache::put('config::fund', (float)number_format($available, 8, '.', ''), 1);
-                    }
-                    if ($fund->getCurrency() == $cryptoCoin) {
-                        Cache::put('config::coin', (float)number_format($available, 8, '.', ''), 1);
-                    }
+                try {
+                    $openExchangeOrders = $this->exchange->getOpenOrders();
+                } catch (\Exception $e) {
+                    Log::alert($e->getTraceAsString());
+                    $noExceptions = false;
                 }
-            }
 
-            $funds = true;
-            if (Cache::get('config::fund', 0.0) == 0.00 && Cache::get('config::coin', 0.0) == 0.0) {
-                $this->warn("no funds for coin: {$cryptoCoin} and fund: {$fundAccount}");
-                Log::warning("no funds for coin: {$cryptoCoin} and fund: {$fundAccount}");
-                $funds = false;
-            }
-
-            if ($noExceptions) {
-                if ($slots <= 0 || !$funds) {
-                    Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
+                if ($openExchangeOrders) {
+                    $used_slots = count($openExchangeOrders);
                 } else {
-                    $openPositions = $this->positionService->getOpen($pair);
-                    if ($openPositions->count() > 0) {
-                        foreach ($openPositions as $openPosition) {
-                            $this->strategyAdvise($strategy, $openPosition);
+                    $used_slots = $openOrders;
+                }
+                $slots = $settings->max_orders - $used_slots;
+
+                try {
+                    $funds = $this->exchange->getAccounts();
+                } catch (\Exception $e) {
+                    Log::alert($e->getTraceAsString());
+                    $noExceptions = false;
+                }
+
+                if ($noExceptions) {
+                    foreach ($funds as $fund) {
+                        $available = $fund->getAvailable();
+                        if ($fund->getCurrency() == $fundAccount) {
+                            Cache::put('config::fund', (float)number_format($available, 8, '.', ''), 1);
                         }
-                    } else {
-                        $this->strategyAdvise($strategy);
+                        if ($fund->getCurrency() == $cryptoCoin) {
+                            Cache::put('config::coin', (float)number_format($available, 8, '.', ''), 1);
+                        }
                     }
                 }
+
+                $funds = true;
+                if (Cache::get('config::fund', 0.0) == 0.00 && Cache::get('config::coin', 0.0) == 0.0) {
+                    $this->warn("no funds for coin: {$cryptoCoin} and fund: {$fundAccount}");
+                    Log::warning("no funds for coin: {$cryptoCoin} and fund: {$fundAccount}");
+                    $funds = false;
+                }
+
+                if ($noExceptions) {
+                    if ($slots <= 0 || !$funds) {
+                        Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
+                    } else {
+                        $openPositions = $this->positionService->getOpen($pair);
+                        if ($openPositions->count() > 0) {
+                            foreach ($openPositions as $openPosition) {
+                                $this->strategyAdvise($strategy, $openPosition);
+                            }
+                        } else {
+                            $this->strategyAdvise($strategy);
+                        }
+                    }
+                }
+            } else {
+                Log::info('Bot not active');
             }
         } else {
-            Log::info('Bot not active');
+            Log::critical('No currentprice');
         }
     }
 
@@ -184,62 +189,74 @@ class Bot extends Command
             $this->config->put('simulate', true);
         }
 
+        Cache::put('bot::process::timestamp', \Carbon\Carbon::now('Europe/Amsterdam'),10);
 
         $loop = \React\EventLoop\Factory::create();
         $connector = new \Ratchet\Client\Connector($loop);
 
-        while(1) {
-            $connector('wss://ws-feed.gdax.com')
-                ->then(function (\Ratchet\Client\WebSocket $conn) use ($pair) {
-                    $channel['type'] = 'subscribe';
-                    $channel['product_ids'] = ['BTC-EUR','ETH-EUR','LTC-EUR'];
-                    $channel['channels'] = ['ticker'];
 
-                    $ch = json_encode($channel);
-                    $conn->send($ch);
+        $connector('wss://ws-feed.gdax.com')
+            ->then(function (\Ratchet\Client\WebSocket $conn) use ($pair) {
+                $channel['type'] = 'subscribe';
+                $channel['product_ids'] = ['BTC-EUR', 'ETH-EUR', 'LTC-EUR'];
+                $channel['channels'] = ['ticker'];
 
-                    $conn->on('message',
-                        function (\Ratchet\RFC6455\Messaging\MessageInterface $msg) use ($pair, $conn) {
-                            $data = json_decode($msg, 1);
+                $ch = json_encode($channel);
+                $conn->send($ch);
 
-                            if ($data['type'] == 'ticker') {
-                                Cache::put('gdax::' . $pair . '::currentprice', $data['price'], 2);
+                $conn->on('message',
+                    function (\Ratchet\RFC6455\Messaging\MessageInterface $msg) use ($pair, $conn) {
+                        $data = json_decode($msg, 1);
 
-                                Ticker::create([
-                                    'sequence'   => $data['sequence'],
-                                    'pair'       => $data['product_id'],
-                                    'timeid'     => \Carbon\Carbon::now('Europe/Amsterdam')->format('YmdHis'),
-                                    'price'      => $data['price'],
-                                    'open'       => $data['open_24h'],
-                                    'high'       => $data['high_24h'],
-                                    'low'        => $data['low_24h'],
-                                    'close'      => $data['price'],
-                                    'volume'     => $data['volume_24h'],
-                                    'volume_30d' => $data['volume_30d'],
-                                    'best_bid'   => $data['best_bid'],
-                                    'best_ask'   => $data['best_ask'],
-                                ]);
+                        if ($data['type'] == 'ticker') {
+                            Cache::put('gdax::' . $pair . '::currentprice', $data['price'], 1);
 
+                            Ticker::create([
+                                'sequence'   => $data['sequence'],
+                                'pair'       => $data['product_id'],
+                                'timeid'     => \Carbon\Carbon::now('Europe/Amsterdam')->format('YmdHis'),
+                                'price'      => $data['price'],
+                                'open'       => $data['open_24h'],
+                                'high'       => $data['high_24h'],
+                                'low'        => $data['low_24h'],
+                                'close'      => $data['price'],
+                                'volume'     => $data['volume_24h'],
+                                'volume_30d' => $data['volume_30d'],
+                                'best_bid'   => $data['best_bid'],
+                                'best_ask'   => $data['best_ask'],
+                            ]);
+
+                            try {
+                                /** @var \Carbon\Carbon $processTimeStamp */
                                 $this->process();
+                            } catch (\Exception $e) {
+                                Log::critical('Bot::process made an error: ' . $e->getMessage());
+                                Log::critical($e->getTraceAsString());
                             }
-                        });
-
-                    $conn->on('close', function ($code = null, $reason = null) {
-                        /** log errors here */
-                        Log::warning("Connection closed ({$code} - {$reason})");
-
+                        }
                     });
 
-                },
-                    function (\Exception $e) use ($loop) {
-                        Log::warning("Could not connect: " . $e->getMessage());
-                        $loop->stop();
-                    }
-                );
 
-            $loop->run();
+                $conn->on('close', function ($code = null, $reason = null) use ($pair) {
+                    /** log errors here */
+                    Log::warning("Connection closed ({$code} - {$reason})");
 
-            sleep(5);
-        }
+                    Cache::forget('gdax::' . $pair . '::currentprice');
+                });
+
+            },
+                function (\Exception $e) use ($loop, $pair) {
+                    Log::critical("Could not connect: " . $e->getMessage());
+                    Log::critical($e->getTraceAsString());
+
+                    Cache::forget('gdax::' . $pair . '::currentprice');
+
+                    $loop->stop();
+                }
+            );
+
+        $loop->run();
+
+
     }
 }
