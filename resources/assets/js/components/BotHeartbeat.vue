@@ -1,7 +1,5 @@
 <template>
-    <div>
-        {{ heartbeat }}
-    </div>
+        <span class="label label-primary">{{ heartbeat }}</span>
 </template>
 
 <script>
