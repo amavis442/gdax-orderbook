@@ -26,7 +26,7 @@
 
                 axios.get('/heartbeat')
                     .then(response => {
-                        this.heartbeat = response.data;
+                        this.heartbeat = response.data.heartbeat;
                     })
                     .catch(e => {
                         this.errors.push(e)

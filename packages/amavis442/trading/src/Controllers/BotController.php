@@ -17,7 +17,7 @@ class BotController extends Controller
     {
         $hearbeat = Cache::get('bot::heartbeat', null);
 
-        return [$hearbeat];
+        return ['heartbeat' => $hearbeat];
     }
 
     public function currentprices()
@@ -27,6 +27,6 @@ class BotController extends Controller
             $currentPrices[] = ['pair' => $pair, 'price' => Cache::get('gdax::' . $pair . '::currentprice')];
         }
 
-        return $currentPrices;
+        return ['currentprices' => $currentPrices];
     }
 }

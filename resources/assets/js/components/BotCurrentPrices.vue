@@ -29,7 +29,7 @@
                 this.errors = [];
                 axios.get('/currentprices')
                     .then(response => {
-                        this.prices = response.data;
+                        this.prices = response.data.currentprices;
                     })
                     .catch(e => {
                         this.errors.push(e)
