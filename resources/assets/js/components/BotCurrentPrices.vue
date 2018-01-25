@@ -8,7 +8,7 @@
     import axios from 'axios';
 
     export default {
-        name: "botcurrentprice",
+        name: "botcurrentprices",
         data() {
             return {
                 prices: [
