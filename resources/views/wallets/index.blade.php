@@ -8,7 +8,7 @@
             Heartbeat bot: <botheartbeat></botheartbeat>
             </div>
             <div class="row">
-            currentprices: <botcurrentprice></botcurrentprice>
+            currentprices: <botcurrentprices></botcurrentprices>
             </div>
         </div>
 
