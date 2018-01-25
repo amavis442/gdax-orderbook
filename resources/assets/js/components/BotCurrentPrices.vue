@@ -1,8 +1,8 @@
 <template>
     <div>
         <span v-for='price in prices'>
-            <span class="label label-default">{{ price.pair}}</span>
-            <span class="label label-primary">{{ price.currentprice}</span> |
+            <span class="label label-default">{{ price.pair}}</span> :
+            <span class="label label-primary">{{ price.currentprice}}</span> |
         </span>
     </div>
 </template>
