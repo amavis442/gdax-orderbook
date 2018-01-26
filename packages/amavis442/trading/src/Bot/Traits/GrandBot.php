@@ -3,7 +3,7 @@
 namespace Amavis442\Trading\Bot\Traits;
 
 use Amavis442\Trading\Contracts\Exchange;
-use Amavis442\Trading\Events\Position as PositionEvent;
+use Amavis442\Trading\Events\PositionEvent;
 use Amavis442\Trading\Models\Order;
 use Amavis442\Trading\Models\Position;
 use Amavis442\Trading\Services\OrderService;

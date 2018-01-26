@@ -11,33 +11,34 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Support\Collection;
 
-class Position
+class WebsocketClosedEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    protected $position;
+    protected $code;
+    protected $reason;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($pair, $side, $size, $price, $status)
+    public function __construct($code, $reason)
     {
-        $this->position = new Collection([
-            'pair'       => $pair,
-            'side'       => $side,
-            'size'       => $size,
-            'price'      => $price,
-            'status'     => $status,
-            'created_at' => \Carbon\Carbon::now('Europe/Amsterdam'),
-        ]);
+        $this->code = $code;
+        $this->reason = $reason;
     }
 
-    public function getPosition()
+    public function getCode()
     {
-        return $this->position;
+        return $this->code;
     }
+
+    public function getReason()
+    {
+        return $this->code;
+    }
+
 
     /**
      * Get the channels the event should broadcast on.

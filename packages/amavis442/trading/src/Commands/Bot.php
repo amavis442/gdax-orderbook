@@ -3,6 +3,7 @@
 namespace Amavis442\Trading\Commands;
 
 use Amavis442\Trading\Bot\Traits\GrandBot;
+use Amavis442\Trading\Events\WebsocketClosedEvent;
 use Amavis442\Trading\Services\OrderService;
 use Amavis442\Trading\Services\PositionService;
 use Amavis442\Trading\Strategies\GrowingAndHarvesting;
@@ -242,9 +243,13 @@ class Bot extends Command
 
                 $conn->on('close', function ($code = null, $reason = null) use ($pair) {
                     /** log errors here */
-                    Log::warning("Connection closed ({$code} - {$reason})");
+                    Log::critical("Connection closed ({$code} - {$reason})");
                     Cache::forget('bot::heartbeat');
                     Cache::forget('gdax::' . $pair . '::currentprice');
+
+                    event(
+                        new WebsocketClosedEvent($code, $reason)
+                    );
                 });
 
             },
