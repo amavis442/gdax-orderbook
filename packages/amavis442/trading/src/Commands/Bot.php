@@ -9,7 +9,6 @@ use Amavis442\Trading\Services\PositionService;
 use Amavis442\Trading\Strategies\GrowingAndHarvesting;
 use Illuminate\Console\Command;
 use Amavis442\Trading\Contracts\Exchange;
-use Amavis442\Trading\Models\Setting;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
@@ -64,106 +63,6 @@ class Bot extends Command
     public function getStrategy()
     {
         return new GrowingAndHarvesting();
-    }
-
-
-    protected function process()
-    {
-
-        $pair = $this->config->get('pair');
-        $cryptoCoin = $this->config->get('cryptoCoin');
-        $fundAccount = $this->config->get('fundAccount');
-        $strategy = $this->config->get('strategy');
-
-        $noExceptions = true;
-
-        $settings = Setting::wherePair($pair)->firstOrFail();
-
-        $this->updateOrdersAndPositions(
-            \Amavis442\Trading\Contracts\Order::ORDER_SELL,
-            \Amavis442\Trading\Contracts\Position::POSITION_CLOSE
-        );
-
-        $this->updateOrdersAndPositions(
-            \Amavis442\Trading\Contracts\Order::ORDER_BUY,
-            \Amavis442\Trading\Contracts\Position::POSITION_OPEN
-        );
-
-        $currentPrice = Cache::get('gdax::' . $pair . '::currentprice', null);
-
-        if (!is_null($currentPrice)) {
-            $this->info('Orders and positions updated.');
-            $this->info('Currentprice ' . $currentPrice);
-
-            Cache::put('bot::settings', $settings->toJson(), 1);
-            Cache::put('bot::pair', $pair, 1);
-
-            Cache::put('bot::sellstradle', config('trading.sellstradle', 0.03), 1);
-            Cache::put('bot::buystradle', config('trading.buystradle', 0.03), 1);
-
-            if ($settings->botactive) {
-                $openOrders = $this->orderService->getNumOpenOrders($pair);
-
-                try {
-                    $openExchangeOrders = $this->exchange->getOpenOrders();
-                } catch (\Exception $e) {
-                    Log::alert($e->getTraceAsString());
-                    $noExceptions = false;
-                }
-
-                if ($openExchangeOrders) {
-                    $used_slots = count($openExchangeOrders);
-                } else {
-                    $used_slots = $openOrders;
-                }
-                $slots = $settings->max_orders - $used_slots;
-
-                try {
-                    $funds = $this->exchange->getAccounts();
-                } catch (\Exception $e) {
-                    Log::alert($e->getTraceAsString());
-                    $noExceptions = false;
-                }
-
-                if ($noExceptions) {
-                    foreach ($funds as $fund) {
-                        $available = $fund->getAvailable();
-                        if ($fund->getCurrency() == $fundAccount) {
-                            Cache::put('config::fund', (float)number_format($available, 8, '.', ''), 1);
-                        }
-                        if ($fund->getCurrency() == $cryptoCoin) {
-                            Cache::put('config::coin', (float)number_format($available, 8, '.', ''), 1);
-                        }
-                    }
-                }
-
-                $funds = true;
-                if (Cache::get('config::fund', 0.0) == 0.00 && Cache::get('config::coin', 0.0) == 0.0) {
-                    $this->warn("no funds for coin: {$cryptoCoin} and fund: {$fundAccount}");
-                    Log::warning("no funds for coin: {$cryptoCoin} and fund: {$fundAccount}");
-                    $funds = false;
-                }
-
-                if ($noExceptions) {
-                    if ($slots <= 0 || !$funds) {
-                        Log::info('slots full (' . $settings->max_orders . '/' . $used_slots . ')');
-                    } else {
-                        $openPositions = $this->positionService->getOpen($pair);
-                        if ($openPositions->count() > 0) {
-                            foreach ($openPositions as $openPosition) {
-                                $this->strategyAdvise($strategy, $openPosition);
-                            }
-                        } else {
-                            $this->strategyAdvise($strategy);
-                        }
-                    }
-                }
-            } else {
-                Log::info('Bot not active');
-            }
-        } else {
-            Log::critical('No currentprice');
-        }
     }
 
     public function handle()

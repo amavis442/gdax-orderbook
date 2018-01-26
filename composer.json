@@ -59,7 +59,7 @@
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover"
         ],
-        "lint": "phpcs -p --standard=psr2 packages/amavis442/trading/src",
+        "lint": "phpcs -p --standard=psr2 packages/amavis442/trading/src --ignore=packages/amavis442/trading/src/database",
         "phpunit": "phpunit  -v --coverage-text --colors --stderr",
         "phpunit-integration": "phpunit --testsuite Integration",
         "phpunit-unit": "phpunit --testsuite Unit --testsuit TraderUnit",
