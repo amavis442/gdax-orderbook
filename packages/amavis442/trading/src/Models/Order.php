@@ -41,5 +41,18 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Order extends Model
 {
-    protected $fillable = ['pair', 'parent_id','position_id','side', 'size', 'amount', 'status', 'order_id', 'strategy','take_profit','close_reason','fee'];
+    protected $fillable = [
+        'pair',
+        'parent_id',
+        'position_id',
+        'side',
+        'size',
+        'amount',
+        'status',
+        'order_id',
+        'strategy',
+        'take_profit',
+        'close_reason',
+        'fee'
+    ];
 }

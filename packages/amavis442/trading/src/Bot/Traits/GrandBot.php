@@ -38,7 +38,6 @@ trait GrandBot
 
         if ($orders->count()) {
             foreach ($orders as $order) {
-
                 try {
                     /** @var \GDAX\Types\Response\Authenticated\Order $exchangeOrder */
                     $exchangeOrder = $this->exchange->getOrder($order->order_id);
@@ -75,11 +74,11 @@ trait GrandBot
                         }
                     }
 
-                    if (
-                        $positionState == \Amavis442\Trading\Contracts\Position::POSITION_OPEN ||
+                    if ($positionState == \Amavis442\Trading\Contracts\Position::POSITION_OPEN ||
                         $positionState == \Amavis442\Trading\Contracts\Position::POSITION_CLOSE
                     ) {
-                        event(new PositionEvent(
+                        event(
+                            new PositionEvent(
                                 $exchangeOrder->getProductId(),
                                 $exchangeOrder->getSide(),
                                 $exchangeOrder->getSize(),
@@ -125,11 +124,8 @@ trait GrandBot
     ) {
 
         $strategyResult = $strategy->advise($position);
-        if (
-            $strategyResult->get('result') == 'fail' ||
-            $strategyResult->get('result') == 'hold'
-        ) {
-            Log::debug("No advise data available. ". $strategyResult->toJson());
+        if ($strategyResult->get('result') == 'fail' || $strategyResult->get('result') == 'hold') {
+            Log::debug("No advise data available. " . $strategyResult->toJson());
             return;
         }
 

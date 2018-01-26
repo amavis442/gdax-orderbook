@@ -32,9 +32,9 @@ class PositionBot implements Bot
 
         foreach ($positions as $position) {
             $exchangeOrder = Order::whereSide('sell')
-                                  ->whereStatus('done')
-                                  ->wherePositionId($position->id)
-                                  ->first();
+                ->whereStatus('done')
+                ->wherePositionId($position->id)
+                ->first();
             if ($exchangeOrder) {
                 $position->status = 'closed';
                 $position->close = $exchangeOrder->amount;
@@ -64,9 +64,9 @@ class PositionBot implements Bot
                 // Are we only watching or do we really wonna place a sell order (stoploss and at what price)
                 if ($sellMe && !$position->watch) {
                     $existingSellOrder = Order::wherePositionId($position->id)
-                                              ->whereSide('sell')
-                                              ->whereIn('status', ['open', 'pending'])
-                                              ->first();
+                        ->whereSide('sell')
+                        ->whereIn('status', ['open', 'pending'])
+                        ->first();
 
                     if ($existingSellOrder) {
                         $placeOrder = false;
@@ -114,11 +114,11 @@ class PositionBot implements Bot
 
             if ($status == 'open' || $status == 'pending') {
                 Order::create([
-                    'pair'        => $order->getProductId(),
-                    'side'        => 'sell',
-                    'order_id'    => $order->getId(),
-                    'size'        => $size,
-                    'amount'      => $sellPrice,
+                    'pair' => $order->getProductId(),
+                    'side' => 'sell',
+                    'order_id' => $order->getId(),
+                    'size' => $size,
+                    'amount' => $sellPrice,
                     'position_id' => $position->id,
                 ]);
 
@@ -131,13 +131,13 @@ class PositionBot implements Bot
         // For testing/simulating
         if (!$realSell) {
             Order::create([
-                'pair'        => $position->pair,
-                'side'        => 'sell',
-                'order_id'    => 'simulate',
-                'size'        => $size,
-                'amount'      => $sellPrice,
+                'pair' => $position->pair,
+                'side' => 'sell',
+                'order_id' => 'simulate',
+                'size' => $size,
+                'amount' => $sellPrice,
                 'position_id' => $position->id,
-                'status'      => 'simulate',
+                'status' => 'simulate',
             ]);
 
             Log::info('Place sell order [simulate] for position ' . $position->id);
@@ -160,7 +160,7 @@ class PositionBot implements Bot
     {
         try {
             return $this->exchange->getCurrentPrice();
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             Log::warning($e->getTraceAsString());
         }
     }
@@ -183,5 +183,4 @@ class PositionBot implements Bot
             $this->watchPositions($currentPrice);
         }
     }
-
 }

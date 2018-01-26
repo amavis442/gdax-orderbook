@@ -1,5 +1,7 @@
 <?php
 
+namespace Amavis442\Database\Migrations;
+
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -15,7 +17,7 @@ class CreatePositionsTable extends Migration
     {
         Schema::create('positions', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('pair',10);
+            $table->string('pair', 10);
             $table->string('order_id', 40);
             $table->string('size', 20);
             $table->decimal('amount', 15, 9);

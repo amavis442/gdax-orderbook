@@ -24,7 +24,7 @@ use Amavis442\Trading\Exceptions\NotEnoughDataPointsException;
 class MovingAverageCrossoverDivergenceIndicator implements Indicator
 {
 
-    public function check(Collection $config): int//public function __invoke(array $data, int $period1 = 12, int $period2 = 26, int $period3 = 9): int
+    public function check(Collection $config): int
     {
         $data = $config->get('data', []);
         $period = (int)$config->get('period', 14);
@@ -32,26 +32,18 @@ class MovingAverageCrossoverDivergenceIndicator implements Indicator
         $period2 = (int)$config->get('period', 26);
         $period3 = (int)$config->get('period', 9);
 
-        /* 
-         * Create the MACD signal and pass in the three parameters: fast period, slow period, and the signal.
-         * we will want to tweak these periods later for now these are fine.
-         * data, fast period, slow period, signal period (2-100000)
-         * array $real [, integer $fastPeriod [, integer $slowPeriod [, integer $signalPeriod ]]]
-         */
-
         $macd = trader_macd(
-            $data['close'], 
-            $period1, 
-            $period2, 
+            $data['close'],
+            $period1,
+            $period2,
             $period3
-            );
+        );
 
         throw_unless($macd, NotEnoughDataPointsException::class, "Not enough datapoints");
 
-        
         $macd_raw = $macd[0];
-        $signal   = $macd[1];
-        $hist     = $macd[2];
+        $signal = $macd[1];
+        $hist = $macd[2];
 
         //If not enough Elements for the Function to complete
         if (!$macd || !$macd_raw) {
@@ -60,9 +52,9 @@ class MovingAverageCrossoverDivergenceIndicator implements Indicator
 
         //$macd = $macd_raw[count($macd_raw)-1] - $signal[count($signal)-1];
         $macd = (array_pop($macd_raw) - array_pop($signal));
-        
+
         // Close position for the pair when the MACD signal is negative
-        
+
         if ($macd < 0) {
             return static::SELL;
             // Enter the position for the pair when the MACD signal is positive
@@ -72,5 +64,4 @@ class MovingAverageCrossoverDivergenceIndicator implements Indicator
             return static::HOLD;
         }
     }
-
 }

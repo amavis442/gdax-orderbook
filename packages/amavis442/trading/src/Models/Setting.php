@@ -35,11 +35,23 @@ use Illuminate\Database\Eloquent\Model;
  * @mixin \Eloquent
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereTakeprofit($value)
  * @property float $takeprofittreshold
- * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereTakeprofittreshold($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting
+ * whereTakeprofittreshold($value)
  * @property float $trailingstop
  * @method static \Illuminate\Database\Eloquent\Builder|\Amavis442\Trading\Models\Setting whereTrailingstop($value)
  */
 class Setting extends Model
 {
-    protected $fillable = ['spread','sellspread','stoploss','takeprofit','max_orders','bottom','top','size','lieftime','botactive'];
+    protected $fillable = [
+        'spread',
+        'sellspread',
+        'stoploss',
+        'takeprofit',
+        'max_orders',
+        'bottom',
+        'top',
+        'size',
+        'lieftime',
+        'botactive'
+    ];
 }

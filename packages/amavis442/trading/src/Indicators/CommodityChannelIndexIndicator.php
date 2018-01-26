@@ -32,5 +32,4 @@ class CommodityChannelIndexIndicator implements Indicator
             return static::HOLD;
         }
     }
-
 }

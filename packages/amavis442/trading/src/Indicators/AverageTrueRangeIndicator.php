@@ -49,8 +49,7 @@ class AverageTrueRangeIndicator implements Indicator
         );
 
         throw_unless($atr, NotEnoughDataPointsException::class, "Not enough datapoints");
-        
-        
+
         $atr = array_pop($atr);
         
         // An upside breakout occurs when the price goes 1 ATR above the previous close
@@ -60,12 +59,11 @@ class AverageTrueRangeIndicator implements Indicator
         $downside_signal = ($prev_close - ($current + $atr));
 
         if ($upside_signal > 0) {
-            return static::BUY; 
+            return static::BUY;
         } elseif ($downside_signal > 0) {
             return static::SELL;
         }
 
         return static::HOLD;
     }
-
 }

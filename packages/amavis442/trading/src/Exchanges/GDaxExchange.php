@@ -33,7 +33,9 @@ class GDaxExchange implements Exchange
     protected function connect(bool $sandbox = false)
     {
         $this->client = new \GDAX\Clients\AuthenticatedClient(
-            config('trading.api_key'), config('trading.api_secret'), config('trading.password')
+            config('trading.api_key'),
+            config('trading.api_secret'),
+            config('trading.password')
         );
 
         if ($sandbox) {
@@ -60,7 +62,7 @@ class GDaxExchange implements Exchange
      */
     public function getOrderbook(): \GDAX\Types\Response\Market\ProductOrderBook
     {
-        $product          = (new \GDAX\Types\Request\Market\Product())->setProductId($this->getProductId())->setLevel(2);
+        $product = (new \GDAX\Types\Request\Market\Product())->setProductId($this->getProductId())->setLevel(2);
         $productOrderBook = $this->client->getProductOrderBook($product);
 
         return $productOrderBook;
@@ -115,7 +117,7 @@ class GDaxExchange implements Exchange
      */
     public function getOrder(string $order_id): \GDAX\Types\Response\Authenticated\Order
     {
-        $order    = (new \GDAX\Types\Request\Authenticated\Order())->setId($order_id);
+        $order = (new \GDAX\Types\Request\Authenticated\Order())->setId($order_id);
         $response = $this->client->getOrder($order);
 
         return $response;
@@ -162,7 +164,7 @@ class GDaxExchange implements Exchange
     public function getCurrentPrice(): float
     {
 
-        $product       = (new \GDAX\Types\Request\Market\Product())->setProductId($this->getProductId());
+        $product = (new \GDAX\Types\Request\Market\Product())->setProductId($this->getProductId());
         $productTicker = $this->client->getProductTicker($product);
 
         //Current asking price
@@ -178,7 +180,7 @@ class GDaxExchange implements Exchange
      */
     public function cancelOrder(string $order_id): \GDAX\Types\Response\RawData
     {
-        $order    = (new \GDAX\Types\Request\Authenticated\Order())->setId($order_id);
+        $order = (new \GDAX\Types\Request\Authenticated\Order())->setId($order_id);
         $response = $this->client->cancelOrder($order);
 
         return $response;
@@ -187,8 +189,8 @@ class GDaxExchange implements Exchange
     public function placeOrder(
         string $pair = 'BTC-EUR',
         string $side = 'buy',
-        float $size,
-        float $price,
+        float $size = 0.001,
+        float $price = 90.00,
         string $ordertype = 'limit',
         string $cancelafter = 'minute',
         float $stopprice = 0.0,
@@ -375,19 +377,19 @@ class GDaxExchange implements Exchange
         /** @var  \GDAX\Types\Response\Authenticated\Account $account */
         foreach ($accounts as $account) {
             $currency = $account->getCurrency();
-            $balance  = $account->getBalance();
+            $balance = $account->getBalance();
 
             if ($currency != 'EUR') {
-                $product       = (new \GDAX\Types\Request\Market\Product())->setProductId($currency . '-EUR');
+                $product = (new \GDAX\Types\Request\Market\Product())->setProductId($currency . '-EUR');
                 $productTicker = $this->client->getProductTicker($product);
-                $koers         = number_format($productTicker->getPrice(), 3, '.', '');
+                $koers = number_format($productTicker->getPrice(), 3, '.', '');
             } else {
                 $koers = 0.0;
             }
             $waarde = 0.0;
             if ($currency == 'EUR') {
                 $balance = number_format($balance, 4, '.', '');
-                $waarde  = $balance;
+                $waarde = $balance;
             } else {
                 $waarde = number_format($balance * $koers, 4, '.', '');
             }

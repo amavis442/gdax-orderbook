@@ -30,7 +30,6 @@ class MovingAverageCrossoverDivergenceWithControllableMovingAverageTypeIndicator
         $slowMAType = $this->ma_type($slowMAType);
         $signalMAType = $this->ma_type($signalMAType);
 
-
         $macd = trader_macdext(
             $data['close'],
             $fastPeriod,
@@ -46,7 +45,6 @@ class MovingAverageCrossoverDivergenceWithControllableMovingAverageTypeIndicator
 
             if ($macd < 0) {
                 return static::SELL;
-
             } elseif ($macd > 0) {
                 return static::BUY;
             } else {
@@ -56,5 +54,4 @@ class MovingAverageCrossoverDivergenceWithControllableMovingAverageTypeIndicator
 
         return -2;
     }
-
 }

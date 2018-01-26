@@ -29,30 +29,33 @@ class IndicatorController extends Controller
         $result = [];
         switch ($r) {
             case Indicator::BUY:
-                $result = ['indicatorname'   => $name,
-                           'indicatorsignal' => 'buy',
-                           'timestamp'       => $timestamp,
-                           'issell'          => false,
-                           'isbuy'           => true,
-                           'ishold'          => false,
+                $result = [
+                    'indicatorname' => $name,
+                    'indicatorsignal' => 'buy',
+                    'timestamp' => $timestamp,
+                    'issell' => false,
+                    'isbuy' => true,
+                    'ishold' => false,
                 ];
                 break;
             case Indicator::HOLD:
-                $result = ['indicatorname'   => $name,
-                           'indicatorsignal' => 'hold',
-                           'timestamp'       => $timestamp,
-                           'issell'          => false,
-                           'isbuy'           => false,
-                           'ishold'          => true,
+                $result = [
+                    'indicatorname' => $name,
+                    'indicatorsignal' => 'hold',
+                    'timestamp' => $timestamp,
+                    'issell' => false,
+                    'isbuy' => false,
+                    'ishold' => true,
                 ];
                 break;
             case Indicator::SELL:
-                $result = ['indicatorname'   => $name,
-                           'indicatorsignal' => 'sell',
-                           'timestamp'       => $timestamp,
-                           'issell'          => true,
-                           'isbuy'           => false,
-                           'ishold'          => false,
+                $result = [
+                    'indicatorname' => $name,
+                    'indicatorsignal' => 'sell',
+                    'timestamp' => $timestamp,
+                    'issell' => true,
+                    'isbuy' => false,
+                    'ishold' => false,
                 ];
                 break;
         }

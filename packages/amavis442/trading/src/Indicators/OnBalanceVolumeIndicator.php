@@ -22,12 +22,10 @@ class OnBalanceVolumeIndicator implements Indicator
     public function check(Collection $config): int
     {
         $data = $config->get('data', []);
-        $period = (int)$config->get('period', 14);
 
         $_obv = trader_obv($data['close'], $data['volume']);
 
         throw_unless($_obv, NotEnoughDataPointsException::class, "Not enough datapoints");
-
 
         $current_obv = array_pop($_obv);
         $prior_obv = array_pop($_obv);
@@ -41,5 +39,4 @@ class OnBalanceVolumeIndicator implements Indicator
             return static::HOLD;
         }
     }
-
 }

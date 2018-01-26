@@ -28,7 +28,6 @@ class MarketMeannessIndexIndicator implements Indicator
         $data = $config->get('data', []);
         $period = (int)$config->get('period', 200);
 
-
         $data_close = [];
         foreach ($data['close'] as $point) {
             $data_close[] = $point;
@@ -57,5 +56,4 @@ class MarketMeannessIndexIndicator implements Indicator
 
         return static::HOLD;
     }
-
 }

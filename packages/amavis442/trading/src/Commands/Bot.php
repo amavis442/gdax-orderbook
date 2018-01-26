@@ -29,7 +29,8 @@ class Bot extends Command
      *
      * @var string
      */
-    protected $signature = 'trading:run:bot {pair : what pair to use valid values are BTC-EUR, LTC-EUR, ETH-EUR } {--simulate : simulate for testing}';
+    protected $signature = 'trading:run:bot {pair : what pair to use valid values are BTC-EUR, LTC-EUR, ETH-EUR }'.
+    ' {--simulate : simulate for testing}';
 
     /**
      * The console command description.
@@ -42,7 +43,6 @@ class Bot extends Command
      * @var book
      */
     public $book;
-
 
     /**
      * Create a new command instance.
@@ -190,7 +190,7 @@ class Bot extends Command
             $this->config->put('simulate', true);
         }
 
-        Cache::put('bot::process::timestamp', \Carbon\Carbon::now('Europe/Amsterdam'),10);
+        Cache::put('bot::process::timestamp', \Carbon\Carbon::now('Europe/Amsterdam'), 10);
 
         $loop = \React\EventLoop\Factory::create();
         $connector = new \Ratchet\Client\Connector($loop);
@@ -206,7 +206,8 @@ class Bot extends Command
                 $ch = json_encode($channel);
                 $conn->send($ch);
 
-                $conn->on('message',
+                $conn->on(
+                    'message',
                     function (\Ratchet\RFC6455\Messaging\MessageInterface $msg) use ($pair, $conn) {
                         $data = json_decode($msg, 1);
 
@@ -214,18 +215,18 @@ class Bot extends Command
                             Cache::put('gdax::' . $data['product_id'] . '::currentprice', $data['price'], 1);
 
                             Ticker::create([
-                                'sequence'   => $data['sequence'],
-                                'pair'       => $data['product_id'],
-                                'timeid'     => \Carbon\Carbon::now('Europe/Amsterdam')->format('YmdHis'),
-                                'price'      => $data['price'],
-                                'open'       => $data['open_24h'],
-                                'high'       => $data['high_24h'],
-                                'low'        => $data['low_24h'],
-                                'close'      => $data['price'],
-                                'volume'     => $data['volume_24h'],
+                                'sequence' => $data['sequence'],
+                                'pair' => $data['product_id'],
+                                'timeid' => \Carbon\Carbon::now('Europe/Amsterdam')->format('YmdHis'),
+                                'price' => $data['price'],
+                                'open' => $data['open_24h'],
+                                'high' => $data['high_24h'],
+                                'low' => $data['low_24h'],
+                                'close' => $data['price'],
+                                'volume' => $data['volume_24h'],
                                 'volume_30d' => $data['volume_30d'],
-                                'best_bid'   => $data['best_bid'],
-                                'best_ask'   => $data['best_ask'],
+                                'best_bid' => $data['best_bid'],
+                                'best_ask' => $data['best_ask'],
                             ]);
 
                             try {
@@ -236,10 +237,9 @@ class Bot extends Command
                                 Log::critical($e->getTraceAsString());
                             }
                         }
-
                         Cache::put('bot::heartbeat', date('Y-m-d H:i:s'), 1);
-                    });
-
+                    }
+                );
 
                 $conn->on('close', function ($code = null, $reason = null) use ($pair) {
                     /** log errors here */
@@ -251,19 +251,15 @@ class Bot extends Command
                         new WebsocketClosedEvent($code, $reason)
                     );
                 });
+            }, function (\Exception $e) use ($loop, $pair) {
+                Log::critical("Could not connect: " . $e->getMessage());
+                Log::critical($e->getTraceAsString());
+                Cache::forget('bot::heartbeat');
+                Cache::forget('gdax::' . $pair . '::currentprice');
 
-            },
-                function (\Exception $e) use ($loop, $pair) {
-                    Log::critical("Could not connect: " . $e->getMessage());
-                    Log::critical($e->getTraceAsString());
-                    Cache::forget('bot::heartbeat');
-                    Cache::forget('gdax::' . $pair . '::currentprice');
-
-                    $loop->stop();
-                }
-            );
+                $loop->stop();
+            });
 
         $loop->run();
-
     }
 }

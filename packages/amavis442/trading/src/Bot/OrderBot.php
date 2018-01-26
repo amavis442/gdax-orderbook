@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Amavis442\Trading\Contracts\Bot;
 use Amavis442\Trading\Contracts\Exchange;
-use Amavis442\Trading\Events\Position as PositionEvent;
+use Amavis442\Trading\Events\PositionEvent;
 
 class OrderBot implements Bot
 {
@@ -50,13 +50,14 @@ class OrderBot implements Bot
                     if (is_null($order)) {
                         Order::create(
                             [
-                                'pair'     => $exchangeOrder->getProductId(),
-                                'side'     => $exchangeOrder->getSide(),
+                                'pair' => $exchangeOrder->getProductId(),
+                                'side' => $exchangeOrder->getSide(),
                                 'order_id' => $exchangeOrder->getId(),
-                                'size'     => $exchangeOrder->getSize(),
-                                'amount'   => $exchangeOrder->getPrice(),
-                                'status'   => 'manual',
-                            ]);
+                                'size' => $exchangeOrder->getSize(),
+                                'amount' => $exchangeOrder->getPrice(),
+                                'status' => 'manual',
+                            ]
+                        );
                     } else {
                         if ($order->status != 'done') {
                             $order->status = $exchangeOrder->getStatus();
@@ -92,17 +93,18 @@ class OrderBot implements Bot
                     // A recently placed buy order had been filled so we add it as an open position
                     if ($status == 'done') {
                         $position = Position::create([
-                            'pair'     => $exchangeOrder->getProductId(),
+                            'pair' => $exchangeOrder->getProductId(),
                             'order_id' => $exchangeOrder->getId(),
-                            'size'     => $exchangeOrder->getSize(),
-                            'amount'   => $exchangeOrder->getPrice(),
-                            'open'     => $exchangeOrder->getPrice(),
-                            'status'   => 'open',
+                            'size' => $exchangeOrder->getSize(),
+                            'amount' => $exchangeOrder->getPrice(),
+                            'open' => $exchangeOrder->getPrice(),
+                            'status' => 'open',
                         ]);
 
                         $position_id = $position->id;
 
-                        event(new PositionEvent(
+                        event(
+                            new PositionEvent(
                                 $exchangeOrder->getProductId(),
                                 $exchangeOrder->getSide(),
                                 $exchangeOrder->getSize(),
@@ -157,7 +159,8 @@ class OrderBot implements Bot
                             $position->status = 'closed';
                             $position->save();
 
-                            event(new PositionEvent(
+                            event(
+                                new PositionEvent(
                                     $exchangeOrder->getProductId(),
                                     $exchangeOrder->getSide(),
                                     $exchangeOrder->getSize(),
@@ -165,7 +168,6 @@ class OrderBot implements Bot
                                     $position->status
                                 )
                             );
-
                         } catch (\Exception $e) {
                             Log::error($e->getTraceAsString());
                         }
@@ -181,6 +183,5 @@ class OrderBot implements Bot
         $this->updateOpenOrders();
         $this->updateBuyOrderStatusAndCreatePosition();
         $this->updateSellOrdersAndClosePosition();
-
     }
 }

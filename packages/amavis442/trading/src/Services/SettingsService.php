@@ -5,12 +5,13 @@ namespace Amavis442\Trading\Services;
 
 use Illuminate\Support\Facades\DB;
 
-class SettingsService {
+class SettingsService
+{
 
-    public function getSettings() : array {
-        $settings = DB::table('settings')->orderby('id','desc')->limit(1)->first();
+    public function getSettings(): array
+    {
+        $settings = DB::table('settings')->orderby('id', 'desc')->limit(1)->first();
 
         return (array)$settings;
     }
-
 }

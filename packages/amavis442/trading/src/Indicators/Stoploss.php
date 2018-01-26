@@ -20,8 +20,7 @@ class Stoploss implements Indicator
 
     public function check(Collection $config): int
     {
-
-        $currentprice = Cache::get('gdax::'.$config->get('pair').'::currentprice');
+        $currentprice = Cache::get('gdax::' . $config->get('pair') . '::currentprice');
         $position = $config->get('position');
 
         $cacheKey = 'gdax::stoploss::' . $position->id;
@@ -43,5 +42,4 @@ class Stoploss implements Indicator
 
         return Indicator::HOLD;
     }
-
 }

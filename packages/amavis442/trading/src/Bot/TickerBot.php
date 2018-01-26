@@ -1,4 +1,5 @@
 <?php
+
 namespace Amavis442\Trading\Bot;
 
 use Amavis442\Trading\Contracts\Bot;
@@ -9,7 +10,6 @@ class TickerBot implements Bot
 {
     protected $msg = [];
     protected $exchange;
-
 
     public function __construct(Exchange $exchange)
     {
@@ -56,7 +56,6 @@ class TickerBot implements Bot
             $tick->save();
         }
     }
-
 
     public function run()
     {

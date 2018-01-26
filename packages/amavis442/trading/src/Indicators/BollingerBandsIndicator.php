@@ -65,5 +65,4 @@ class BollingerBandsIndicator implements Indicator
             return static::HOLD;
         }
     }
-
 }

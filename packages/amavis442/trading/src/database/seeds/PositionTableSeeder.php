@@ -20,17 +20,16 @@ class PositionTableSeeder extends Seeder
 
         foreach ($orders as $order) {
             $position = Position::create([
-                                             'pair'     => 'BTC-EUR',
-                                             'size'     => $order->size,
-                                             'amount'   => $order->amount,
-                                             'open'     => $order->amount,
-                                             'status'   => 'open',
-                                             'order_id' => $order->order_id,
-                                         ]);
+                'pair' => 'BTC-EUR',
+                'size' => $order->size,
+                'amount' => $order->amount,
+                'open' => $order->amount,
+                'status' => 'open',
+                'order_id' => $order->order_id,
+            ]);
 
             $order->position_id = $position->id;
             $order->save();
-
         }
     }
 }

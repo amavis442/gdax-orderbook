@@ -62,5 +62,4 @@ class HilbertTransformInstantaneousTrendlineIndicator implements Indicator
 
         return static::HOLD;
     }
-
 }

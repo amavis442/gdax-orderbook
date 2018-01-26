@@ -3,6 +3,7 @@
 namespace Amavis442\Trading\Bot;
 
 use Amavis442\Trading\Contracts\Bot;
+use Amavis442\Trading\Contracts\Indicator;
 use Amavis442\Trading\Util\PositionConstants;
 
 class BuyBot implements Bot
@@ -31,7 +32,8 @@ class BuyBot implements Bot
 
         $order = $this->exchange->placeLimitBuyOrder($size, $price);
 
-        if ($order->getId() && ($order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_PENDING || $order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_OPEN)) {
+        if ($order->getId() && ($order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_PENDING ||
+                $order->getStatus() == \GDAX\Utilities\GDAXConstants::ORDER_STATUS_OPEN)) {
             $this->orderService->buy($order->getId(), $size, $price);
             $positionCreated = true;
         } else {
@@ -65,27 +67,32 @@ class BuyBot implements Bot
         if (!$botactive) {
             $msg[] = 'Bot is disabled';
         } else {
-
-            $currentPrice = $this->gdaxService->getCurrentPrice();
+            $currentPrice = $this->exchange->getCurrentPrice();
 
             // Create safe limits
             $topLimit = $this->config['top'];
             $bottomLimit = $this->config['bottom'];
 
             if (!$currentPrice || $currentPrice < 1 || $currentPrice > $topLimit || $currentPrice < $bottomLimit) {
-                $msg[] = sprintf("Treshold reached %s  [%s]  %s so no buying for now.", $bottomLimit, $currentPrice,
-                    $topLimit);
+                $msg[] = sprintf(
+                    "Treshold reached %s  [%s]  %s so no buying for now.",
+                    $bottomLimit,
+                    $currentPrice,
+                    $topLimit
+                );
             } else {
-                if ($signal == PositionConstants::BUY && $numOrdersLeftToPlace > 0) {
-
+                if ($signal == Indicator::BUY && $numOrdersLeftToPlace > 0) {
                     $size = $this->config['size'];
                     $buyPrice = number_format($currentPrice - 0.01, 2, '.', '');
                     $msg[] = "Place buyorder for size " . $size . ' and price ' . $buyPrice;
                     $this->placeBuyOrder($size, $buyPrice);
                 } else {
                     if ($numOrdersLeftToPlace < 1) {
-                        $msg[] = sprintf("Num orders has been reached: Allowed: %d, placed %d",
-                            (int)$this->config['max_orders'], (int)$numOpenOrders);
+                        $msg[] = sprintf(
+                            "Num orders has been reached: Allowed: %d, placed %d",
+                            (int)$this->config['max_orders'],
+                            (int)$numOpenOrders
+                        );
                     }
                 }
                 $msg[] = "=== DONE " . date('Y-m-d H:i:s') . " ===";

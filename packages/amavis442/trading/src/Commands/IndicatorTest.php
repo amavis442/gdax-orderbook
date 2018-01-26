@@ -22,7 +22,6 @@ use Amavis442\Trading\Indicators\MovingAverageCrossoverDivergenceIndicator;
  */
 class IndicatorTest extends Command
 {
-
     /**
      * The name and signature of the console command.
      *
@@ -56,7 +55,7 @@ class IndicatorTest extends Command
     {
         $pair = 'ETH-EUR';
         $t = new Ticker();
-        $data = $t->getRecentData($pair,168);
+        $data = $t->getRecentData($pair, 168);
 
         $config = new Collection(['data' => $data, 'period' => 14]);
 
@@ -66,33 +65,33 @@ class IndicatorTest extends Command
 
         $i = new AverageDirectionalMovementIndexIndicator();
         $r = $i->check($config);
-        $data[] = ['AverageDirectionalMovementIndexIndicator',$this->toText($r)];
+        $data[] = ['AverageDirectionalMovementIndexIndicator', $this->toText($r)];
 
         $i = new OnBalanceVolumeIndicator();
         $r = $i->check($config);
-        $data[] = ['OnBalanceVolumeIndicator',$this->toText($r)];
+        $data[] = ['OnBalanceVolumeIndicator', $this->toText($r)];
 
         $i = new CommodityChannelIndexIndicator();
         $r = $i->check($config);
-        $data[] = ['CommodityChannelIndexIndicator',$this->toText($r)];
+        $data[] = ['CommodityChannelIndexIndicator', $this->toText($r)];
 
 
         $i = new HilbertTransformInstantaneousTrendlineIndicator();
         $r = $i->check($config);
-        $data[] = ['HilbertTransformInstantaneousTrendlineIndicator',$this->toText($r)];
+        $data[] = ['HilbertTransformInstantaneousTrendlineIndicator', $this->toText($r)];
 
         $i = new HilbertTransformTrendVersusCycleModeIndicator();
         $r = $i->check($config);
-        $data[] = ['HilbertTransformTrendVersusCycleModeIndicator',$this->toText($r)];
+        $data[] = ['HilbertTransformTrendVersusCycleModeIndicator', $this->toText($r)];
 
         $i = new MoneyFlowIndexIndicator();
         $r = $i->check($config);
-        $data[] = ['MoneyFlowIndexIndicator',$this->toText($r)];
+        $data[] = ['MoneyFlowIndexIndicator', $this->toText($r)];
 
 
         $i = new MovingAverageCrossoverDivergenceIndicator();
         $r = $i->check($config);
-        $data[] = ['MovingAverageCrossoverDivergenceIndicator',$this->toText($r)];
+        $data[] = ['MovingAverageCrossoverDivergenceIndicator', $this->toText($r)];
 
         $this->table($headers, $data);
     }

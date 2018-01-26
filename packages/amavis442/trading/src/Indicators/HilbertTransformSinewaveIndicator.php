@@ -54,5 +54,4 @@ class HilbertTransformSinewaveIndicator implements Indicator
 
         return static::HOLD;
     }
-
 }

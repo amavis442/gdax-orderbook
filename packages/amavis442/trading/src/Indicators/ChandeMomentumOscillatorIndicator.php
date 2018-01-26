@@ -31,5 +31,4 @@ class ChandeMomentumOscillatorIndicator implements Indicator
             return static::HOLD;
         }
     }
-
 }

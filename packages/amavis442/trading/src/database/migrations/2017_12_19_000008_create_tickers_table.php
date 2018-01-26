@@ -1,5 +1,7 @@
 <?php
 
+namespace Amavis442\Database\Migrations;
+
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -15,9 +17,9 @@ class CreateTickersTable extends Migration
     {
         Schema::create('tickers', function (Blueprint $table) {
             $table->increments('id');
-            $table->bigInteger('sequence', false,true)->nullable();
+            $table->bigInteger('sequence', false, true)->nullable();
             $table->string('pair', 10);
-            $table->bigInteger('timeid', false,true)->nullable();
+            $table->bigInteger('timeid', false, true)->nullable();
             $table->decimal('price', 15, 4)->nullable();
             $table->decimal('open', 15, 4)->nullable();
             $table->decimal('high', 15, 4)->nullable();

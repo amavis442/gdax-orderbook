@@ -1,4 +1,5 @@
 <?php
+
 namespace Amavis442\Trading\Database\Seeder;
 
 use Illuminate\Database\Seeder;
@@ -14,6 +15,5 @@ class DummyDatabaseSeeder extends Seeder
     {
         $this->call(OrderTableSeeder::class);
         $this->call(PositionTableSeeder::class);
-
     }
 }

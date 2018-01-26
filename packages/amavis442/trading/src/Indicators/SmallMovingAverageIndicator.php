@@ -14,15 +14,13 @@ use Illuminate\Support\Collection;
 class SmallMovingAverageIndicator implements Indicator
 {
 
-
     public function check(Collection $config): int
     {
-
         $data = $config->get('data');
         $period = (int)$config->get('period', 14);
-        $k1 =$data->pluck('close')->all();
+        $k1 = $data->pluck('close')->all();
 
-        $sma = trader_sma($k1,14);
+        $sma = trader_sma($k1, 14);
 
         throw_unless($sma, NotEnoughDataPointsException::class, "Not enough datapoints");
 
@@ -36,5 +34,4 @@ class SmallMovingAverageIndicator implements Indicator
             return static::HOLD;
         }
     }
-
 }

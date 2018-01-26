@@ -21,8 +21,6 @@ use Illuminate\Support\Collection;
  */
 class AverageDirectionalMovementIndexIndicator implements Indicator
 {
-
-
     public function check(Collection $config): int
     {
 
@@ -47,5 +45,4 @@ class AverageDirectionalMovementIndexIndicator implements Indicator
             return static::HOLD;
         }
     }
-
 }

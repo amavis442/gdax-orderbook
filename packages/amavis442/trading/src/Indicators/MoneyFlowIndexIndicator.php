@@ -20,12 +20,10 @@ use Amavis442\Trading\Exceptions\NotEnoughDataPointsException;
  */
 class MoneyFlowIndexIndicator implements Indicator
 {
-    public function check(Collection $config): int//public function run(Collection $data, int $period = 14): int
+    public function check(Collection $config): int
     {
-
         $data = $config->get('data', []);
         $period = (int)$config->get('period', 14);
-
 
         $mfi = trader_mfi(
             $data['high'],
@@ -47,5 +45,4 @@ class MoneyFlowIndexIndicator implements Indicator
 
         return static::HOLD;
     }
-
 }

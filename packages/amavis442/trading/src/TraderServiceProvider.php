@@ -46,9 +46,9 @@ class TraderServiceProvider extends ServiceProvider
      */
     public function register()
     {
-
         $this->app->bind(
-            'Amavis442\Trading\Contracts\Exchange', 'Amavis442\Trading\Exchanges\GDaxExchange'
+            'Amavis442\Trading\Contracts\Exchange',
+            'Amavis442\Trading\Exchanges\GDaxExchange'
         );
 
         $this->app->singleton('Amavis442\Trading\Services\OrderService', function ($app) {
@@ -63,7 +63,6 @@ class TraderServiceProvider extends ServiceProvider
         $this->app->singleton('Amavis442\Trading\Indicators\Stoploss', function ($app) {
             return new \Amavis442\Trading\Indicators\Stoploss();
         });
-
 
         // The bots
         $this->app->singleton('Amavis442\Trading\Bot\PositionBot', function ($app) {

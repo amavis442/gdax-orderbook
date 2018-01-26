@@ -58,5 +58,4 @@ class HilbertTransformTrendVersusCycleModeIndicator implements Indicator
 
         return 0; // we are cycling.
     }
-
 }

@@ -96,20 +96,20 @@ interface Exchange
     /**
      * @param string $pair
      * @param string $side
-     * @param float  $size
-     * @param float  $price
+     * @param float $size
+     * @param float $price
      * @param string $ordertype
      * @param string $cancelafter
-     * @param float  $stopprice
-     * @param float  $stoplimit
-     * @param bool   $fake
+     * @param float $stopprice
+     * @param float $stoplimit
+     * @param bool $fake
      * @return \GDAX\Types\Response\Authenticated\Order
      */
     public function placeOrder(
         string $pair = 'BTC-EUR',
         string $side = 'buy',
-        float $size,
-        float $price,
+        float $size = 0.001,
+        float $price = 90.0,
         string $ordertype = 'limit',
         string $cancelafter = 'minute',
         float $stopprice = 0.0,

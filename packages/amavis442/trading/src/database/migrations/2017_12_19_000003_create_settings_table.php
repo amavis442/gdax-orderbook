@@ -1,5 +1,7 @@
 <?php
 
+namespace Amavis442\Database\Migrations;
+
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -15,7 +17,7 @@ class CreateSettingsTable extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('pair',10);
+            $table->string('pair', 10);
             $table->decimal('trailingstop', 4, 2)->default(10.00);
             $table->integer('max_orders')->default(1);
             $table->decimal('tradebottomlimit', 10, 2)->default('10000');

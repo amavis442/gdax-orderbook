@@ -16,8 +16,8 @@ class OrderController extends Controller
     public function index(Request $request, $page = 1)
     {
         $orders = Order::select('*')
-                       ->orderBy('created_at', 'desc')
-                       ->paginate();
+            ->orderBy('created_at', 'desc')
+            ->paginate();
 
         return $orders;
     }
@@ -33,5 +33,4 @@ class OrderController extends Controller
         $stop = $request->get('ordertype');
         $limitprice = $request->get('orderlimitprice');
     }
-
 }

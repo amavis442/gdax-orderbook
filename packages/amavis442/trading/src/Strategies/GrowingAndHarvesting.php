@@ -43,21 +43,15 @@ class GrowingAndHarvesting implements Strategy
 
 
         if (!is_null($currentprice)) {
-            if (
-                $currentprice > $lowerlimit &&
-                $currentprice < $upperlimit
-            ) {
-
+            if ($currentprice > $lowerlimit && $currentprice < $upperlimit) {
                 $minimalSizeReached = false;
                 if ($fund > 0.01) { // Buy and use all of the fund
-
                     $order = \Amavis442\Trading\Models\Order::whereStatus('done')
                         ->whereSide('sell')
                         ->wherePair($pair)
                         ->orderBy('id', 'desc')
                         ->where('created_at', '>', $timestamp)
                         ->first();
-
 
                     /**
                      * BUY
@@ -82,9 +76,9 @@ class GrowingAndHarvesting implements Strategy
                         $minimalSizeReached = true;
                     }
 
+                    // should be more then 0.0001 for BTC and 0.01 for ETH and LTC
                     $s = (string)$s;
-                    $size = substr($s, 0,
-                        strpos($s, '.') + 9); // should be more then 0.0001 for BTC and 0.01 for ETH and LTC
+                    $size = substr($s, 0, strpos($s, '.') + 9);
 
                     if ($minimalSizeReached) {
                         $result->put('side', 'buy');
@@ -110,7 +104,6 @@ class GrowingAndHarvesting implements Strategy
                         !is_null($position) &&
                         $position->open < $currentprice
                     ) {
-
                         $order = \Amavis442\Trading\Models\Order::whereStatus('done')
                             ->whereSide('buy')
                             ->wherePair($pair)
@@ -160,10 +153,11 @@ class GrowingAndHarvesting implements Strategy
                 }
 
                 $order = \Amavis442\Trading\Models\Order::whereStatus('done')
-                                                        ->whereSide('sell')
-                                                        ->wherePair($pair)
-                                                        ->orderBy('id', 'desc')
-                                                        ->first();
+                    ->whereSide('sell')
+                    ->wherePair($pair)
+                    ->orderBy('id', 'desc')
+                    ->first();
+
                 // When price goes down a lot and the last sell is way above currentprice and we have funds buy.
                 if ($fund >= 0.01 &&
                     !is_null($order) &&
@@ -181,9 +175,10 @@ class GrowingAndHarvesting implements Strategy
                         $minimalSizeReached = true;
                     }
 
+                    // should be more then 0.0001
+                    // for BTC and 0.01 for ETH and LTC
                     $s = (string)$s;
-                    $size = substr($s, 0,
-                        strpos($s, '.') + 9); // should be more then 0.0001 for BTC and 0.01 for ETH and LTC
+                    $size = substr($s, 0, strpos($s, '.') + 9);
 
                     if ($minimalSizeReached) {
                         $result->put('side', 'buy');
@@ -199,5 +194,4 @@ class GrowingAndHarvesting implements Strategy
 
         return $result;
     }
-
 }
